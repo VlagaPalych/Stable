@@ -2,6 +2,7 @@
 #include "math.h"
 #include "string.h"
 #include "stdio.h"
+#include "stdlib.h"
 
 #define G (0xFFFF/4)
 #define CTRL_REG4 0x20
@@ -16,7 +17,7 @@ uint8_t SPI1_SCK    = 5;    // PA5
 uint8_t SPI1_MISO   = 6;    // PA6
 uint8_t SPI1_MOSI   = 7;    // PA7
 uint8_t SPI1_NSS    = 3;    // PE3
-uint8_t ACCEL_INT1    = 0;  // PE0
+uint8_t ACCEL_INT1  = 0;    // PE0
 
 // Motors control and frequency measurement pins
 uint8_t MOT_PWM1    = 12;   // PD12
@@ -59,6 +60,86 @@ uint8_t received = 0;
 char str[100];
 int PWM_RX = 0, pwm = 0, i=-1, st = 1;
 uint8_t SEND_TELEMETRY_FLAG = 0;
+
+// Identification variables
+double y[3];                // 3 last angles
+double u[3];                // 3 last thrusts
+
+double w[3];                // unknown coeffs in diff eq
+double Afull[10*3];         // matrix of our equation Afull * w = Bfull
+double Bfull[10];           // right column
+
+uint8_t anglesAccumulated;  // number of angles we have at the moment
+uint8_t row;
+//////////////////////
+
+double det3(double *mat)
+{
+    return mat[0*3 + 0]*(mat[1*3 + 1]*mat[2*3 + 2] - mat[1*3 + 2]*mat[2*3 + 1]) - mat[0*3 + 1]*(mat[1*3 + 0]*mat[2*3 + 2] - mat[1*3 + 2]*mat[2*3 + 0]) +
+    mat[0*3 + 2]*(mat[1*3 + 0]*mat[2*3 + 1] - mat[1*3 + 1]*mat[2*3 + 0]);
+}
+
+/* A - matrix n x m */
+void transpose(double *A, double *At, int n, int m) {
+    int i, j;
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < m; j++) {
+            At[j*n + i] = A[i*m + j];
+        }
+    }
+}
+
+/* A - matrix n x k 
+   B - matrix k x m */
+void mat_mul(double *A, double *B, double *C, int n, int m, int k) {
+    int i, j, h;
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < m; j++) {
+            C[i*m + j] = 0;
+            for (h = 0; h < k; h++) {
+                C[i*m + j] += A[i*k + h] * B[h*m + j];  
+            }
+        }
+    }
+}
+
+void system_solve(double *F, double *B, double *x, int n, int m) {
+    double *Ft;
+    double *A;
+    double *b;
+    double det, detI;
+    double *tmp;
+    int i, j, y, z;
+
+    Ft = (double *)malloc(n*m*sizeof(double));
+    transpose(F, Ft, n, m);
+
+    A = (double *)malloc(m*m*sizeof(double));
+    b = (double *)malloc(m*sizeof(double));
+
+    mat_mul(Ft, F, A, m, m, n);
+    mat_mul(Ft, B, b, m, 1, n);
+
+    det = det3(A);
+
+    tmp = (double *)malloc(m*m*sizeof(double));
+
+    for (i = 0; i < m; i++) {
+        memcpy(tmp, A, m*m*sizeof(double));
+        for (j = 0; j < m; j++) {
+            tmp[j*m + i] = b[j];
+        }
+         
+        detI = det3(tmp);
+        x[i] = detI / det;
+    }
+
+    free(Ft);
+    free(A);
+    free(b);
+    free(tmp);
+}
+
 
 void Delay(void) {
   volatile uint32_t i;
@@ -167,7 +248,7 @@ void ADXL345_ProcessData(){
     angleSum += angle;
     angleCount++;
     if (angleCount == 8) {
-        angle = angleSum / angleCount;
+        angle = angleSum / angleCount; // true angle we work with
         angleSum = 0;
         angleCount = 0;
         
@@ -196,6 +277,33 @@ void ADXL345_ProcessData(){
             }
             SEND_TELEMETRY_FLAG = 1;
         }
+        
+        // Identification block
+        if (anglesAccumulated < 2) {
+            y[anglesAccumulated] = angle;
+            u[anglesAccumulated] = F;
+        } else {
+            y[2] = angle;
+            u[2] = F;
+            
+            row = anglesAccumulated - 2;
+            Afull[row*3 + 0] = (y[1] - y[0]) / MEASUREMENT_TIME;
+            Afull[row*3 + 1] = y[0];
+            Afull[row*3 + 2] = -u[0];
+            
+            Bfull[row] = (2*y[1] - y[2] - y[0]) / MEASUREMENT_TIME / MEASUREMENT_TIME;
+            
+            y[0] = y[1];
+            y[1] = y[2];
+            u[0] = u[1];
+            u[1] = u[2];
+            
+            if (anglesAccumulated == 11) {
+                system_solve(Afull, Bfull, w, 10, 3);
+                anglesAccumulated = 1;
+            }      
+        } 
+        anglesAccumulated++;
     }
 }
 
@@ -586,6 +694,7 @@ void SendTelemetry() {
     //sprintf(tele, "%8.2f\t%8.4f\t%8.4f\t%8d\t%8d\t%8d\t%8d\n", F, angle, angularVelocity, pwm1, COUNT1, pwm2, COUNT2);
     //sprintf(tele, "%d\t%d\t%d\t%d\n", pwm1, COUNT1, pwm2, COUNT2);
     sprintf(tele, "%8.2f\t%8.2f\t%8.2f\t%d%d\n", angle, angularVelocity, F, pwm1, pwm2);
+    //sprintf(tele, "%8.2f\t%8.2f\t%8.2f\n", w[0], w[1], w[2]);
     len = strlen(tele);
     
     for (i = 0; i < len; i++) {
@@ -627,6 +736,7 @@ void USART2_IRQHandler() {
         } else if (received == 'n') {
             GPIOB->BSRRL |= 1 << 10;
         } else if (received == 'f') {
+      
             GPIOB->BSRRH |= 1 << 10;
         } /*else if (received == 'l') {
             TIM12->CCR1 = 544;
@@ -720,6 +830,8 @@ int main() {
     TIMERS_init();
     SPI_FIRST_INIT();  
     while(ENGRDY != 1) {};
+    
+    anglesAccumulated = 0;
         
     Accel_Init();
     
