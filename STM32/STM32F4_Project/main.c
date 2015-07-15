@@ -14,12 +14,12 @@
 #define PWM_STABLE 2000
 
 // SPI communication pins for accelerometer
-uint8_t SPI1_SCK    = 5;    // PA5
-uint8_t SPI1_MISO   = 6;    // PA6
-uint8_t SPI1_MOSI   = 7;    // PA7
-uint8_t SPI1_NSS    = 4;    // PA4
+uint8_t SPI2_SCK    = 13;    // PB
+uint8_t SPI2_MISO   = 14;    // PB
+uint8_t SPI2_MOSI   = 15;    // PB
+uint8_t SPI2_NSS    = 12;    // PB
 uint8_t ACCEL_INT1  = 1;    // PA1
-uint8_t ACCEL_VCC   = 14;   // PC14
+uint8_t ACCEL_VCC   = 13;   // PC14
 
 // Motors control and frequency measurement pins
 uint8_t MOT_PWM1    = 12;   // PD12
@@ -42,8 +42,8 @@ int COUNT1 = 0;
 int COUNT2 = 0;
 uint8_t NEW_PWM_RV = 0;
 //int16_t accelRegisters[6] = {0xA800, 0xA900, 0xAA00, 0xAB00, 0xAC00, 0xAD00};
-int16_t accelRegisters[6] = {0xA800, 0, 0, 0, 0, 0};
-int16_t accel[6];
+//int16_t accelRegisters[6] = {0xA800, 0, 0, 0, 0, 0};
+//int16_t accel[6];
 
 #define MEASUREMENT_TIME 0.02
 uint8_t firstAngleMeasurement = 1;
@@ -96,26 +96,26 @@ void USART_init(void) {
 }
 
 void RCC_Init() {
-    RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN | RCC_APB2ENR_TIM9EN | RCC_APB2ENR_SPI1EN;;
+    RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN | RCC_APB2ENR_TIM9EN;
     
-    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN | RCC_AHB1ENR_GPIOBEN | 
-                    RCC_AHB1ENR_GPIODEN | RCC_AHB1ENR_GPIOEEN | RCC_AHB1ENR_DMA2EN;
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN | RCC_AHB1ENR_GPIOBEN | RCC_AHB1ENR_GPIOCEN |
+                    RCC_AHB1ENR_GPIODEN | RCC_AHB1ENR_GPIOEEN | RCC_AHB1ENR_DMA1EN;
     
-    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM4EN | 
+    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM4EN | RCC_APB1ENR_SPI2EN |
                     RCC_APB1ENR_TIM5EN | RCC_APB1ENR_TIM7EN | RCC_APB1ENR_TIM12EN | RCC_APB1ENR_USART2EN;
 }
 
-void SPI_FIRST_INIT(){
-    NVIC_EnableIRQ(DMA2_Stream5_IRQn);
-    NVIC_EnableIRQ(DMA2_Stream0_IRQn);
-    DMA2_Stream5->M0AR    = (uint32_t)accelRegisters;//???
-     
-    DMA2_Stream5->NDTR    = 6;
-    DMA2_Stream5->PAR     = (uint32_t)&(SPI1->DR);
-    DMA2_Stream5->CR      = DMA_SxCR_CHSEL_0 | DMA_SxCR_CHSEL_1 | DMA_SxCR_DIR_0 | DMA_SxCR_MINC | DMA_SxCR_PSIZE_0 | DMA_SxCR_MSIZE_0 |
-                                DMA_SxCR_PL | DMA_SxCR_TCIE;
-  //  DMA2_Stream5->CR      |= DMA_SxCR_EN;
-}
+//void SPI_FIRST_INIT(){
+//    NVIC_EnableIRQ(DMA2_Stream5_IRQn);
+//    NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+//    DMA2_Stream5->M0AR    = (uint32_t)accelRegisters;//???
+//     
+//    DMA2_Stream5->NDTR    = 6;
+//    DMA2_Stream5->PAR     = (uint32_t)&(SPI1->DR);
+//    DMA2_Stream5->CR      = DMA_SxCR_CHSEL_0 | DMA_SxCR_CHSEL_1 | DMA_SxCR_DIR_0 | DMA_SxCR_MINC | DMA_SxCR_PSIZE_0 | DMA_SxCR_MSIZE_0 |
+//                                DMA_SxCR_PL | DMA_SxCR_TCIE;
+//  //  DMA2_Stream5->CR      |= DMA_SxCR_EN;
+//}
 
 
 

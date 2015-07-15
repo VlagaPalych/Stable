@@ -13,7 +13,7 @@
 #define DATA_READY_INT              0x80
 
 #define INT_MAPPING_ADDRESS         0x2f
-#define DATA_READY_INT0_MAPPING     0x7f
+#define DATA_READY_INT0_MAPPING     0x80
 
 #define POWER_CTL_ADDRESS           0x2d
 #define MEASUREMENT_MODE            0x08
@@ -30,10 +30,10 @@
 #define CALIBR_NUMBER               800
 
 // SPI communication pins for accelerometer
-extern uint8_t SPI1_SCK;    // PA5
-extern uint8_t SPI1_MISO;   // PA6
-extern uint8_t SPI1_MOSI;   // PA7
-extern uint8_t SPI1_NSS;    // PA4
+extern uint8_t SPI2_SCK;    // PA5
+extern uint8_t SPI2_MISO;   // PA6
+extern uint8_t SPI2_MOSI;   // PA7
+extern uint8_t SPI2_NSS;    // PA4
 extern uint8_t ACCEL_INT1;  // PA1
 extern uint8_t ACCEL_VCC;   // PC14
 
@@ -50,12 +50,14 @@ uint8_t ADXL345_Read(uint8_t address);
 void ADXL345_Write(uint8_t address, uint8_t data);
 
 void ADXL345_Init(void);
-void SPI1_Init(void);
-void SPI1_GPIO_Init(void);
+void SPI2_Init(void);
+void SPI2_GPIO_Init(void);
 
 void ADXL345_Calibr(void);
 void ADXL345_GetAccel(int16_t *x, int16_t *y, int16_t *z);
 
 void Accel_EXTI_Init(void);
+
+void ADXL345_DMA_Init(void);
 
 #endif 
