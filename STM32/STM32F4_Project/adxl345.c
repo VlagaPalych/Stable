@@ -1,108 +1,11 @@
 #include "adxl345.h"
 #include "stm32f4xx.h" 
+#include "processing.h"
 
 #define ACCEL_DMA
 
 int16_t accelRegisters[6] = {0xB200, 0xB300, 0xB400, 0xB500, 0xB600, 0xB700};
 int16_t accel[6];
-
-//double Aappr = 5.13e-7;
-//double Bappr = 0.001;
-//double Cappr = -1.81;
-//double D = 0;
-//double x1 = 0;
-//double x2 = 0;
-
-//double chooseRoot() {
-//    if (D < 0) return 2000;
-//    
-//    x1 = (-Bappr - sqrt(D)) / (2 * Aappr);
-//    x2 = (-Bappr + sqrt(D)) / (2 * Aappr);
-//    
-//    if (x1 > 1000 && x1 < 2000) return x1;
-//    if (x2 > 1000 && x2 < 2000) return x2;
-//    return 2000;
-//}
-
-//uint8_t angleCount = 0;
-//double angleSum = 0;
-
-//void ADXL345_ProcessData(){
-////    ((uint8_t *)(&ax))[0] = (uint8_t)(accel[0] & 0xFF);
-////    ((uint8_t *)(&ax))[1] = (uint8_t)(accel[1] & 0xFF);
-////    ((uint8_t *)(&ay))[0] = (uint8_t)(accel[2] & 0xFF);
-////    ((uint8_t *)(&ay))[1] = (uint8_t)(accel[3] & 0xFF);
-////    ((uint8_t *)(&az))[0] = (uint8_t)(accel[4] & 0xFF);
-////    ((uint8_t *)(&az))[1] = (uint8_t)(accel[5] & 0xFF);
-//    ax = accel[1];
-//    ay = accel[2];
-//    az = accel[3];
-//    ax -= xoff;
-//    ay -= yoff;
-//    az -= zoff;
-//    angle = atan((double)ax / (double)az);
-//    
-//    angleSum += angle;
-//    angleCount++;
-//    if (angleCount == 8) {
-//        angle = angleSum / angleCount; // true angle we work with
-//        angleSum = 0;
-//        angleCount = 0;
-//        
-//        if (firstAngleMeasurement) {
-//            firstAngleMeasurement = 0;
-//        } else {
-//            angularVelocity = (angle - prevAngle) / MEASUREMENT_TIME;
-//        }
-//        prevAngle = angle;
-//        
-//        F = k1*angle + k2*angularVelocity;
-//    
-//        if (update) {
-//            if (F > 0) {
-//                TIM4->CCR1 = 1000;
-//                pwm1 = 1000;
-//                D = Bappr*Bappr - 4*Aappr*(Cappr - fabs(F));
-//                pwm2 = (int)chooseRoot();
-//                TIM4->CCR3 = pwm2;
-//            } else if (F < 0) {
-//                TIM4->CCR3 = 1000;
-//                pwm2 = 1000;
-//                D = Bappr*Bappr - 4*Aappr*(Cappr - fabs(F));
-//                pwm1 = (int)chooseRoot();
-//                TIM4->CCR1 = pwm1;
-//            }
-//            SEND_TELEMETRY_FLAG = 1;
-//        }
-//        
-//        // Identification block
-//        if (anglesAccumulated < 2) {
-//            y[anglesAccumulated] = angle;
-//            u[anglesAccumulated] = F;
-//        } else {
-//            y[2] = angle;
-//            u[2] = F;
-//            
-//            row = anglesAccumulated - 2;
-//            Afull[row*3 + 0] = (y[1] - y[0]) / MEASUREMENT_TIME;
-//            Afull[row*3 + 1] = y[0];
-//            Afull[row*3 + 2] = -u[0];
-//            
-//            Bfull[row] = (2*y[1] - y[2] - y[0]) / MEASUREMENT_TIME / MEASUREMENT_TIME;
-//            
-//            y[0] = y[1];
-//            y[1] = y[2];
-//            u[0] = u[1];
-//            u[1] = u[2];
-//            
-//            if (anglesAccumulated == 11) {
-//                system_solve(Afull, Bfull, w, 10, 3);
-//                anglesAccumulated = 1;
-//            }      
-//        } 
-//        anglesAccumulated++;
-//    }
-//}
 
 
 void Delay() {
@@ -149,20 +52,7 @@ void SPI2_Init() {
 	SPI2->CR1 |= SPI_CR1_SSM | SPI_CR1_SSI;										// Software slave management		
 
 	SPI2->CR1 |= SPI_CR1_MSTR;													// Master configuration	
-	SPI2->CR1 |= SPI_CR1_SPE;                                                   // Enable SPI
-    
-    
-//    NVIC_EnableIRQ(DMA1_Stream3_IRQn);
-//    DMA1_Stream3->CR    = 0;
-//    DMA1_Stream3->PAR   = (uint32_t)&(SPI2->DR);
-//    DMA1_Stream3->CR    |= DMA_SxCR_MINC | DMA_SxCR_PSIZE_0 | DMA_SxCR_MSIZE_0 |
-//                                DMA_SxCR_TCIE | DMA_SxCR_PL;
-//    
-//    NVIC_EnableIRQ(DMA1_Stream4_IRQn);
-//    DMA1_Stream4->CR    = 0;
-//    DMA1_Stream4->PAR   = (uint32_t)&(SPI2->DR);
-//    DMA1_Stream4->CR    |= DMA_SxCR_MINC | DMA_SxCR_PSIZE_0 | DMA_SxCR_MSIZE_0 | 
-//                                DMA_SxCR_TCIE | DMA_SxCR_DIR_0 | DMA_SxCR_PFCTRL | DMA_SxCR_PL;                           
+	SPI2->CR1 |= SPI_CR1_SPE;                                                   // Enable SPI                  
 }
     uint8_t test = 0;
 void ADXL345_Init() {
@@ -279,7 +169,7 @@ void EXTI1_IRQHandler() {  //what to do when accelerometer is ready
         ay -= yOffset;
         az -= zOffset;
         
-        //ADXL345_ProcessData();
+        control();
     }
 }
 
@@ -318,55 +208,7 @@ void ADXL345_DMA_Init() {
                                 DMA_SxCR_TCIE | DMA_SxCR_DIR_0 /*| DMA_SxCR_PFCTRL*/ | DMA_SxCR_PL | DMA_SxCR_EN;     
 }
 
-double Ak = 1;
-double Hk = 1;
-double Rkx = 0.75;
-double Rky = 0.75;
-double Rkz = 1.1;
-double Kx = 0;
-double Ky = 0;
-double Kz = 0;
 
-double predictedAx = 0;
-double predictedAy = 0;
-double predictedAz = 0;
-
-double predictedPx = 0;
-double predictedPy = 0;
-double predictedPz = 0;
-
-double Px = 0;
-double Py = 0;
-double Pz = 255;
-
-// state
-double Ax = 0;
-double Ay = 0;
-double Az = 255;
-
-void kalman() {
-    // prediction
-    predictedAx = Ak * Ax;
-    predictedAy = Ak * Ay;
-    predictedAz = Ak * Az;
-    
-    predictedPx = Ak * Px * Ak + Rkx;
-    predictedPy = Ak * Py * Ak + Rky;
-    predictedPz = Ak * Pz * Ak + Rkz;
-    
-    // correction
-    Kx = predictedPx * Hk / (Hk * predictedPx * Hk + Rkx);
-    Ky = predictedPy * Hk / (Hk * predictedPy * Hk + Rky);
-    Kz = predictedPz * Hk / (Hk * predictedPz * Hk + Rkz);
-    
-    Ax = predictedAx + Kx * ((double)ax - Hk * predictedAx);
-    Ay = predictedAy + Ky * ((double)ay - Hk * predictedAy);
-    Az = predictedAz + Kz * ((double)az - Hk * predictedAz);
-    
-    Px = (1 - Kx * Hk) * predictedPx;
-    Py = (1 - Ky * Hk) * predictedPy;
-    Pz = (1 - Kz * Hk) * predictedPz;
-}
 
 void DMA1_Stream3_IRQHandler() {
     if (DMA1->LISR & DMA_LISR_TCIF3) {
@@ -387,8 +229,7 @@ void DMA1_Stream3_IRQHandler() {
         az -= zOffset;
         
         kalman();
-        
-        //ADXL345_ProcessData();
+        control();
     }
 }
 
