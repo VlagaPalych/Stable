@@ -183,7 +183,7 @@ void SendTelemetry() {
     if (telemetryOn) {
         switch (curTelemetryMode) {
             case TELEMETRY_FULL:
-                sprintf(tele, "%8.2f\t%8.2f\t%8.2f\t%d%d\n", angle, angularVelocity, F, pwm1, pwm2);
+                sprintf(tele, "%.2f %.2f %.2f %d %d\n", angle, angularVelocity, F, pwm1, pwm2);
                 break;
             case AX:
                 sprintf(tele, "%hd %.2f\n", ax, Ax);

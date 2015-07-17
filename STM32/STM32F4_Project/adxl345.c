@@ -45,7 +45,7 @@ void SPI2_Init() {
 	SPI2->CR1 = 0;
 	SPI2->CR1 |= SPI_CR1_DFF;                                                   // 16 bits
 	SPI2->CR2 |= SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN;
-	SPI2->CR1 |= SPI_CR1_BR; 							                        // baudrate = Fpclk / 256
+	//SPI2->CR1 |= SPI_CR1_BR; 							                        // baudrate = Fpclk / 256
 	SPI2->CR1 |= SPI_CR1_CPOL;													// polarity
 	SPI2->CR1 |= SPI_CR1_CPHA;													// phase	
 	SPI2->CR1 &= ~(SPI_CR1_LSBFIRST);										    // MSBFIRST		

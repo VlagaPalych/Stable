@@ -6,6 +6,6 @@ void kalman(void);
 void control(void);
 
 
-#define MEASUREMENT_TIME 0.02
+#define MEASUREMENT_TIME 0.01
 
 #endif

@@ -95,18 +95,14 @@ double angleSum = 0;
 void control() {
     angle = atan((double)Ay / (double)Az);
     
-    angleSum += angle;
-    angleCount++;
-    if (angleCount == 8) {
-        angle = angleSum / angleCount; // true angle we work with
-        angleSum = 0;
-        angleCount = 0;
-        
-        if (firstAngleMeasurement) {
-            firstAngleMeasurement = 0;
-        } else {
-            angularVelocity = (angle - prevAngle) / MEASUREMENT_TIME;
-        }
+//    angleSum += angle;
+//    angleCount++;
+//    if (angleCount == 8) {
+//        angle = angleSum / angleCount; // true angle we work with
+//        angleSum = 0;
+//        angleCount = 0;
+               
+        angularVelocity = (angle - prevAngle) / MEASUREMENT_TIME;
         prevAngle = angle;
         
         F = k1*angle + k2*angularVelocity;
@@ -153,5 +149,5 @@ void control() {
 //            }      
 //        } 
 //        anglesAccumulated++;
-    }
+    //}
 }
