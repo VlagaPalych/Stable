@@ -53,6 +53,7 @@ uint8_t received = 0;
 char str[100];
 int PWM_RX = 0, pwm = 0, i=-1, st = 1;
 uint8_t SEND_TELEMETRY_FLAG = 0;
+uint8_t KALMAN_IS_ON_FLAG = 0;
 
 double y[3];                // 3 last angles
 double u[3];                // 3 last thrusts

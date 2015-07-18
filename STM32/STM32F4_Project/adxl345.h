@@ -39,6 +39,8 @@ extern uint8_t ACCEL_VCC;   // PC14
 
 extern int16_t ax, ay, az;
 extern int16_t xOffset, yOffset, zOffset;
+extern uint8_t freshFreq;
+extern uint8_t curFreq;
 
 void Delay(void);
 

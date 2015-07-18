@@ -46,6 +46,9 @@ double angularVelocity = 0;
 int pwm1, pwm2;
 
 uint8_t stabilizationOn = 0;
+uint8_t kalmanOn        = 0;
+uint8_t averagingOn     = 0;
+
 
 void kalman() {
     // prediction
@@ -91,37 +94,41 @@ double chooseRoot() {
 
 uint8_t angleCount = 0;
 double angleSum = 0;
+uint8_t averaged = 0;
+
+void averaging() {
+    angle = atan((double)Ay / (double)Az);
+    angleSum += angle;
+    angleCount++;
+    if (angleCount == 8) {
+        angle = angleSum / angleCount; // true angle we work with
+        angleSum = 0;
+        angleCount = 0;
+        averaged = 1;
+    }
+}
 
 void control() {
-    angle = atan((double)Ay / (double)Az);
+    angularVelocity = (angle - prevAngle) / MEASUREMENT_TIME;
+    prevAngle = angle;
     
-//    angleSum += angle;
-//    angleCount++;
-//    if (angleCount == 8) {
-//        angle = angleSum / angleCount; // true angle we work with
-//        angleSum = 0;
-//        angleCount = 0;
-               
-        angularVelocity = (angle - prevAngle) / MEASUREMENT_TIME;
-        prevAngle = angle;
-        
-        F = k1*angle + k2*angularVelocity;
-    
-        if (stabilizationOn) {
-            if (F > 0) {
-                TIM4->CCR1 = 1000;
-                pwm1 = 1000;
-                D = Bappr*Bappr - 4*Aappr*(Cappr - fabs(F));
-                pwm2 = (int)chooseRoot();
-                TIM4->CCR3 = pwm2;
-            } else if (F < 0) {
-                TIM4->CCR3 = 1000;
-                pwm2 = 1000;
-                D = Bappr*Bappr - 4*Aappr*(Cappr - fabs(F));
-                pwm1 = (int)chooseRoot();
-                TIM4->CCR1 = pwm1;
-            }
+    F = k1*angle + k2*angularVelocity;
+
+    if (stabilizationOn) {
+        if (F > 0) {
+            TIM4->CCR1 = 1000;
+            pwm1 = 1000;
+            D = Bappr*Bappr - 4*Aappr*(Cappr - fabs(F));
+            pwm2 = (int)chooseRoot();
+            TIM4->CCR3 = pwm2;
+        } else if (F < 0) {
+            TIM4->CCR3 = 1000;
+            pwm2 = 1000;
+            D = Bappr*Bappr - 4*Aappr*(Cappr - fabs(F));
+            pwm1 = (int)chooseRoot();
+            TIM4->CCR1 = pwm1;
         }
+    }
         
         // Identification block
 //        if (anglesAccumulated < 2) {
@@ -149,5 +156,25 @@ void control() {
 //            }      
 //        } 
 //        anglesAccumulated++;
-    //}
+}
+
+void process() {
+    if (kalmanOn) {
+        kalman();
+    } else {
+        Ax = ax;
+        Ay = ay;
+        Az = az;
+    }
+    
+    if (averagingOn) {
+        averaging();
+    } else {
+        angle = atan((double)Ay / (double)Az);
+    }
+    
+    if ((averagingOn && averaged) || !averagingOn) {
+        averaged = 0;
+        control();
+    }
 }

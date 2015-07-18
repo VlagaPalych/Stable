@@ -1,6 +1,7 @@
 #include "adxl345.h"
 #include "stm32f4xx.h" 
 #include "processing.h"
+#include "telemetry.h"
 
 #define ACCEL_DMA
 
@@ -209,6 +210,14 @@ void ADXL345_DMA_Init() {
 }
 
 
+void updateFreq() {
+    if (freshFreq) {
+        NSS_Low();
+        ADXL345_Write(BW_RATE_ADDRESS, curFreq);
+        NSS_High();
+        freshFreq = 0;
+    }
+}
 
 void DMA1_Stream3_IRQHandler() {
     if (DMA1->LISR & DMA_LISR_TCIF3) {
@@ -216,6 +225,8 @@ void DMA1_Stream3_IRQHandler() {
         if((GPIOA->IDR & (1 << 1)) == 1) {  
             ADXL345_DMA_Init();
         } else NSS_High();
+        
+        updateFreq();
         
         ((uint8_t *)(&ax))[0] = (uint8_t)(accel[0] & 0xFF);
         ((uint8_t *)(&ax))[1] = (uint8_t)(accel[1] & 0xFF);
@@ -228,8 +239,7 @@ void DMA1_Stream3_IRQHandler() {
         ay -= yOffset;
         az -= zOffset;
         
-        kalman();
-        control();
+        process();
     }
 }
 

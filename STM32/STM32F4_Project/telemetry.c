@@ -1,4 +1,5 @@
 #include "telemetry.h"
+#include "adxl345.h"
 #include "stm32f4xx.h" 
 #include "string.h"
 #include "stdio.h"
@@ -31,8 +32,11 @@ waiting                 curWaiting          = WAITING_FOR_COMMAND;
 waitingForInt           curWaitingForInt    = INT_NONE;
 waitingForFloat         curWaitingForFloat  = FLOAT_NONE;
 
-uint8_t telemetryOn = 1;
+uint8_t telemetryOn = 0;
 telemetryMode curTelemetryMode = AZ;
+
+uint8_t curFreq = HZ100;
+uint8_t freshFreq = 0;
 
 extern short ax;
 extern short ay;
@@ -47,6 +51,13 @@ extern double angularVelocity;
 extern double F;
 
 extern uint8_t stabilizationOn;
+extern uint8_t kalmanOn;
+extern uint8_t averagingOn;
+
+uint8_t displayAngle            = 1;
+uint8_t displayAngularVelocity  = 1;
+uint8_t displayF                = 1;
+uint8_t displayPwm              = 1;
 
 void initWaitingForInt() {
     curWaiting = WAITING_FOR_INT;
@@ -105,6 +116,20 @@ void USART2_IRQHandler() {
                     case 'p':
                         initWaitingForFloat();
                         curWaitingForFloat = WAITING_FOR_K2;
+                        break;
+                    case 's':
+                        kalmanOn ^= 1;
+                        break;
+                    case 't':
+                        averagingOn ^= 1;
+                        break;
+                    case 'A':
+                        freshFreq = 1;
+                        curFreq = HZ100;
+                        break;
+                    case 'B':
+                        freshFreq = 1;
+                        curFreq = HZ800;
                         break;
                 }
                 break;
@@ -177,13 +202,34 @@ void send_to_uart(uint8_t data) {
 }
 
 void SendTelemetry() {
-    char tele[100];
+    char tele[100] = "";
+    char angleStr[5];
+    char angulVelStr[5];
+    char fStr[5];
+    char pwmStr[10];
     uint8_t len = 0, i;
     
     if (telemetryOn) {
         switch (curTelemetryMode) {
             case TELEMETRY_FULL:
-                sprintf(tele, "%.2f %.2f %.2f %d %d\n", angle, angularVelocity, F, pwm1, pwm2);
+                if (displayAngle) {
+                    sprintf(angleStr, "%.2f ", angle);
+                    strcat(tele, angleStr);
+                }
+                if (displayAngularVelocity) {
+                    sprintf(angulVelStr, "%.2f ", angularVelocity);
+                    strcat(tele, angulVelStr);
+                }
+                if (displayF) {
+                    sprintf(fStr, "%.2f ", F);
+                    strcat(tele, fStr);
+                } 
+                if (displayPwm) {
+                    sprintf(pwmStr, "%d %d", pwm1, pwm2);
+                    strcat(tele, pwmStr);
+                }
+                strcat(tele, "\n");
+                //sprintf(tele, "%.2f %.2f %.2f %d %d\n", angle, angularVelocity, F, pwm1, pwm2);
                 break;
             case AX:
                 sprintf(tele, "%hd %.2f\n", ax, Ax);
