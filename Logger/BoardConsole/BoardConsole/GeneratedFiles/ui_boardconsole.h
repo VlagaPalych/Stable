@@ -13,6 +13,7 @@
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QHBoxLayout>
@@ -34,26 +35,33 @@ public:
     QVBoxLayout *verticalLayout;
     QComboBox *serialComboBox;
     QPushButton *connectButton;
+    QGroupBox *filtergroupBox;
+    QVBoxLayout *verticalLayout_5;
+    QCheckBox *noFilterCheckBox;
+    QCheckBox *kalmanFilterCheckBox;
+    QCheckBox *averagingCheckBox;
+    QGroupBox *accelgroupBox;
+    QRadioButton *HZ100RadioButton;
+    QRadioButton *HZ800RadioButton;
     QGroupBox *stabGroupBox;
     QVBoxLayout *verticalLayout_2;
-    QPushButton *stabOnButton;
-    QPushButton *stabOffButton;
+    QPushButton *stabToggleButton;
     QPushButton *calibrButton;
     QVBoxLayout *verticalLayout_4;
     QGroupBox *telemetryGroupBox;
     QHBoxLayout *horizontalLayout;
     QRadioButton *fullRadioButton;
-    QRadioButton *accelRadioButton;
-    QVBoxLayout *verticalLayout_5;
-    QPushButton *telemetryStartButton;
-    QPushButton *telemetryStopButton;
+    QRadioButton *axRadioButton;
+    QRadioButton *ayRadioButton;
+    QRadioButton *azRadioButton;
+    QPushButton *telemetryToggleButton;
     QwtPlot *qwtPlot;
 
     void setupUi(QWidget *BoardConsoleClass)
     {
         if (BoardConsoleClass->objectName().isEmpty())
             BoardConsoleClass->setObjectName(QStringLiteral("BoardConsoleClass"));
-        BoardConsoleClass->resize(517, 430);
+        BoardConsoleClass->resize(809, 514);
         horizontalLayout_2 = new QHBoxLayout(BoardConsoleClass);
         horizontalLayout_2->setSpacing(6);
         horizontalLayout_2->setContentsMargins(11, 11, 11, 11);
@@ -80,21 +88,53 @@ public:
 
         verticalLayout_3->addWidget(connectGroupBox);
 
+        filtergroupBox = new QGroupBox(BoardConsoleClass);
+        filtergroupBox->setObjectName(QStringLiteral("filtergroupBox"));
+        verticalLayout_5 = new QVBoxLayout(filtergroupBox);
+        verticalLayout_5->setSpacing(6);
+        verticalLayout_5->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_5->setObjectName(QStringLiteral("verticalLayout_5"));
+        noFilterCheckBox = new QCheckBox(filtergroupBox);
+        noFilterCheckBox->setObjectName(QStringLiteral("noFilterCheckBox"));
+
+        verticalLayout_5->addWidget(noFilterCheckBox);
+
+        kalmanFilterCheckBox = new QCheckBox(filtergroupBox);
+        kalmanFilterCheckBox->setObjectName(QStringLiteral("kalmanFilterCheckBox"));
+
+        verticalLayout_5->addWidget(kalmanFilterCheckBox);
+
+        averagingCheckBox = new QCheckBox(filtergroupBox);
+        averagingCheckBox->setObjectName(QStringLiteral("averagingCheckBox"));
+
+        verticalLayout_5->addWidget(averagingCheckBox);
+
+
+        verticalLayout_3->addWidget(filtergroupBox);
+
+        accelgroupBox = new QGroupBox(BoardConsoleClass);
+        accelgroupBox->setObjectName(QStringLiteral("accelgroupBox"));
+        HZ100RadioButton = new QRadioButton(accelgroupBox);
+        HZ100RadioButton->setObjectName(QStringLiteral("HZ100RadioButton"));
+        HZ100RadioButton->setGeometry(QRect(10, 20, 82, 17));
+        HZ100RadioButton->setChecked(false);
+        HZ800RadioButton = new QRadioButton(accelgroupBox);
+        HZ800RadioButton->setObjectName(QStringLiteral("HZ800RadioButton"));
+        HZ800RadioButton->setGeometry(QRect(10, 40, 82, 17));
+        HZ800RadioButton->setChecked(true);
+
+        verticalLayout_3->addWidget(accelgroupBox);
+
         stabGroupBox = new QGroupBox(BoardConsoleClass);
         stabGroupBox->setObjectName(QStringLiteral("stabGroupBox"));
         verticalLayout_2 = new QVBoxLayout(stabGroupBox);
         verticalLayout_2->setSpacing(6);
         verticalLayout_2->setContentsMargins(11, 11, 11, 11);
         verticalLayout_2->setObjectName(QStringLiteral("verticalLayout_2"));
-        stabOnButton = new QPushButton(stabGroupBox);
-        stabOnButton->setObjectName(QStringLiteral("stabOnButton"));
+        stabToggleButton = new QPushButton(stabGroupBox);
+        stabToggleButton->setObjectName(QStringLiteral("stabToggleButton"));
 
-        verticalLayout_2->addWidget(stabOnButton);
-
-        stabOffButton = new QPushButton(stabGroupBox);
-        stabOffButton->setObjectName(QStringLiteral("stabOffButton"));
-
-        verticalLayout_2->addWidget(stabOffButton);
+        verticalLayout_2->addWidget(stabToggleButton);
 
         calibrButton = new QPushButton(stabGroupBox);
         calibrButton->setObjectName(QStringLiteral("calibrButton"));
@@ -121,26 +161,27 @@ public:
 
         horizontalLayout->addWidget(fullRadioButton);
 
-        accelRadioButton = new QRadioButton(telemetryGroupBox);
-        accelRadioButton->setObjectName(QStringLiteral("accelRadioButton"));
+        axRadioButton = new QRadioButton(telemetryGroupBox);
+        axRadioButton->setObjectName(QStringLiteral("axRadioButton"));
+        axRadioButton->setChecked(false);
 
-        horizontalLayout->addWidget(accelRadioButton);
+        horizontalLayout->addWidget(axRadioButton);
 
-        verticalLayout_5 = new QVBoxLayout();
-        verticalLayout_5->setSpacing(6);
-        verticalLayout_5->setObjectName(QStringLiteral("verticalLayout_5"));
-        telemetryStartButton = new QPushButton(telemetryGroupBox);
-        telemetryStartButton->setObjectName(QStringLiteral("telemetryStartButton"));
+        ayRadioButton = new QRadioButton(telemetryGroupBox);
+        ayRadioButton->setObjectName(QStringLiteral("ayRadioButton"));
 
-        verticalLayout_5->addWidget(telemetryStartButton);
+        horizontalLayout->addWidget(ayRadioButton);
 
-        telemetryStopButton = new QPushButton(telemetryGroupBox);
-        telemetryStopButton->setObjectName(QStringLiteral("telemetryStopButton"));
+        azRadioButton = new QRadioButton(telemetryGroupBox);
+        azRadioButton->setObjectName(QStringLiteral("azRadioButton"));
+        azRadioButton->setChecked(true);
 
-        verticalLayout_5->addWidget(telemetryStopButton);
+        horizontalLayout->addWidget(azRadioButton);
 
+        telemetryToggleButton = new QPushButton(telemetryGroupBox);
+        telemetryToggleButton->setObjectName(QStringLiteral("telemetryToggleButton"));
 
-        horizontalLayout->addLayout(verticalLayout_5);
+        horizontalLayout->addWidget(telemetryToggleButton);
 
 
         verticalLayout_4->addWidget(telemetryGroupBox);
@@ -164,15 +205,22 @@ public:
         BoardConsoleClass->setWindowTitle(QApplication::translate("BoardConsoleClass", "BoardConsole", 0));
         connectGroupBox->setTitle(QApplication::translate("BoardConsoleClass", "STM", 0));
         connectButton->setText(QApplication::translate("BoardConsoleClass", "Connect", 0));
+        filtergroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Filters", 0));
+        noFilterCheckBox->setText(QApplication::translate("BoardConsoleClass", "No Filter", 0));
+        kalmanFilterCheckBox->setText(QApplication::translate("BoardConsoleClass", "Kalman", 0));
+        averagingCheckBox->setText(QApplication::translate("BoardConsoleClass", "Averaging", 0));
+        accelgroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Accelerometer", 0));
+        HZ100RadioButton->setText(QApplication::translate("BoardConsoleClass", "100 Hz", 0));
+        HZ800RadioButton->setText(QApplication::translate("BoardConsoleClass", "800 Hz", 0));
         stabGroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Stabilization", 0));
-        stabOnButton->setText(QApplication::translate("BoardConsoleClass", "Turn On", 0));
-        stabOffButton->setText(QApplication::translate("BoardConsoleClass", "Turn Off", 0));
+        stabToggleButton->setText(QApplication::translate("BoardConsoleClass", "Start", 0));
         calibrButton->setText(QApplication::translate("BoardConsoleClass", "Calibrate", 0));
         telemetryGroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Telemetry", 0));
         fullRadioButton->setText(QApplication::translate("BoardConsoleClass", "Full", 0));
-        accelRadioButton->setText(QApplication::translate("BoardConsoleClass", "Acceleration", 0));
-        telemetryStartButton->setText(QApplication::translate("BoardConsoleClass", "Start", 0));
-        telemetryStopButton->setText(QApplication::translate("BoardConsoleClass", "Stop", 0));
+        axRadioButton->setText(QApplication::translate("BoardConsoleClass", "AX", 0));
+        ayRadioButton->setText(QApplication::translate("BoardConsoleClass", "AY", 0));
+        azRadioButton->setText(QApplication::translate("BoardConsoleClass", "AZ", 0));
+        telemetryToggleButton->setText(QApplication::translate("BoardConsoleClass", "Start", 0));
     } // retranslateUi
 
 };

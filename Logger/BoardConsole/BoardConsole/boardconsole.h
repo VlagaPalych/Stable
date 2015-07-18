@@ -22,21 +22,24 @@ private:
 	SerialPortReader *stmReader;
 
 	QVector<QwtPlotCurve *> acceleration;
-	QVector<QVector<double> > accelData;
+	QVector<QVector<double> > yData;
 	QVector<double> xData;
 
 	void defineLogFile();
 
 private Q_SLOTS:
 	void handleConnectButton();
-	void handleStabOnButton();
-	void handleStabOffButton();
+	void handleStabToggleButton();
 	void handleCalibrButton();
 	void handleTelemetryButtons();
-	void handleTelemetryStartButton();
-	void handleTelemetryStopButton();
+	void handleTelemetryToggleButton();
+	void handleAccelButtons();
 
 	void handleFreshLine(QString &line);
+
+	void handleNoFilterCheckBox();
+	void handleKalmanFilterCheckBox();
+	void handleAveragingCheckBox();
 };
 
 #endif // BOARDCONSOLE_H

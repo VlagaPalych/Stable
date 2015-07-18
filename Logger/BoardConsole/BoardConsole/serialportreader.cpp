@@ -74,7 +74,7 @@ void SerialPortReader::handleReadyRead()
 		endLineIndex = m_readData.indexOf('\n');
 		if (endLineIndex != -1) {
 			QString line = QString::fromLatin1(m_readData.mid(0, endLineIndex));
-			//qDebug() << line;
+			qDebug() << line;
 			//(*logStream) << line << endl;
 			Q_EMIT freshLine(line);
 			m_readData = m_readData.mid(endLineIndex + 1);

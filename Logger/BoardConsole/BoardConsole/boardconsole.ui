@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>517</width>
-    <height>430</height>
+    <width>566</width>
+    <height>514</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -36,22 +36,74 @@
       </widget>
      </item>
      <item>
+      <widget class="QGroupBox" name="filtergroupBox">
+       <property name="title">
+        <string>Filters</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <item>
+         <widget class="QCheckBox" name="noFilterCheckBox">
+          <property name="text">
+           <string>No Filter</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="kalmanFilterCheckBox">
+          <property name="text">
+           <string>Kalman</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="averagingCheckBox">
+          <property name="text">
+           <string>Averaging</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="accelgroupBox">
+       <property name="title">
+        <string>Accelerometer</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_6">
+        <item>
+         <widget class="QRadioButton" name="HZ100RadioButton">
+          <property name="text">
+           <string>100 Hz</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="HZ800RadioButton">
+          <property name="text">
+           <string>800 Hz</string>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
       <widget class="QGroupBox" name="stabGroupBox">
        <property name="title">
         <string>Stabilization</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <widget class="QPushButton" name="stabOnButton">
+         <widget class="QPushButton" name="stabToggleButton">
           <property name="text">
-           <string>Turn On</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="stabOffButton">
-          <property name="text">
-           <string>Turn Off</string>
+           <string>Start</string>
           </property>
          </widget>
         </item>
@@ -83,29 +135,38 @@
          </widget>
         </item>
         <item>
-         <widget class="QRadioButton" name="accelRadioButton">
+         <widget class="QRadioButton" name="axRadioButton">
           <property name="text">
-           <string>Acceleration</string>
+           <string>AX</string>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
           </property>
          </widget>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_5">
-          <item>
-           <widget class="QPushButton" name="telemetryStartButton">
-            <property name="text">
-             <string>Start</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="telemetryStopButton">
-            <property name="text">
-             <string>Stop</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <widget class="QRadioButton" name="ayRadioButton">
+          <property name="text">
+           <string>AY</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="azRadioButton">
+          <property name="text">
+           <string>AZ</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="telemetryToggleButton">
+          <property name="text">
+           <string>Start</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
