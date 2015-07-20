@@ -18,9 +18,27 @@ void transpose(double *A, double *At, int n, int m) {
     }
 }
 
+void mat_add(const double *A, const double *B, double *C, int n, int m) {
+    int i, j;
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < m; j++) {
+            C[i*m + j] = A[i*m + j] + B[i*m + j];
+        }
+    }
+}
+
+void mat_sub(const double *A, const double *B, double *C, int n, int m) {
+    int i, j;
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < m; j++) {
+            C[i*m + j] = A[i*m + j] - B[i*m + j];
+        }
+    }
+}
+
 /* A - matrix n x k 
    B - matrix k x m */
-void mat_mul(double *A, double *B, double *C, int n, int m, int k) {
+void mat_mul(const double *A, const double *B, double *C, int n, int m, int k) {
     int i, j, h;
     for (i = 0; i < n; i++) {
         for (j = 0; j < m; j++) {

@@ -41,6 +41,7 @@ public:
     QCheckBox *kalmanFilterCheckBox;
     QCheckBox *averagingCheckBox;
     QGroupBox *accelgroupBox;
+    QVBoxLayout *verticalLayout_6;
     QRadioButton *HZ100RadioButton;
     QRadioButton *HZ800RadioButton;
     QGroupBox *stabGroupBox;
@@ -61,7 +62,7 @@ public:
     {
         if (BoardConsoleClass->objectName().isEmpty())
             BoardConsoleClass->setObjectName(QStringLiteral("BoardConsoleClass"));
-        BoardConsoleClass->resize(809, 514);
+        BoardConsoleClass->resize(566, 514);
         horizontalLayout_2 = new QHBoxLayout(BoardConsoleClass);
         horizontalLayout_2->setSpacing(6);
         horizontalLayout_2->setContentsMargins(11, 11, 11, 11);
@@ -114,14 +115,22 @@ public:
 
         accelgroupBox = new QGroupBox(BoardConsoleClass);
         accelgroupBox->setObjectName(QStringLiteral("accelgroupBox"));
+        verticalLayout_6 = new QVBoxLayout(accelgroupBox);
+        verticalLayout_6->setSpacing(6);
+        verticalLayout_6->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_6->setObjectName(QStringLiteral("verticalLayout_6"));
         HZ100RadioButton = new QRadioButton(accelgroupBox);
         HZ100RadioButton->setObjectName(QStringLiteral("HZ100RadioButton"));
-        HZ100RadioButton->setGeometry(QRect(10, 20, 82, 17));
-        HZ100RadioButton->setChecked(false);
+        HZ100RadioButton->setChecked(true);
+
+        verticalLayout_6->addWidget(HZ100RadioButton);
+
         HZ800RadioButton = new QRadioButton(accelgroupBox);
         HZ800RadioButton->setObjectName(QStringLiteral("HZ800RadioButton"));
-        HZ800RadioButton->setGeometry(QRect(10, 40, 82, 17));
-        HZ800RadioButton->setChecked(true);
+        HZ800RadioButton->setChecked(false);
+
+        verticalLayout_6->addWidget(HZ800RadioButton);
+
 
         verticalLayout_3->addWidget(accelgroupBox);
 

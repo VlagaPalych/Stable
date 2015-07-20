@@ -16,13 +16,13 @@ extern int pwm1;
 extern int pwm2;
 extern uint8_t received;
 extern char str[100];
-extern int i;
-extern int st;
+int i;
+int st;
 int intValue;
 
-extern int k;
-extern double my_pow;
-extern double d_st;
+int k;
+double my_pow;
+double d_st;
 double floatValue;
 
 extern double k1;

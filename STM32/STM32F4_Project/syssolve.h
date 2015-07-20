@@ -17,7 +17,9 @@ extern uint8_t row;
 
 double det3(double *mat);
 void transpose(double *A, double *At, int n, int m);
-void mat_mul(double *A, double *B, double *C, int n, int m, int k);
+void mat_add(const double *A, const double *B, double *C, int n, int m);
+void mat_sub(const double *A, const double *B, double *C, int n, int m);
+void mat_mul(const double *A, const double *B, double *C, int n, int m, int k);
 void system_solve(double *F, double *B, double *x, int n, int m);
 
 #endif

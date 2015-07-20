@@ -6,13 +6,6 @@
 #include "adxl345.h"
 #include "telemetry.h"
 
-#define G (0xFFFF/4)
-#define CTRL_REG4 0x20
-#define FREQ100 0x67
-#define FREQ800 0x87
-#define CTRL_REG3 0x23
-#define INT1_EN 0x88
-#define PWM_STABLE 2000
 
 // SPI communication pins for accelerometer
 uint8_t SPI2_SCK    = 13;    // PB
@@ -28,32 +21,21 @@ uint8_t MOT_PWM2    = 14;   // PD14
 uint8_t MOT_FREQ1   = 2;    // PE2
 uint8_t MOT_FREQ2   = 4;    // PE4
 
-uint8_t BUTTON      = 10;   // PE10
-
 uint8_t UART2_TX    = 2;    // PA2
 uint8_t UART2_RX    = 3;    // PA3
 
-uint8_t SERV_PWM    = 14;   // PB14
-
 int16_t ax = 0, ay = 0, az = 0;
-int param = 100;
-int xoff, yoff, zoff;
+
 int ENGRDY = 0;
 int COUNT1 = 0;
 int COUNT2 = 0;
-uint8_t NEW_PWM_RV = 0;
-//int16_t accelRegisters[6] = {0xA800, 0xA900, 0xAA00, 0xAB00, 0xAC00, 0xAD00};
-//int16_t accelRegisters[6] = {0xA800, 0, 0, 0, 0, 0};
-//int16_t accel[6];
 
 extern uint8_t stabilizationOn;
 
 
 uint8_t received = 0;
 char str[100];
-int PWM_RX = 0, pwm = 0, i=-1, st = 1;
-uint8_t SEND_TELEMETRY_FLAG = 0;
-uint8_t KALMAN_IS_ON_FLAG = 0;
+int pwm = 0;
 
 double y[3];                // 3 last angles
 double u[3];                // 3 last thrusts
@@ -288,13 +270,6 @@ void TIM7_IRQHandler(void) {
     TIM7->SR &= ~TIM_SR_UIF;
     SendTelemetry();
 }
-
-uint8_t KOEFF_RX = 0;
-uint8_t KOEFF2_RX = 0;
-double koeff = 0;
-double my_pow = 0;
-double d_st = 0;
-int k = 0;
 
 uint8_t value;
 int main() {
