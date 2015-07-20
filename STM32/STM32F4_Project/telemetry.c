@@ -1,8 +1,14 @@
-#include "telemetry.h"
-#include "adxl345.h"
 #include "stm32f4xx.h" 
 #include "string.h"
 #include "stdio.h"
+
+#include "telemetry.h"
+#include "adxl345.h"
+#include "motors.h"
+#include "processing.h"
+
+uint8_t UART2_TX = 2;    // PA2
+uint8_t UART2_RX = 3;    // PA3
 
 typedef enum { WAITING_FOR_COMMAND, WAITING_FOR_INT, WAITING_FOR_FLOAT } waiting;
 
@@ -12,21 +18,19 @@ typedef enum { WAITING_FOR_K1, WAITING_FOR_K2, FLOAT_NONE } waitingForFloat;
 
 typedef enum { TELEMETRY_FULL, AX, AY, AZ} telemetryMode;
 
-extern int pwm1;
-extern int pwm2;
-extern uint8_t received;
-extern char str[100];
+uint8_t received;
+char str[100];
+
+// reading int variables
 int i;
 int st;
 int intValue;
 
+// reading float variables
 int k;
 double my_pow;
 double d_st;
 double floatValue;
-
-extern double k1;
-extern double k2;
 
 waiting                 curWaiting          = WAITING_FOR_COMMAND;
 waitingForInt           curWaitingForInt    = INT_NONE;
@@ -38,26 +42,38 @@ telemetryMode curTelemetryMode = AZ;
 uint8_t curFreq = HZ100;
 uint8_t freshFreq = 0;
 
-extern short ax;
-extern short ay;
-extern short az;
-
-extern double Ax;
-extern double Ay;
-extern double Az;
-
-extern double angle;
-extern double angularVelocity;
-extern double F;
-
-extern uint8_t stabilizationOn;
-extern uint8_t kalmanOn;
-extern uint8_t averagingOn;
 
 uint8_t displayAngle            = 1;
 uint8_t displayAngularVelocity  = 1;
 uint8_t displayF                = 1;
 uint8_t displayPwm              = 1;
+
+void USART_Init(void) {
+    GPIOA->MODER    |= (2 << UART2_TX*2) | (2 << UART2_RX*2);
+    GPIOA->OTYPER   &= ~((1 << UART2_TX) | (1 << UART2_RX));
+    GPIOA->OSPEEDR  |= (3 << UART2_TX*2) | (3 << UART2_RX*2);
+    GPIOA->PUPDR    |= (1 << UART2_TX*2) | (1 << UART2_RX*2);
+    GPIOA->AFR[0]   |= (7 << UART2_TX*4) | (7 << UART2_RX*4);
+
+    USART2->BRR     = 0x341; 
+    USART2->CR1     |= USART_CR1_UE | USART_CR1_RE | USART_CR1_TE | USART_CR1_RXNEIE; 
+    NVIC_EnableIRQ(USART2_IRQn);
+}
+
+void Telemetry_TIM_Init() {
+    TIM7->PSC = 7;
+    TIM7->ARR = 5000;
+    TIM7->DIER |= 1;
+    NVIC_SetPriority(TIM7_IRQn, 0xFF);
+    NVIC_EnableIRQ(TIM7_IRQn);
+    
+    TIM7->CR1 |= TIM_CR1_CEN;
+}
+
+void TIM7_IRQHandler(void) {
+    TIM7->SR &= ~TIM_SR_UIF;
+    SendTelemetry();
+}
 
 void initWaitingForInt() {
     curWaiting = WAITING_FOR_INT;

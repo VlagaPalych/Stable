@@ -2,6 +2,16 @@
 #include "string.h"
 #include "stdlib.h"
 
+double y[3];                // 3 last angles
+double u[3];                // 3 last thrusts
+
+double w[3];                // unknown coeffs in diff eq
+double Afull[10*3];         // matrix of our equation Afull * w = Bfull
+double Bfull[10];           // right column
+
+uint8_t anglesAccumulated;  // number of angles we have at the moment
+uint8_t row;
+
 double det3(double *mat)
 {
     return mat[0*3 + 0]*(mat[1*3 + 1]*mat[2*3 + 2] - mat[1*3 + 2]*mat[2*3 + 1]) - mat[0*3 + 1]*(mat[1*3 + 0]*mat[2*3 + 2] - mat[1*3 + 2]*mat[2*3 + 0]) +

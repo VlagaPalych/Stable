@@ -29,18 +29,7 @@
 
 #define CALIBR_NUMBER               800
 
-// SPI communication pins for accelerometer
-extern uint8_t SPI2_SCK;    // PA5
-extern uint8_t SPI2_MISO;   // PA6
-extern uint8_t SPI2_MOSI;   // PA7
-extern uint8_t SPI2_NSS;    // PA4
-extern uint8_t ACCEL_INT1;  // PA1
-extern uint8_t ACCEL_VCC;   // PC14
-
 extern int16_t ax, ay, az;
-extern int16_t xOffset, yOffset, zOffset;
-extern uint8_t freshFreq;
-extern uint8_t curFreq;
 
 void Delay(void);
 

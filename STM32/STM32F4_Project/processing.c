@@ -3,6 +3,8 @@
 #include "math.h"
 #include "stm32f4xx.h"
 #include "syssolve.h"
+#include "motors.h"
+#include "adxl345.h"
 
 #define DT MEASUREMENT_TIME
 
@@ -34,19 +36,8 @@ double Ax = 0;
 double Ay = 0;
 double Az = 255;
 
-extern short ax;
-extern short ay;
-extern short az;
 
-
-double F = 0;
-double k1 = 2.15;
-double k2 = 1.5e-4;
-uint8_t firstAngleMeasurement = 1;
-double angle = 0;
 double prevAngle = 0;
-double angularVelocity = 0;
-int pwm1, pwm2;
 
 uint8_t stabilizationOn = 0;
 uint8_t kalmanOn        = 0;

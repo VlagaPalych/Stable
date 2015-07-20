@@ -5,8 +5,18 @@
 
 #define ACCEL_DMA
 
+// SPI communication pins for accelerometer
+uint8_t SPI2_SCK    = 13;   // PB
+uint8_t SPI2_MISO   = 14;   // PB
+uint8_t SPI2_MOSI   = 15;   // PB
+uint8_t SPI2_NSS    = 12;   // PB
+uint8_t ACCEL_INT1  = 1;    // PA
+uint8_t ACCEL_VCC   = 13;   // PC
+
 int16_t accelRegisters[6] = {0xB200, 0xB300, 0xB400, 0xB500, 0xB600, 0xB700};
 int16_t accel[6];
+
+int16_t xOffset, yOffset, zOffset;
 
 
 void Delay() {
