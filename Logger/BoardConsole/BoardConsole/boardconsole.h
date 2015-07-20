@@ -25,7 +25,7 @@ private:
 	QVector<QVector<double> > yData;
 	QVector<double> xData;
 
-	void defineLogFile();
+	QString defineLogFile();
 
 private Q_SLOTS:
 	void handleConnectButton();
@@ -40,6 +40,8 @@ private Q_SLOTS:
 	void handleNoFilterCheckBox();
 	void handleKalmanFilterCheckBox();
 	void handleAveragingCheckBox();
+
+	void handleSaveToFileCheckBox();
 };
 
 #endif // BOARDCONSOLE_H

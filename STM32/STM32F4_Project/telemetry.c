@@ -16,7 +16,7 @@ typedef enum { WAITING_FOR_PWM1, WAITING_FOR_PWM2, INT_NONE } waitingForInt;
 
 typedef enum { WAITING_FOR_K1, WAITING_FOR_K2, FLOAT_NONE } waitingForFloat;
 
-typedef enum { TELEMETRY_FULL, AX, AY, AZ} telemetryMode;
+typedef enum { FULL, MOVE_DESCRIPTION, AX, AY, AZ} telemetryMode;
 
 uint8_t received;
 char str[100];
@@ -37,7 +37,7 @@ waitingForInt           curWaitingForInt    = INT_NONE;
 waitingForFloat         curWaitingForFloat  = FLOAT_NONE;
 
 uint8_t telemetryOn = 0;
-telemetryMode curTelemetryMode = AZ;
+telemetryMode curTelemetryMode = FULL;
 
 uint8_t curFreq = HZ100;
 uint8_t freshFreq = 0;
@@ -102,11 +102,18 @@ void USART2_IRQHandler() {
                     case 'e':
                         stabilizationOn ^= 1;
                         break;
+                    case 'd':
+                        stabilizationOn = 0;
+                        ADXL345_Calibr();
+                        break;
                     case 'h':
                         telemetryOn ^= 1;
                         break;
+                    case 'i':
+                        curTelemetryMode = FULL;
+                        break;
                     case 'k':
-                        curTelemetryMode = TELEMETRY_FULL;
+                        curTelemetryMode = MOVE_DESCRIPTION;
                         break;
                     case 'l':
                         curTelemetryMode = AX;
@@ -219,33 +226,36 @@ void send_to_uart(uint8_t data) {
 
 void SendTelemetry() {
     char tele[100] = "";
-    char angleStr[5];
-    char angulVelStr[5];
-    char fStr[5];
-    char pwmStr[10];
-    uint8_t len = 0, i;
+//    char angleStr[5];
+//    char angulVelStr[5];
+//    char fStr[5];
+//    char pwmStr[10];
+    uint8_t len = 0, j;
     
     if (telemetryOn) {
         switch (curTelemetryMode) {
-            case TELEMETRY_FULL:
-                if (displayAngle) {
-                    sprintf(angleStr, "%.2f ", angle);
-                    strcat(tele, angleStr);
-                }
-                if (displayAngularVelocity) {
-                    sprintf(angulVelStr, "%.2f ", angularVelocity);
-                    strcat(tele, angulVelStr);
-                }
-                if (displayF) {
-                    sprintf(fStr, "%.2f ", F);
-                    strcat(tele, fStr);
-                } 
-                if (displayPwm) {
-                    sprintf(pwmStr, "%d %d", pwm1, pwm2);
-                    strcat(tele, pwmStr);
-                }
-                strcat(tele, "\n");
-                //sprintf(tele, "%.2f %.2f %.2f %d %d\n", angle, angularVelocity, F, pwm1, pwm2);
+            case FULL:
+                sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d\n", angle, angularVelocity, F, ax, ay, az, pwm1, pwm2);
+                break;
+            case MOVE_DESCRIPTION:
+//                if (displayAngle) {
+//                    sprintf(angleStr, "%.2f ", angle);
+//                    strcat(tele, angleStr);
+//                }
+//                if (displayAngularVelocity) {
+//                    sprintf(angulVelStr, "%.2f ", angularVelocity);
+//                    strcat(tele, angulVelStr);
+//                }
+//                if (displayF) {
+//                    sprintf(fStr, "%.2f ", F);
+//                    strcat(tele, fStr);
+//                } 
+//                if (displayPwm) {
+//                    sprintf(pwmStr, "%d %d", pwm1, pwm2);
+//                    strcat(tele, pwmStr);
+//                }
+//                strcat(tele, "\n");
+                sprintf(tele, "%.2f %.2f %.2f %d %d\n", angle, angularVelocity, F, pwm1, pwm2);
                 break;
             case AX:
                 sprintf(tele, "%hd %.2f\n", ax, Ax);
@@ -257,14 +267,10 @@ void SendTelemetry() {
                 sprintf(tele, "%hd %.2f\n", az, Az);
                 break;
         }
-        //sprintf(tele, "%8.2f\t%8.4f\t%8.4f\t%8d\t%8d\t%8d\t%8d\n", F, angle, angularVelocity, pwm1, COUNT1, pwm2, COUNT2);
-        //sprintf(tele, "%d\t%d\t%d\t%d\n", pwm1, COUNT1, pwm2, COUNT2);
-        
-        //sprintf(tele, "%8.2f\t%8.2f\t%8.2f\n", w[0], w[1], w[2]);
         len = strlen(tele);
         
-        for (i = 0; i < len; i++) {
-            send_to_uart(tele[i]);
+        for (j = 0; j < len; j++) {
+            send_to_uart(tele[j]);
         }
     }
 }

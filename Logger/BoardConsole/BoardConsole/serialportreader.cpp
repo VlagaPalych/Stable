@@ -51,19 +51,44 @@ SerialPortReader::SerialPortReader(QSerialPort *serialPort, QString fileName, QO
 , m_serialPort(serialPort)
 , m_standardOutput(stdout)
 {
+	log = NULL;
+	logStream = NULL;
+
 	connect(m_serialPort, SIGNAL(readyRead()), SLOT(handleReadyRead()));
 	connect(m_serialPort, SIGNAL(error(QSerialPort::SerialPortError)), SLOT(handleError(QSerialPort::SerialPortError)));
 
-	log = new QFile(fileName);
-	log->open(QFile::WriteOnly);
-	logStream = new QTextStream(log);
+	setFile(fileName);
 }
 
 SerialPortReader::~SerialPortReader()
 {
-	log->close();
-	delete log;
-	delete logStream;
+	if (log) {
+		log->close();
+		delete log;
+		delete logStream;
+	}
+}
+
+void SerialPortReader::analyseFileName(QString fileName) {
+	if (fileName.isEmpty()) {
+		log = NULL;
+		logStream = NULL;
+	}
+	else {
+		log = new QFile(fileName);
+		log->open(QFile::WriteOnly);
+		logStream = new QTextStream(log);
+	}
+
+}
+
+void SerialPortReader::setFile(QString fileName) {
+	if (log) {
+		log->close();
+		delete log;
+		delete logStream;
+	}
+	analyseFileName(fileName);
 }
 
 void SerialPortReader::handleReadyRead()
@@ -75,7 +100,9 @@ void SerialPortReader::handleReadyRead()
 		if (endLineIndex != -1) {
 			QString line = QString::fromLatin1(m_readData.mid(0, endLineIndex));
 			qDebug() << line;
-			//(*logStream) << line << endl;
+			if (logStream) {
+				(*logStream) << line << endl;
+			}
 			Q_EMIT freshLine(line);
 			m_readData = m_readData.mid(endLineIndex + 1);
 		}
@@ -90,3 +117,5 @@ void SerialPortReader::handleError(QSerialPort::SerialPortError serialPortError)
 		QCoreApplication::exit(1);
 	}
 }
+
+

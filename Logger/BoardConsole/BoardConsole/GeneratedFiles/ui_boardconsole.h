@@ -51,7 +51,9 @@ public:
     QVBoxLayout *verticalLayout_4;
     QGroupBox *telemetryGroupBox;
     QHBoxLayout *horizontalLayout;
+    QCheckBox *saveToFileCheckBox;
     QRadioButton *fullRadioButton;
+    QRadioButton *moveRadioButton;
     QRadioButton *axRadioButton;
     QRadioButton *ayRadioButton;
     QRadioButton *azRadioButton;
@@ -165,10 +167,21 @@ public:
         horizontalLayout->setSpacing(6);
         horizontalLayout->setContentsMargins(11, 11, 11, 11);
         horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
+        saveToFileCheckBox = new QCheckBox(telemetryGroupBox);
+        saveToFileCheckBox->setObjectName(QStringLiteral("saveToFileCheckBox"));
+
+        horizontalLayout->addWidget(saveToFileCheckBox);
+
         fullRadioButton = new QRadioButton(telemetryGroupBox);
         fullRadioButton->setObjectName(QStringLiteral("fullRadioButton"));
+        fullRadioButton->setChecked(true);
 
         horizontalLayout->addWidget(fullRadioButton);
+
+        moveRadioButton = new QRadioButton(telemetryGroupBox);
+        moveRadioButton->setObjectName(QStringLiteral("moveRadioButton"));
+
+        horizontalLayout->addWidget(moveRadioButton);
 
         axRadioButton = new QRadioButton(telemetryGroupBox);
         axRadioButton->setObjectName(QStringLiteral("axRadioButton"));
@@ -183,7 +196,7 @@ public:
 
         azRadioButton = new QRadioButton(telemetryGroupBox);
         azRadioButton->setObjectName(QStringLiteral("azRadioButton"));
-        azRadioButton->setChecked(true);
+        azRadioButton->setChecked(false);
 
         horizontalLayout->addWidget(azRadioButton);
 
@@ -225,7 +238,9 @@ public:
         stabToggleButton->setText(QApplication::translate("BoardConsoleClass", "Start", 0));
         calibrButton->setText(QApplication::translate("BoardConsoleClass", "Calibrate", 0));
         telemetryGroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Telemetry", 0));
+        saveToFileCheckBox->setText(QApplication::translate("BoardConsoleClass", "Save to file", 0));
         fullRadioButton->setText(QApplication::translate("BoardConsoleClass", "Full", 0));
+        moveRadioButton->setText(QApplication::translate("BoardConsoleClass", "Move", 0));
         axRadioButton->setText(QApplication::translate("BoardConsoleClass", "AX", 0));
         ayRadioButton->setText(QApplication::translate("BoardConsoleClass", "AY", 0));
         azRadioButton->setText(QApplication::translate("BoardConsoleClass", "AZ", 0));

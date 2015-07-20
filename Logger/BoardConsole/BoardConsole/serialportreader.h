@@ -64,17 +64,22 @@ public:
 	SerialPortReader(QSerialPort *serialPort, QString fileName, QObject *parent = 0);
 	~SerialPortReader();
 
+	void setFile(QString fileName);
+
 	QFile *log;
 	QTextStream *logStream;
 
-	private slots:
+private slots:
 	void handleReadyRead();
 	void handleError(QSerialPort::SerialPortError error);
+
 
 private:
 	QSerialPort *m_serialPort;
 	QByteArray  m_readData;
 	QTextStream m_standardOutput;
+
+	void analyseFileName(QString fileName);
 
 Q_SIGNALS:
 	void freshLine(QString &);

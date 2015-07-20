@@ -128,9 +128,26 @@
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
+         <widget class="QCheckBox" name="saveToFileCheckBox">
+          <property name="text">
+           <string>Save to file</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QRadioButton" name="fullRadioButton">
           <property name="text">
            <string>Full</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="moveRadioButton">
+          <property name="text">
+           <string>Move</string>
           </property>
          </widget>
         </item>
@@ -157,7 +174,7 @@
            <string>AZ</string>
           </property>
           <property name="checked">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
          </widget>
         </item>

@@ -17,6 +17,7 @@ BoardConsole::BoardConsole(QWidget *parent)
 	connect(ui.stabToggleButton, SIGNAL(clicked()), SLOT(handleStabToggleButton()));
 	connect(ui.calibrButton, SIGNAL(clicked()), SLOT(handleCalibrButton()));
 	connect(ui.fullRadioButton, SIGNAL(clicked()), SLOT(handleTelemetryButtons()));
+	connect(ui.moveRadioButton, SIGNAL(clicked()), SLOT(handleTelemetryButtons()));
 	connect(ui.axRadioButton, SIGNAL(clicked()), SLOT(handleTelemetryButtons()));
 	connect(ui.ayRadioButton, SIGNAL(clicked()), SLOT(handleTelemetryButtons()));
 	connect(ui.azRadioButton, SIGNAL(clicked()), SLOT(handleTelemetryButtons()));
@@ -27,6 +28,8 @@ BoardConsole::BoardConsole(QWidget *parent)
 	connect(ui.noFilterCheckBox, SIGNAL(clicked()), SLOT(handleNoFilterCheckBox()));
 	connect(ui.kalmanFilterCheckBox, SIGNAL(clicked()), SLOT(handleKalmanFilterCheckBox()));
 	connect(ui.averagingCheckBox, SIGNAL(clicked()), SLOT(handleAveragingCheckBox()));
+
+	connect(ui.saveToFileCheckBox, SIGNAL(clicked()), SLOT(handleSaveToFileCheckBox()));
 
 	stm = NULL;
 	stmReader = NULL;
@@ -52,21 +55,26 @@ BoardConsole::~BoardConsole() {
 	}
 }
 
-void BoardConsole::defineLogFile() {
-	QDir curDir = QDir::current();
-	int maxLogNumber = 0;
-	foreach(QString entry, curDir.entryList()) {
-		if (entry.startsWith(tr("log"))) {
-			int txtIndex = entry.indexOf(".txt");
-			int logNumber = entry.mid(3, txtIndex - 3).toInt();
-			if (logNumber > maxLogNumber) {
-				maxLogNumber = logNumber;
+QString BoardConsole::defineLogFile() {
+	QString logFileName = "";
+	if (ui.saveToFileCheckBox->isChecked()) {
+		QDir curDir = QDir::current();
+		int maxLogNumber = 0;
+		foreach(QString entry, curDir.entryList()) {
+			if (entry.startsWith(tr("log"))) {
+				int txtIndex = entry.indexOf(".txt");
+				int logNumber = entry.mid(3, txtIndex - 3).toInt();
+				if (logNumber > maxLogNumber) {
+					maxLogNumber = logNumber;
+				}
 			}
 		}
+		maxLogNumber++;
+		logFileName = tr("log") + QString::number(maxLogNumber) + tr(".txt");
 	}
-	maxLogNumber++;
-	stmReader = new SerialPortReader(stm, tr("log") + QString::number(maxLogNumber) + tr(".txt"));
-	connect(stmReader, SIGNAL(freshLine(QString &)), SLOT(handleFreshLine(QString &)));
+	return logFileName;
+	
+	
 }
 
 void BoardConsole::handleConnectButton() {
@@ -81,7 +89,9 @@ void BoardConsole::handleConnectButton() {
 		qDebug() << "Connected";
 	}
 
-	defineLogFile();
+	QString logFileName  = defineLogFile();
+	stmReader = new SerialPortReader(stm, logFileName);
+	connect(stmReader, SIGNAL(freshLine(QString &)), SLOT(handleFreshLine(QString &)));
 }
 
 void BoardConsole::handleStabToggleButton() {
@@ -95,7 +105,8 @@ void BoardConsole::handleStabToggleButton() {
 }
 
 void BoardConsole::handleCalibrButton() {
-	stm->write("g");
+	stm->write("d");
+	ui.stabToggleButton->setText("Start");
 }
 
 void BoardConsole::handleTelemetryButtons() {
@@ -103,6 +114,8 @@ void BoardConsole::handleTelemetryButtons() {
 	yData[0].clear();
 	yData[1].clear();
 	if (ui.fullRadioButton->isChecked()) {
+		stm->write("i");
+	} else if (ui.moveRadioButton->isChecked()) {
 		stm->write("k");
 	} else if (ui.axRadioButton->isChecked()) {
 		stm->write("l");
@@ -137,7 +150,7 @@ void BoardConsole::handleFreshLine(QString &line) {
 	QStringList numbers = line.split(' ');
 	qDebug() << numbers;
 	if (ui.fullRadioButton->isChecked()) {
-		if (numbers.size() != 5) return;
+		if (numbers.size() != 8) return;
 		for (int i = 0; i < yData.size(); i++) {
 			xData.append(xData.size() + 1);
 			yData[i].append(numbers[i].toDouble());
@@ -195,4 +208,14 @@ void BoardConsole::handleKalmanFilterCheckBox() {
 
 void BoardConsole::handleAveragingCheckBox() {
 	stm->write("t");
+}
+
+void BoardConsole::handleSaveToFileCheckBox() {
+	QString logFileName = "";
+	if (ui.saveToFileCheckBox->isChecked()) {
+		 logFileName = defineLogFile();
+	}
+	if (stmReader) {
+		stmReader->setFile(logFileName);
+	}
 }
