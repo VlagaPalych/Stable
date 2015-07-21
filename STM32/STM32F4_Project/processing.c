@@ -230,6 +230,7 @@ void process() {
     
     if (averagingOn) {
         averaging();
+        angularVelocity = (angle - prevAngle) / DT;
     }
     
     if ((averagingOn && averaged) || !averagingOn) {

@@ -1,21 +1,0 @@
-Dependencies for Project 'StableF3', Target 'STM32': (DO NOT MODIFY !)
-F (.\main.c)(0x55526AFA)(-c --cpu Cortex-M4.fp -D__EVAL -g -O0 --apcs=interwork --split_sections-I \\psf\Home\Documents\Яндекс.Диск\STM32\StabilizationF3\RTE-I "C:\Program Files\Keil\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include"-I "C:\Program Files\Keil\ARM\PACK\Keil\STM32F3xx_DFP\1.2.0\Device\Include"-D__UVISION_VERSION="514" -D_RTE_ -DSTM32F303xC-o .\objects\main.o --omf_browse .\objects\main.crf --depend .\objects\main.d)
-I (C:\Program Files\Keil\ARM\PACK\Keil\STM32F3xx_DFP\1.2.0\Device\Include\stm32f30x.h)(0x54255B02)
-I (C:\Program Files\Keil\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cm4.h)(0x53FC6A1A)
-I (C:\Program Files\Keil\ARM\ARMCC\include\stdint.h)(0x54762B40)
-I (C:\Program Files\Keil\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmInstr.h)(0x53FF2AEA)
-I (C:\Program Files\Keil\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmFunc.h)(0x53FF2AEA)
-I (C:\Program Files\Keil\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmSimd.h)(0x53FC6A1A)
-I (C:\Program Files\Keil\ARM\PACK\Keil\STM32F3xx_DFP\1.2.0\Device\Include\system_stm32f30x.h)(0x54255B02)
-I (C:\Program Files\Keil\ARM\ARMCC\include\math.h)(0x54762B3E)
-I (C:\Program Files\Keil\ARM\ARMCC\include\stdio.h)(0x54762B40)
-I (C:\Program Files\Keil\ARM\ARMCC\include\string.h)(0x54762B40)
-F (RTE\Device\STM32F303VC\startup_stm32f303xc.s)(0x54255B02)(--cpu Cortex-M4.fp --pd "__EVAL SETA 1" -g --apcs=interwork -I \\psf\Home\Documents\Яндекс.Диск\STM32\StabilizationF3\RTE-I "C:\Program Files\Keil\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include"-I "C:\Program Files\Keil\ARM\PACK\Keil\STM32F3xx_DFP\1.2.0\Device\Include"--pd "__UVISION_VERSION SETA 514" --pd "_RTE_ SETA 1" --pd "STM32F303xC SETA 1"--list .\listings\startup_stm32f303xc.lst --xref -o .\objects\startup_stm32f303xc.o --depend .\objects\startup_stm32f303xc.d)
-F (RTE\Device\STM32F303VC\system_stm32f30x.c)(0x54255B02)(-c --cpu Cortex-M4.fp -D__EVAL -g -O0 --apcs=interwork --split_sections-I \\psf\Home\Documents\Яндекс.Диск\STM32\StabilizationF3\RTE-I "C:\Program Files\Keil\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include"-I "C:\Program Files\Keil\ARM\PACK\Keil\STM32F3xx_DFP\1.2.0\Device\Include"-D__UVISION_VERSION="514" -D_RTE_ -DSTM32F303xC-o .\objects\system_stm32f30x.o --omf_browse .\objects\system_stm32f30x.crf --depend .\objects\system_stm32f30x.d)
-I (C:\Program Files\Keil\ARM\PACK\Keil\STM32F3xx_DFP\1.2.0\Device\Include\stm32f30x.h)(0x54255B02)
-I (C:\Program Files\Keil\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cm4.h)(0x53FC6A1A)
-I (C:\Program Files\Keil\ARM\ARMCC\include\stdint.h)(0x54762B40)
-I (C:\Program Files\Keil\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmInstr.h)(0x53FF2AEA)
-I (C:\Program Files\Keil\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmFunc.h)(0x53FF2AEA)
-I (C:\Program Files\Keil\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmSimd.h)(0x53FC6A1A)
-I (C:\Program Files\Keil\ARM\PACK\Keil\STM32F3xx_DFP\1.2.0\Device\Include\system_stm32f30x.h)(0x54255B02)
