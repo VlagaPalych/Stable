@@ -6,6 +6,7 @@
 #include <QtSerialPort\qserialport.h>
 #include "serialportreader.h"
 #include <qwt_plot_curve.h>
+#include <qtimer.h>
 
 class BoardConsole : public QWidget
 {
@@ -21,11 +22,29 @@ private:
 	QSerialPort *stm;
 	SerialPortReader *stmReader;
 
-	QVector<QwtPlotCurve *> acceleration;
-	QVector<QVector<double> > yData;
-	QVector<double> xData;
+	QVector<QwtPlotCurve *> plot1_curves;
+	QVector<QwtPlotCurve *> plot2_curves;
+
+	QVector<double> angleX;
+	QVector<double> angleY;
+
+	QVector<double> angVelX;
+	QVector<double> angVelY;
+
+	QVector<double> fX;
+	QVector<double> fY;
+
+	QVector<double> pwm1X;
+	QVector<double> pwm1Y;
+
+	QVector<double> pwm2X;
+	QVector<double> pwm2Y;
 
 	QString defineLogFile();
+
+	bool firstMeasurement;
+	int maxSize;
+	qint64 startTime;
 
 private Q_SLOTS:
 	void handleConnectButton();
@@ -42,6 +61,11 @@ private Q_SLOTS:
 	void handleAveragingCheckBox();
 
 	void handleSaveToFileCheckBox();
+
+	void handleK1Button();
+	void handleK2Button();
+
+	void handleTelemetryDisplayButtons();
 };
 
 #endif // BOARDCONSOLE_H

@@ -99,6 +99,12 @@ void USART2_IRQHandler() {
         switch (curWaiting) {
             case WAITING_FOR_COMMAND:
                 switch (received) {
+                    case 'a':
+                        stabilizationOn     = 0;
+                        telemetryOn         = 0;
+                        kalmanOn            = 0;
+                        averagingOn         = 0;
+                        break;
                     case 'e':
                         stabilizationOn ^= 1;
                         break;
