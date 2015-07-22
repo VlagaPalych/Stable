@@ -12,7 +12,7 @@ BoardConsole::BoardConsole(QWidget *parent)
 	foreach(QSerialPortInfo port, availablePorts) {
 		ui.serialComboBox->addItem(port.portName());
 	}
-	//ui.serialComboBox->setCurrentText("COM12");
+	ui.serialComboBox->setCurrentText("COM18");
 
 	connect(ui.connectButton, SIGNAL(clicked()), SLOT(handleConnectButton()));
 	connect(ui.stabToggleButton, SIGNAL(clicked()), SLOT(handleStabToggleButton()));
@@ -40,6 +40,9 @@ BoardConsole::BoardConsole(QWidget *parent)
 	connect(ui.fCheckBox, SIGNAL(clicked()), SLOT(handleTelemetryDisplayButtons()));
 	connect(ui.pwm1CheckBox, SIGNAL(clicked()), SLOT(handleTelemetryDisplayButtons()));
 	connect(ui.pwm2CheckBox, SIGNAL(clicked()), SLOT(handleTelemetryDisplayButtons()));
+
+	connect(ui.pwm1SpinBox, SIGNAL(valueChanged(int)), SLOT(handlePwm1SpinBox(int)));
+	connect(ui.pwm2SpinBox, SIGNAL(valueChanged(int)), SLOT(handlePwm2SpinBox(int)));
 
 	stm = NULL;
 	stmReader = NULL;
@@ -128,17 +131,27 @@ void BoardConsole::handleConnectButton() {
 	stmReader = new SerialPortReader(stm, logFileName);
 	connect(stmReader, SIGNAL(freshLine(QString &)), SLOT(handleFreshLine(QString &)));
 
+	STM_Init();
+}
+
+void BoardConsole::STM_Init() {
 	stm->write("a");
+	stm->write("m1250b");
+	stm->write("o2.0b");
+	stm->write("p0.01b");
 }
 
 void BoardConsole::handleStabToggleButton() {
-	stm->write("e");
+	//stm->write("e");
 	if (ui.stabToggleButton->text() == "Start") {
 		ui.stabToggleButton->setText("Stop");
+		ui.saveToFileCheckBox->setChecked(true);	
 	}
 	else {
 		ui.stabToggleButton->setText("Start");
+		ui.saveToFileCheckBox->setChecked(false);
 	}
+	handleSaveToFileCheckBox();
 }
 
 void BoardConsole::handleCalibrButton() {
@@ -357,4 +370,12 @@ void BoardConsole::handleK2Button() {
 
 void BoardConsole::handleTelemetryDisplayButtons() {
 
+}
+
+void BoardConsole::handlePwm1SpinBox(int newval) {
+	stm->write(tr("m%1b").arg(newval).toStdString().c_str());
+}
+
+void BoardConsole::handlePwm2SpinBox(int newval) {
+	stm->write(tr("n%1b").arg(newval).toStdString().c_str());
 }

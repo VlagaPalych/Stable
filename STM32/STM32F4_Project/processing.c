@@ -174,16 +174,22 @@ void control() {
 
     if (stabilizationOn) {
         if (F > 0) {
-            TIM4->CCR1 = 1000;
-            pwm1 = 1000;
+            pwm1 = minPwm;
+            TIM4->CCR1 = minPwm;
             D = Bappr*Bappr - 4*Aappr*(Cappr - fabs(F));
             pwm2 = (int)chooseRoot();
+            if (pwm2 < minPwm) {
+                pwm2 = minPwm;
+            }
             TIM4->CCR3 = pwm2;
         } else if (F < 0) {
-            TIM4->CCR3 = 1000;
-            pwm2 = 1000;
+            pwm2 = minPwm;
+            TIM4->CCR3 = minPwm;
             D = Bappr*Bappr - 4*Aappr*(Cappr - fabs(F));
             pwm1 = (int)chooseRoot();
+            if (pwm1 < minPwm) {
+                pwm1 = minPwm;
+            }
             TIM4->CCR1 = pwm1;
         }
     }

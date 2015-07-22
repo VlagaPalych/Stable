@@ -7,7 +7,10 @@ uint8_t MOT_PWM2    = 14;   // PD14
 uint8_t MOT_FREQ1   = 2;    // PE2
 uint8_t MOT_FREQ2   = 4;    // PE4
 
+int minPwm = 1300;
+
 extern uint8_t ENGRDY;
+extern uint8_t STABRDY;
 
 void Motors_GPIO_Init() {
     // PD12, PD14 - motor pwm
@@ -60,7 +63,8 @@ void Motors_TIM_Init() {
     // TIM3 - turning on timer for motors
     TIM3->PSC = 7;
     TIM3->ARR = 5000;
-    TIM3->DIER |= 1;					
+    TIM3->DIER |= 1;			
+    NVIC_SetPriority(TIM3_IRQn, 0x01);     
 	NVIC_EnableIRQ(TIM3_IRQn);   
     TIM3->CR1 = TIM_CR1_CEN;
 
@@ -72,8 +76,8 @@ void Motors_TIM_Init() {
 //    TIM9->CR1 = TIM_CR1_CEN;
 }
 
-uint8_t status = 0;
-int pwm         = 0;
+uint8_t tim3_status = 0;
+int pwm         = 2000;
 int timer       = 0;
 int timer_1000  = 2000;
 int timer_2000  = 2000;
@@ -82,33 +86,57 @@ int pwm_step    = 5;
 void TIM3_IRQHandler() { //moving pwm from 2 to 1ms in the start
     TIM3->SR &= ~TIM_SR_UIF;
 
-    if (status == 0) {
+    if (tim3_status == 0) {
         timer++;
         if (pwm == 1000 && timer == timer_1000) {
-            status = 1;
+            tim3_status = 1;
             timer = 0;
         } else if (pwm == 2000 && timer == timer_2000) {
-            status = 2;
+            tim3_status = 2;
             timer = 0;
         }
-    } else if (status == 1) {
+    } else if (tim3_status == 1) {
         pwm += pwm_step;
         TIM4->CCR1 = pwm;
         TIM4->CCR3 = pwm;
         if (pwm == 2000) {
-            status = 0;
+            tim3_status = 0;
             timer = 0;
         }
-    } else if (status == 2) {
+    } else if (tim3_status == 2) {
         pwm -= pwm_step;
         TIM4->CCR1 = pwm;
         TIM4->CCR3 = pwm;
         if (pwm == 1000) {
+//            pwm = minPwm;
+//            TIM4->CCR1 = pwm;
+//            TIM4->CCR3 = pwm;
             ENGRDY = 1;
-            status = 3;
+            tim3_status = 3;
             timer = 0;
         }
-    }    
+    }  else if (tim3_status == 4) {
+        timer++;
+        if (timer == 1000) {
+            STABRDY = 1;
+            tim3_status = 5;
+            timer = 0;
+        }
+    }        
+}
+
+void Motors_InitForStab() {
+    STABRDY = 0;
+    timer = 0;
+    tim3_status = 4;
+    while (!STABRDY) {}
+}
+
+void Motors_Stop() {
+    pwm1 = 1000;
+    pwm2 = 1000;
+    TIM4->CCR1 = pwm1;
+    TIM4->CCR3 = pwm2;
 }
 
 //void EXTI2_IRQHandler() { //this used to calculate the frequency of motor

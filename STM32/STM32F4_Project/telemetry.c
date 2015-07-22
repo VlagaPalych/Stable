@@ -57,6 +57,7 @@ void USART_Init(void) {
 
     USART2->BRR     = 0x341; 
     USART2->CR1     |= USART_CR1_UE | USART_CR1_RE | USART_CR1_TE | USART_CR1_RXNEIE; 
+    NVIC_SetPriority(USART2_IRQn, 0x02);
     NVIC_EnableIRQ(USART2_IRQn);
 }
 
@@ -103,13 +104,20 @@ void USART2_IRQHandler() {
                         stabilizationOn     = 0;
                         telemetryOn         = 0;
                         kalmanOn            = 0;
-                        averagingOn         = 0;
+                        averagingOn         = 0;                                  
                         break;
-                    case 'e':
-                        stabilizationOn ^= 1;
+                    case 'e':   
+                        if (stabilizationOn) {
+                            stabilizationOn = 0;
+                            Motors_Stop();
+                        } else {
+                            Motors_InitForStab();
+                            stabilizationOn = 1; 
+                        }
                         break;
                     case 'd':
                         stabilizationOn = 0;
+                        Motors_Stop();
                         ADXL345_Calibr();
                         break;
                     case 'h':
@@ -172,8 +180,9 @@ void USART2_IRQHandler() {
                         }         
                         switch (curWaitingForInt) {
                             case WAITING_FOR_PWM1:
-                                pwm1 = intValue;
-                                TIM4->CCR1 = pwm1;
+                                minPwm = intValue;
+//                                pwm1 = intValue;
+//                                TIM4->CCR1 = pwm1;
                                 break;
                             case WAITING_FOR_PWM2:
                                 pwm2 = intValue;
@@ -241,7 +250,7 @@ void SendTelemetry() {
     if (telemetryOn) {
         switch (curTelemetryMode) {
             case FULL:
-                sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d\n", angle, angularVelocity, F, ax, ay, az, pwm1, pwm2);
+                sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %.2f %.2f\n", angle, angularVelocity, F, ax, ay, az, pwm1, pwm2, k1, k2);
                 break;
             case MOVE_DESCRIPTION:
 //                if (displayAngle) {

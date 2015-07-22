@@ -8,14 +8,15 @@ int16_t ay = 0;
 int16_t az = 0;
 
 uint8_t ENGRDY = 0;
+uint8_t STABRDY = 0;
 int pwm1 = 0;
 int pwm2 = 0;
 int COUNT1 = 0;
 int COUNT2 = 0;
 
 double F = 0;
-double k1 = 2.15;
-double k2 = 1.5e-4;
+double k1 = 3;
+double k2 = 2;
 double angle = 0;
 double angularVelocity = 0;
 

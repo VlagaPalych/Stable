@@ -46,6 +46,8 @@ private:
 	int maxSize;
 	qint64 startTime;
 
+	void STM_Init();
+
 private Q_SLOTS:
 	void handleConnectButton();
 	void handleStabToggleButton();
@@ -66,6 +68,9 @@ private Q_SLOTS:
 	void handleK2Button();
 
 	void handleTelemetryDisplayButtons();
+
+	void handlePwm1SpinBox(int);
+	void handlePwm2SpinBox(int);
 };
 
 #endif // BOARDCONSOLE_H

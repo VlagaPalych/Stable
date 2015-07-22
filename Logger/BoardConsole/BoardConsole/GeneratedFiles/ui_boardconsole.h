@@ -18,9 +18,11 @@
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QHeaderView>
+#include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QRadioButton>
+#include <QtWidgets/QSpinBox>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 #include "qwt_plot.h"
@@ -46,12 +48,17 @@ public:
     QRadioButton *HZ100RadioButton;
     QRadioButton *HZ800RadioButton;
     QGroupBox *stabGroupBox;
+    QVBoxLayout *verticalLayout_2;
     QPushButton *stabToggleButton;
     QPushButton *calibrButton;
     QPushButton *k1Button;
     QLineEdit *k1LineEdit;
     QPushButton *k2Button;
     QLineEdit *k2LineEdit;
+    QLabel *label;
+    QSpinBox *pwm1SpinBox;
+    QLabel *label_2;
+    QSpinBox *pwm2SpinBox;
     QVBoxLayout *verticalLayout_7;
     QGroupBox *telemetryGroupBox;
     QHBoxLayout *horizontalLayout_3;
@@ -77,7 +84,7 @@ public:
     {
         if (BoardConsoleClass->objectName().isEmpty())
             BoardConsoleClass->setObjectName(QStringLiteral("BoardConsoleClass"));
-        BoardConsoleClass->resize(630, 575);
+        BoardConsoleClass->resize(630, 975);
         horizontalLayout_4 = new QHBoxLayout(BoardConsoleClass);
         horizontalLayout_4->setSpacing(6);
         horizontalLayout_4->setContentsMargins(11, 11, 11, 11);
@@ -151,24 +158,66 @@ public:
 
         stabGroupBox = new QGroupBox(BoardConsoleClass);
         stabGroupBox->setObjectName(QStringLiteral("stabGroupBox"));
+        verticalLayout_2 = new QVBoxLayout(stabGroupBox);
+        verticalLayout_2->setSpacing(6);
+        verticalLayout_2->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_2->setObjectName(QStringLiteral("verticalLayout_2"));
         stabToggleButton = new QPushButton(stabGroupBox);
         stabToggleButton->setObjectName(QStringLiteral("stabToggleButton"));
-        stabToggleButton->setGeometry(QRect(10, 23, 75, 23));
+
+        verticalLayout_2->addWidget(stabToggleButton);
+
         calibrButton = new QPushButton(stabGroupBox);
         calibrButton->setObjectName(QStringLiteral("calibrButton"));
-        calibrButton->setGeometry(QRect(10, 52, 75, 23));
+
+        verticalLayout_2->addWidget(calibrButton);
+
         k1Button = new QPushButton(stabGroupBox);
         k1Button->setObjectName(QStringLiteral("k1Button"));
-        k1Button->setGeometry(QRect(10, 81, 75, 23));
+
+        verticalLayout_2->addWidget(k1Button);
+
         k1LineEdit = new QLineEdit(stabGroupBox);
         k1LineEdit->setObjectName(QStringLiteral("k1LineEdit"));
-        k1LineEdit->setGeometry(QRect(10, 110, 133, 20));
+
+        verticalLayout_2->addWidget(k1LineEdit);
+
         k2Button = new QPushButton(stabGroupBox);
         k2Button->setObjectName(QStringLiteral("k2Button"));
-        k2Button->setGeometry(QRect(10, 136, 75, 23));
+
+        verticalLayout_2->addWidget(k2Button);
+
         k2LineEdit = new QLineEdit(stabGroupBox);
         k2LineEdit->setObjectName(QStringLiteral("k2LineEdit"));
-        k2LineEdit->setGeometry(QRect(10, 165, 133, 20));
+
+        verticalLayout_2->addWidget(k2LineEdit);
+
+        label = new QLabel(stabGroupBox);
+        label->setObjectName(QStringLiteral("label"));
+        label->setAlignment(Qt::AlignCenter);
+
+        verticalLayout_2->addWidget(label);
+
+        pwm1SpinBox = new QSpinBox(stabGroupBox);
+        pwm1SpinBox->setObjectName(QStringLiteral("pwm1SpinBox"));
+        pwm1SpinBox->setMinimum(1000);
+        pwm1SpinBox->setMaximum(2000);
+
+        verticalLayout_2->addWidget(pwm1SpinBox);
+
+        label_2 = new QLabel(stabGroupBox);
+        label_2->setObjectName(QStringLiteral("label_2"));
+        label_2->setAlignment(Qt::AlignCenter);
+
+        verticalLayout_2->addWidget(label_2);
+
+        pwm2SpinBox = new QSpinBox(stabGroupBox);
+        pwm2SpinBox->setObjectName(QStringLiteral("pwm2SpinBox"));
+        pwm2SpinBox->setMinimum(1000);
+        pwm2SpinBox->setMaximum(2000);
+
+        verticalLayout_2->addWidget(pwm2SpinBox);
+
 
         verticalLayout_4->addWidget(stabGroupBox);
 
@@ -186,6 +235,7 @@ public:
         horizontalLayout_3->setObjectName(QStringLiteral("horizontalLayout_3"));
         saveToFileCheckBox = new QCheckBox(telemetryGroupBox);
         saveToFileCheckBox->setObjectName(QStringLiteral("saveToFileCheckBox"));
+        saveToFileCheckBox->setChecked(true);
 
         horizontalLayout_3->addWidget(saveToFileCheckBox);
 
@@ -309,6 +359,8 @@ public:
         calibrButton->setText(QApplication::translate("BoardConsoleClass", "Calibrate", 0));
         k1Button->setText(QApplication::translate("BoardConsoleClass", "K1", 0));
         k2Button->setText(QApplication::translate("BoardConsoleClass", "K2", 0));
+        label->setText(QApplication::translate("BoardConsoleClass", "PWM1", 0));
+        label_2->setText(QApplication::translate("BoardConsoleClass", "PWM2", 0));
         telemetryGroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Telemetry", 0));
         saveToFileCheckBox->setText(QApplication::translate("BoardConsoleClass", "Save to file", 0));
         fullRadioButton->setText(QApplication::translate("BoardConsoleClass", "Full", 0));
