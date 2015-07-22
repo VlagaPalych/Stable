@@ -63,12 +63,12 @@ void USART_Init(void) {
 
 void Telemetry_TIM_Init() {
     TIM7->PSC = 7;
-    TIM7->ARR = 5000;
+    TIM7->ARR = 2500;
     TIM7->DIER |= 1;
     NVIC_SetPriority(TIM7_IRQn, 0xFF);
     NVIC_EnableIRQ(TIM7_IRQn);
     
-    TIM7->CR1 |= TIM_CR1_CEN;
+    //TIM7->CR1 |= TIM_CR1_CEN;
 }
 
 void TIM7_IRQHandler(void) {
@@ -167,6 +167,9 @@ void USART2_IRQHandler() {
                     case 'B':
                         freshFreq = 1;
                         curFreq = HZ800;
+                        break;
+                    case 'C':
+                        impulseOn = 1;
                         break;
                 }
                 break;

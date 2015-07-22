@@ -141,17 +141,20 @@ void BoardConsole::STM_Init() {
 	stm->write("p0.01b");
 }
 
-void BoardConsole::handleStabToggleButton() {
-	//stm->write("e");
+void BoardConsole::handleStabToggleButton() {	
 	if (ui.stabToggleButton->text() == "Start") {
 		ui.stabToggleButton->setText("Stop");
-		ui.saveToFileCheckBox->setChecked(true);	
+		ui.saveToFileCheckBox->setChecked(true);
+		if (ui.impulseCheckBox->isChecked()) {
+			stm->write("C");
+		}
 	}
 	else {
 		ui.stabToggleButton->setText("Start");
 		ui.saveToFileCheckBox->setChecked(false);
 	}
 	handleSaveToFileCheckBox();
+	stm->write("e");
 }
 
 void BoardConsole::handleCalibrButton() {
@@ -228,7 +231,7 @@ void BoardConsole::handleFreshLine(QString &line) {
 	QStringList numbers = line.split(' ');
 	qDebug() << numbers;
 	if (ui.fullRadioButton->isChecked()) {
-		if (numbers.size() != 8) return;
+		if (numbers.size() != 10) return;
 
 		double angle = numbers[0].toDouble();
 		double angularVelocity = numbers[1].toDouble();

@@ -5,6 +5,7 @@
 #include "syssolve.h"
 #include "motors.h"
 #include "adxl345.h"
+#include "telemetry.h"
 
 #define DT MEASUREMENT_TIME
 
@@ -42,6 +43,7 @@ double prevAngle = 0;
 uint8_t stabilizationOn = 0;
 uint8_t kalmanOn        = 0;
 uint8_t averagingOn     = 0;
+uint8_t impulseOn       = 0;
 
 // A = [1 DT
 //      0 1 ]
@@ -153,17 +155,29 @@ double chooseRoot() {
 uint8_t angleCount = 0;
 double angleSum = 0;
 uint8_t averaged = 0;
+double angles[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
+//void averaging() {
+//    angle = atan((double)Ay / (double)Az);
+//    angleSum += angle;
+//    angleCount++;
+//    if (angleCount == 8) {
+//        angle = angleSum / angleCount; // true angle we work with
+//        angleSum = 0;
+//        angleCount = 0;
+//        averaged = 1;
+//    }
+//}
 void averaging() {
-    angle = atan((double)Ay / (double)Az);
+    angleSum -= angles[angleCount];
+    angles[angleCount] = angle;
     angleSum += angle;
-    angleCount++;
-    if (angleCount == 8) {
-        angle = angleSum / angleCount; // true angle we work with
-        angleSum = 0;
+    if (angleCount == 7) {
         angleCount = 0;
-        averaged = 1;
+    } else {
+        angleCount++;
     }
+    angle = angleSum / 8;
 }
 
 void control() {
@@ -172,7 +186,14 @@ void control() {
     
     F = k1*angle + k2*angularVelocity;
 
-    if (stabilizationOn) {
+    if (stabilizationOn && STABRDY) {
+        if (impulseOn) {
+            impulseOn = 0;
+            angle -= 1;
+            angularVelocity = (angle - prevAngle) / DT;
+            F = k1*angle + k2*angularVelocity;
+        }
+        
         if (F > 0) {
             pwm1 = minPwm;
             TIM4->CCR1 = minPwm;
@@ -193,6 +214,7 @@ void control() {
             TIM4->CCR1 = pwm1;
         }
     }
+    SendTelemetry();
         
         // Identification block
 //        if (anglesAccumulated < 2) {
@@ -224,23 +246,14 @@ void control() {
 
 void process() {
     angle = atan((double)ay / (double)az);
-    
+       
+    if (averagingOn) {
+        averaging();
+    } 
     if (kalmanOn) {
         kalman();
     } else {
-        /*Ax = ax;
-        Ay = ay;
-        Az = az;*/
         angularVelocity = (angle - prevAngle) / DT;
     }
-    
-    if (averagingOn) {
-        averaging();
-        angularVelocity = (angle - prevAngle) / DT;
-    }
-    
-    if ((averagingOn && averaged) || !averagingOn) {
-        averaged = 0;
-        control();
-    }
+    control();
 }

@@ -16,6 +16,9 @@ extern double Az;
 extern uint8_t stabilizationOn;
 extern uint8_t kalmanOn;
 extern uint8_t averagingOn;
+extern uint8_t impulseOn;
+
+extern uint8_t STABRDY;
 
 void kalman(void);
 void averaging(void);

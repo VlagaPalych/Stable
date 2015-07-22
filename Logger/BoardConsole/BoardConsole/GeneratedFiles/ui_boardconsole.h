@@ -49,6 +49,7 @@ public:
     QRadioButton *HZ800RadioButton;
     QGroupBox *stabGroupBox;
     QVBoxLayout *verticalLayout_2;
+    QCheckBox *impulseCheckBox;
     QPushButton *stabToggleButton;
     QPushButton *calibrButton;
     QPushButton *k1Button;
@@ -162,6 +163,11 @@ public:
         verticalLayout_2->setSpacing(6);
         verticalLayout_2->setContentsMargins(11, 11, 11, 11);
         verticalLayout_2->setObjectName(QStringLiteral("verticalLayout_2"));
+        impulseCheckBox = new QCheckBox(stabGroupBox);
+        impulseCheckBox->setObjectName(QStringLiteral("impulseCheckBox"));
+
+        verticalLayout_2->addWidget(impulseCheckBox);
+
         stabToggleButton = new QPushButton(stabGroupBox);
         stabToggleButton->setObjectName(QStringLiteral("stabToggleButton"));
 
@@ -235,7 +241,7 @@ public:
         horizontalLayout_3->setObjectName(QStringLiteral("horizontalLayout_3"));
         saveToFileCheckBox = new QCheckBox(telemetryGroupBox);
         saveToFileCheckBox->setObjectName(QStringLiteral("saveToFileCheckBox"));
-        saveToFileCheckBox->setChecked(true);
+        saveToFileCheckBox->setChecked(false);
 
         horizontalLayout_3->addWidget(saveToFileCheckBox);
 
@@ -299,13 +305,13 @@ public:
 
         pwm1CheckBox = new QCheckBox(telemetryGroupBox);
         pwm1CheckBox->setObjectName(QStringLiteral("pwm1CheckBox"));
-        pwm1CheckBox->setChecked(true);
+        pwm1CheckBox->setChecked(false);
 
         horizontalLayout->addWidget(pwm1CheckBox);
 
         pwm2CheckBox = new QCheckBox(telemetryGroupBox);
         pwm2CheckBox->setObjectName(QStringLiteral("pwm2CheckBox"));
-        pwm2CheckBox->setChecked(true);
+        pwm2CheckBox->setChecked(false);
 
         horizontalLayout->addWidget(pwm2CheckBox);
 
@@ -355,6 +361,7 @@ public:
         HZ100RadioButton->setText(QApplication::translate("BoardConsoleClass", "100 Hz", 0));
         HZ800RadioButton->setText(QApplication::translate("BoardConsoleClass", "800 Hz", 0));
         stabGroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Stabilization", 0));
+        impulseCheckBox->setText(QApplication::translate("BoardConsoleClass", "impulse", 0));
         stabToggleButton->setText(QApplication::translate("BoardConsoleClass", "Start", 0));
         calibrButton->setText(QApplication::translate("BoardConsoleClass", "Calibrate", 0));
         k1Button->setText(QApplication::translate("BoardConsoleClass", "K1", 0));

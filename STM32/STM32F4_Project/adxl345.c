@@ -167,6 +167,7 @@ void Accel_EXTI_Init() {
     
     EXTI->RTSR 	|= EXTI_FTSR_TR1; 
     EXTI->IMR 	|= EXTI_IMR_MR1;
+    NVIC_SetPriority(EXTI1_IRQn, 0x03);
     NVIC_EnableIRQ(EXTI1_IRQn); 
 }
 
@@ -199,6 +200,7 @@ void EXTI1_IRQHandler() {
 void ADXL345_DMA_Init() {  
     DMA1->HIFCR = DMA_HIFCR_CFEIF4;
     DMA1_Stream4->CR    = 0;
+    NVIC_SetPriority(DMA1_Stream3_IRQn, 0x03);
     NVIC_EnableIRQ(DMA1_Stream3_IRQn);
     DMA1_Stream3->CR    = 0;
     DMA1_Stream3->PAR   = (uint32_t)&(SPI2->DR);

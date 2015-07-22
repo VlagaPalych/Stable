@@ -101,6 +101,13 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
+         <widget class="QCheckBox" name="impulseCheckBox">
+          <property name="text">
+           <string>impulse</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPushButton" name="stabToggleButton">
           <property name="text">
            <string>Start</string>
@@ -193,7 +200,7 @@
            <string>Save to file</string>
           </property>
           <property name="checked">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -285,7 +292,7 @@
                <string>pwm1</string>
               </property>
               <property name="checked">
-               <bool>true</bool>
+               <bool>false</bool>
               </property>
              </widget>
             </item>
@@ -295,7 +302,7 @@
                <string>pwm2</string>
               </property>
               <property name="checked">
-               <bool>true</bool>
+               <bool>false</bool>
               </property>
              </widget>
             </item>
