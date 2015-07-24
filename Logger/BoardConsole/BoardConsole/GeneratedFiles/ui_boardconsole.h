@@ -41,8 +41,8 @@ public:
     QGroupBox *filtergroupBox;
     QVBoxLayout *verticalLayout_5;
     QCheckBox *noFilterCheckBox;
-    QCheckBox *kalmanFilterCheckBox;
     QCheckBox *averagingCheckBox;
+    QCheckBox *kalmanFilterCheckBox;
     QGroupBox *accelgroupBox;
     QVBoxLayout *verticalLayout_6;
     QRadioButton *HZ100RadioButton;
@@ -85,7 +85,7 @@ public:
     {
         if (BoardConsoleClass->objectName().isEmpty())
             BoardConsoleClass->setObjectName(QStringLiteral("BoardConsoleClass"));
-        BoardConsoleClass->resize(630, 975);
+        BoardConsoleClass->resize(630, 597);
         horizontalLayout_4 = new QHBoxLayout(BoardConsoleClass);
         horizontalLayout_4->setSpacing(6);
         horizontalLayout_4->setContentsMargins(11, 11, 11, 11);
@@ -101,11 +101,18 @@ public:
         verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
         serialComboBox = new QComboBox(connectGroupBox);
         serialComboBox->setObjectName(QStringLiteral("serialComboBox"));
+        QSizePolicy sizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        sizePolicy.setHorizontalStretch(0);
+        sizePolicy.setVerticalStretch(0);
+        sizePolicy.setHeightForWidth(serialComboBox->sizePolicy().hasHeightForWidth());
+        serialComboBox->setSizePolicy(sizePolicy);
 
         verticalLayout->addWidget(serialComboBox);
 
         connectButton = new QPushButton(connectGroupBox);
         connectButton->setObjectName(QStringLiteral("connectButton"));
+        sizePolicy.setHeightForWidth(connectButton->sizePolicy().hasHeightForWidth());
+        connectButton->setSizePolicy(sizePolicy);
 
         verticalLayout->addWidget(connectButton);
 
@@ -123,15 +130,15 @@ public:
 
         verticalLayout_5->addWidget(noFilterCheckBox);
 
-        kalmanFilterCheckBox = new QCheckBox(filtergroupBox);
-        kalmanFilterCheckBox->setObjectName(QStringLiteral("kalmanFilterCheckBox"));
-
-        verticalLayout_5->addWidget(kalmanFilterCheckBox);
-
         averagingCheckBox = new QCheckBox(filtergroupBox);
         averagingCheckBox->setObjectName(QStringLiteral("averagingCheckBox"));
 
         verticalLayout_5->addWidget(averagingCheckBox);
+
+        kalmanFilterCheckBox = new QCheckBox(filtergroupBox);
+        kalmanFilterCheckBox->setObjectName(QStringLiteral("kalmanFilterCheckBox"));
+
+        verticalLayout_5->addWidget(kalmanFilterCheckBox);
 
 
         verticalLayout_4->addWidget(filtergroupBox);
@@ -170,31 +177,43 @@ public:
 
         stabToggleButton = new QPushButton(stabGroupBox);
         stabToggleButton->setObjectName(QStringLiteral("stabToggleButton"));
+        sizePolicy.setHeightForWidth(stabToggleButton->sizePolicy().hasHeightForWidth());
+        stabToggleButton->setSizePolicy(sizePolicy);
 
         verticalLayout_2->addWidget(stabToggleButton);
 
         calibrButton = new QPushButton(stabGroupBox);
         calibrButton->setObjectName(QStringLiteral("calibrButton"));
+        sizePolicy.setHeightForWidth(calibrButton->sizePolicy().hasHeightForWidth());
+        calibrButton->setSizePolicy(sizePolicy);
 
         verticalLayout_2->addWidget(calibrButton);
 
         k1Button = new QPushButton(stabGroupBox);
         k1Button->setObjectName(QStringLiteral("k1Button"));
+        sizePolicy.setHeightForWidth(k1Button->sizePolicy().hasHeightForWidth());
+        k1Button->setSizePolicy(sizePolicy);
 
         verticalLayout_2->addWidget(k1Button);
 
         k1LineEdit = new QLineEdit(stabGroupBox);
         k1LineEdit->setObjectName(QStringLiteral("k1LineEdit"));
+        sizePolicy.setHeightForWidth(k1LineEdit->sizePolicy().hasHeightForWidth());
+        k1LineEdit->setSizePolicy(sizePolicy);
 
         verticalLayout_2->addWidget(k1LineEdit);
 
         k2Button = new QPushButton(stabGroupBox);
         k2Button->setObjectName(QStringLiteral("k2Button"));
+        sizePolicy.setHeightForWidth(k2Button->sizePolicy().hasHeightForWidth());
+        k2Button->setSizePolicy(sizePolicy);
 
         verticalLayout_2->addWidget(k2Button);
 
         k2LineEdit = new QLineEdit(stabGroupBox);
         k2LineEdit->setObjectName(QStringLiteral("k2LineEdit"));
+        sizePolicy.setHeightForWidth(k2LineEdit->sizePolicy().hasHeightForWidth());
+        k2LineEdit->setSizePolicy(sizePolicy);
 
         verticalLayout_2->addWidget(k2LineEdit);
 
@@ -206,6 +225,8 @@ public:
 
         pwm1SpinBox = new QSpinBox(stabGroupBox);
         pwm1SpinBox->setObjectName(QStringLiteral("pwm1SpinBox"));
+        sizePolicy.setHeightForWidth(pwm1SpinBox->sizePolicy().hasHeightForWidth());
+        pwm1SpinBox->setSizePolicy(sizePolicy);
         pwm1SpinBox->setMinimum(1000);
         pwm1SpinBox->setMaximum(2000);
 
@@ -219,6 +240,8 @@ public:
 
         pwm2SpinBox = new QSpinBox(stabGroupBox);
         pwm2SpinBox->setObjectName(QStringLiteral("pwm2SpinBox"));
+        sizePolicy.setHeightForWidth(pwm2SpinBox->sizePolicy().hasHeightForWidth());
+        pwm2SpinBox->setSizePolicy(sizePolicy);
         pwm2SpinBox->setMinimum(1000);
         pwm2SpinBox->setMaximum(2000);
 
@@ -355,8 +378,8 @@ public:
         connectButton->setText(QApplication::translate("BoardConsoleClass", "Connect", 0));
         filtergroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Filters", 0));
         noFilterCheckBox->setText(QApplication::translate("BoardConsoleClass", "No Filter", 0));
-        kalmanFilterCheckBox->setText(QApplication::translate("BoardConsoleClass", "Kalman", 0));
         averagingCheckBox->setText(QApplication::translate("BoardConsoleClass", "Averaging", 0));
+        kalmanFilterCheckBox->setText(QApplication::translate("BoardConsoleClass", "Kalman", 0));
         accelgroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Accelerometer", 0));
         HZ100RadioButton->setText(QApplication::translate("BoardConsoleClass", "100 Hz", 0));
         HZ800RadioButton->setText(QApplication::translate("BoardConsoleClass", "800 Hz", 0));

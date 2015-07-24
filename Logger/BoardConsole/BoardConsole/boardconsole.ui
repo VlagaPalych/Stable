@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>630</width>
-    <height>975</height>
+    <height>597</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,10 +23,23 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <widget class="QComboBox" name="serialComboBox"/>
+         <widget class="QComboBox" name="serialComboBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QPushButton" name="connectButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>Connect</string>
           </property>
@@ -49,16 +62,16 @@
          </widget>
         </item>
         <item>
-         <widget class="QCheckBox" name="kalmanFilterCheckBox">
+         <widget class="QCheckBox" name="averagingCheckBox">
           <property name="text">
-           <string>Kalman</string>
+           <string>Averaging</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QCheckBox" name="averagingCheckBox">
+         <widget class="QCheckBox" name="kalmanFilterCheckBox">
           <property name="text">
-           <string>Averaging</string>
+           <string>Kalman</string>
           </property>
          </widget>
         </item>
@@ -109,6 +122,12 @@
         </item>
         <item>
          <widget class="QPushButton" name="stabToggleButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>Start</string>
           </property>
@@ -116,6 +135,12 @@
         </item>
         <item>
          <widget class="QPushButton" name="calibrButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>Calibrate</string>
           </property>
@@ -123,23 +148,49 @@
         </item>
         <item>
          <widget class="QPushButton" name="k1Button">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>K1</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="k1LineEdit"/>
+         <widget class="QLineEdit" name="k1LineEdit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QPushButton" name="k2Button">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>K2</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="k2LineEdit"/>
+         <widget class="QLineEdit" name="k2LineEdit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QLabel" name="label">
@@ -153,6 +204,12 @@
         </item>
         <item>
          <widget class="QSpinBox" name="pwm1SpinBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="minimum">
            <number>1000</number>
           </property>
@@ -173,6 +230,12 @@
         </item>
         <item>
          <widget class="QSpinBox" name="pwm2SpinBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="minimum">
            <number>1000</number>
           </property>

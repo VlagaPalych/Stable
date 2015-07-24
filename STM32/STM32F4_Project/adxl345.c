@@ -167,7 +167,7 @@ void Accel_EXTI_Init() {
     
     EXTI->RTSR 	|= EXTI_FTSR_TR1; 
     EXTI->IMR 	|= EXTI_IMR_MR1;
-    NVIC_SetPriority(EXTI1_IRQn, 0x03);
+    NVIC_SetPriority(EXTI1_IRQn, 0x04);
     NVIC_EnableIRQ(EXTI1_IRQn); 
 }
 
@@ -189,9 +189,10 @@ void EXTI1_IRQHandler() {  //what to do when accelerometer is ready
 
 void EXTI1_IRQHandler() {
     if (EXTI->PR & EXTI_PR_PR1) {
-        EXTI->PR |= EXTI_PR_PR1;
+        EXTI->PR = EXTI_PR_PR1;
         
         //Delay(5000);
+        GPIOD->BSRRL |= 1 << 15;
         NSS_Low();
         ADXL345_DMA_Init();
     }
@@ -234,8 +235,11 @@ void updateFreq() {
 void DMA1_Stream3_IRQHandler() {
     if (DMA1->LISR & DMA_LISR_TCIF3) {
         DMA1->LIFCR = DMA_LIFCR_CTCIF3;
-        if((GPIOA->IDR & (1 << 1)) == 1) {  
+        DMA1->LIFCR = DMA_LIFCR_CHTIF3;
+
+        if(GPIOA->IDR & GPIO_IDR_IDR_1) {  
             ADXL345_DMA_Init();
+            GPIOD->ODR ^= 1 << 15;
         } else NSS_High();
         
         updateFreq();
@@ -252,6 +256,7 @@ void DMA1_Stream3_IRQHandler() {
         az -= zOffset;
         
         process();
+        GPIOD->BSRRH |= 1 << 15;
     }
 }
 

@@ -48,6 +48,9 @@ uint8_t displayAngularVelocity  = 1;
 uint8_t displayF                = 1;
 uint8_t displayPwm              = 1;
 
+char tele[100] = "";
+uint8_t len = 0, j;
+
 void USART_Init(void) {
     GPIOA->MODER    |= (2 << UART2_TX*2) | (2 << UART2_RX*2);
     GPIOA->OTYPER   &= ~((1 << UART2_TX) | (1 << UART2_RX));
@@ -55,10 +58,24 @@ void USART_Init(void) {
     GPIOA->PUPDR    |= (1 << UART2_TX*2) | (1 << UART2_RX*2);
     GPIOA->AFR[0]   |= (7 << UART2_TX*4) | (7 << UART2_RX*4);
 
-    USART2->BRR     = 0x341; 
+    USART2->BRR     = 0x45;//0x341; 
+    USART2->CR3     |= USART_CR3_DMAT;
     USART2->CR1     |= USART_CR1_UE | USART_CR1_RE | USART_CR1_TE | USART_CR1_RXNEIE; 
     NVIC_SetPriority(USART2_IRQn, 0x02);
     NVIC_EnableIRQ(USART2_IRQn);
+    
+//    GPIOA->MODER &= ~(3UL << 15*2);
+//    GPIOA->MODER |= 1 << (15*2);GPIOA->BSRRH |= 1 << 15;
+////    GPIOA->BSRRL |= 1 << 15;
+//    
+//    while (1) {
+//    sprintf(tele, "AT\r\n");
+//        len = strlen(tele);
+//        for (j = 0; j < len; j++) {
+//            send_to_uart(tele[j]);
+//        }
+//    }
+    
 }
 
 void Telemetry_TIM_Init() {
@@ -111,7 +128,7 @@ void USART2_IRQHandler() {
                             stabilizationOn = 0;
                             Motors_Stop();
                         } else {
-                            Motors_InitForStab();
+                            //Motors_InitForStab();
                             stabilizationOn = 1; 
                         }
                         break;
@@ -243,17 +260,18 @@ void send_to_uart(uint8_t data) {
 }
 
 void SendTelemetry() {
-    char tele[100] = "";
+    
 //    char angleStr[5];
 //    char angulVelStr[5];
 //    char fStr[5];
 //    char pwmStr[10];
-    uint8_t len = 0, j;
+    uint8_t j;
+    len = 0;
     
     if (telemetryOn) {
         switch (curTelemetryMode) {
             case FULL:
-                sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %.2f %.2f\n", angle, angularVelocity, F, ax, ay, az, pwm1, pwm2, k1, k2);
+                sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %d %d %.2f %.2f\n", angle, angularVelocity, F, ax, ay, az, pwm1, pwm2, COUNT1, COUNT2, k1, k2);
                 break;
             case MOVE_DESCRIPTION:
 //                if (displayAngle) {
@@ -287,8 +305,31 @@ void SendTelemetry() {
         }
         len = strlen(tele);
         
-        for (j = 0; j < len; j++) {
-            send_to_uart(tele[j]);
-        }
+        Telemetry_DMA_Init();
+//        for (j = 0; j < len; j++) {
+//            send_to_uart(tele[j]);
+//        }
+    }
+}
+uint8_t USART_DMA_transferComleted = 1;
+
+void Telemetry_DMA_Init() {
+    if (USART_DMA_transferComleted) {
+    USART_DMA_transferComleted = 0;
+    NVIC_EnableIRQ(DMA1_Stream6_IRQn);
+    
+    DMA1_Stream6->CR    = 0;
+    DMA1_Stream6->PAR   = (uint32_t)&(USART2->DR);
+    DMA1_Stream6->M0AR  = (uint32_t)tele;     
+    DMA1_Stream6->NDTR  = len;
+    DMA1_Stream6->CR    |= DMA_SxCR_CHSEL_2 | DMA_SxCR_MINC /*| DMA_SxCR_PSIZE_0 | DMA_SxCR_MSIZE_0 */| 
+                                DMA_SxCR_TCIE | DMA_SxCR_DIR_0  | DMA_SxCR_PL | DMA_SxCR_EN;
+    }
+}
+
+void DMA1_Stream6_IRQHandler() {
+    if (DMA1->HISR & DMA_HISR_TCIF6) {
+        DMA1->HIFCR = DMA_HIFCR_CTCIF6;
+        USART_DMA_transferComleted = 1;
     }
 }

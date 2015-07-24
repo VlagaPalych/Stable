@@ -6,8 +6,8 @@
 extern int minPwm;
 extern int pwm1;
 extern int pwm2;
-//extern int COUNT1;
-//extern int COUNT2;
+extern int COUNT1;
+extern int COUNT2;
 
 extern uint8_t tim3_status;
 

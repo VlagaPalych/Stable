@@ -51,4 +51,6 @@ void Accel_EXTI_Init(void);
 
 void ADXL345_DMA_Init(void);
 
+void EXTI1_IRQHandler(void);
+
 #endif 

@@ -117,7 +117,7 @@ QString BoardConsole::defineLogFile() {
 
 void BoardConsole::handleConnectButton() {
 	stm = new QSerialPort(ui.serialComboBox->currentText());
-	stm->setBaudRate(QSerialPort::Baud9600);
+	stm->setBaudRate(QSerialPort::Baud115200);
 	stm->setParity(QSerialPort::NoParity);
 	stm->setStopBits(QSerialPort::OneStop);
 	if (!stm->open(QIODevice::ReadWrite)) {
@@ -136,7 +136,7 @@ void BoardConsole::handleConnectButton() {
 
 void BoardConsole::STM_Init() {
 	stm->write("a");
-	stm->write("m1250b");
+	stm->write("m1100b");
 	stm->write("o2.0b");
 	stm->write("p0.01b");
 }
@@ -231,7 +231,7 @@ void BoardConsole::handleFreshLine(QString &line) {
 	QStringList numbers = line.split(' ');
 	qDebug() << numbers;
 	if (ui.fullRadioButton->isChecked()) {
-		if (numbers.size() != 10) return;
+		if (numbers.size() < 8) return;
 
 		double angle = numbers[0].toDouble();
 		double angularVelocity = numbers[1].toDouble();

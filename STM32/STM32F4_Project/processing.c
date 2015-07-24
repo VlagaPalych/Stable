@@ -186,7 +186,7 @@ void control() {
     
     F = k1*angle + k2*angularVelocity;
 
-    if (stabilizationOn && STABRDY) {
+    if (stabilizationOn/* && STABRDY*/) {
         if (impulseOn) {
             impulseOn = 0;
             angle -= 1;

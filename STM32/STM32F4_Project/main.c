@@ -33,16 +33,21 @@ void RCC_Init() {
 int main() {
     RCC_Init();
     
+    GPIOD->MODER |= 1 << (15 * 2);
+    GPIOD->OTYPER &= ~(1 << 15);
+    GPIOD->OSPEEDR |= 3UL << (15*2);
+    
     ADXL345_Init();
     ADXL345_Calibr();
-    Accel_EXTI_Init();
+    
     
     Motors_Init();
     USART_Init();
-    Telemetry_TIM_Init();
+    //Telemetry_TIM_Init();
     
     while(ENGRDY != 1) {};
-        
+    Accel_EXTI_Init();
+    EXTI->SWIER |= EXTI_SWIER_SWIER1;
     
     
     while(1) {
