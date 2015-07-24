@@ -136,7 +136,7 @@ void BoardConsole::handleConnectButton() {
 
 void BoardConsole::STM_Init() {
 	stm->write("a");
-	stm->write("m1100b");
+	stm->write("m1000b");
 	stm->write("o2.0b");
 	stm->write("p0.01b");
 }

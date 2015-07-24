@@ -14,11 +14,11 @@ int pwm2 = 0;
 int COUNT1 = 0;
 int COUNT2 = 0;
 
-double F = 0;
-double k1 = 3;
-double k2 = 2;
-double angle = 0;
-double angularVelocity = 0;
+float F = 0;
+float k1 = 3;
+float k2 = 2;
+float angle = 0;
+float angularVelocity = 0;
 
 void RCC_Init() {
     RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN | RCC_APB2ENR_TIM9EN;
@@ -39,18 +39,16 @@ int main() {
     
     ADXL345_Init();
     ADXL345_Calibr();
-    
-    
+
     Motors_Init();
     USART_Init();
-    //Telemetry_TIM_Init();
     
     while(ENGRDY != 1) {};
+        
     Accel_EXTI_Init();
     EXTI->SWIER |= EXTI_SWIER_SWIER1;
     
-    
     while(1) {
-        //SendTelemetry();
+        
     }
 }

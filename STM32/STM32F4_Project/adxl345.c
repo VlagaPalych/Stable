@@ -140,7 +140,7 @@ void ADXL345_GetAccel(int16_t *x, int16_t *y, int16_t *z) {
 
 void ADXL345_Calibr() {
     int i = 0;
-    double xSum = 0, ySum = 0, zSum = 0;
+    float xSum = 0, ySum = 0, zSum = 0;
     
     while (!(GPIOA->IDR & (1 << ACCEL_INT1))) {}
     ADXL345_GetAccel(&ax, &ay, &az); 

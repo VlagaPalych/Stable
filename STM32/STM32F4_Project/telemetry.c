@@ -28,9 +28,9 @@ int intValue;
 
 // reading float variables
 int k;
-double my_pow;
-double d_st;
-double floatValue;
+float my_pow;
+float d_st;
+float floatValue;
 
 waiting                 curWaiting          = WAITING_FOR_COMMAND;
 waitingForInt           curWaitingForInt    = INT_NONE;

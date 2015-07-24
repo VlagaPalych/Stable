@@ -9,71 +9,71 @@
 
 #define DT MEASUREMENT_TIME
 
-double Ak = 1;
-double Hk = 1;
+//float Ak = 1;
+//float Hk = 1;
 
-double Qk = 0.01;
-double Rkx = 0.75;
-double Rky = 0.75;
-double Rkz = 1.1;
-double Kx = 0;
-double Ky = 0;
-double Kz = 0;
+//float Qk = 0.01;
+//float Rkx = 0.75;
+//float Rky = 0.75;
+//float Rkz = 1.1;
+//float Kx = 0;
+//float Ky = 0;
+//float Kz = 0;
 
-double predictedAx = 0;
-double predictedAy = 0;
-double predictedAz = 0;
+//float predictedAx = 0;
+//float predictedAy = 0;
+//float predictedAz = 0;
 
-double predictedPx = 0;
-double predictedPy = 0;
-double predictedPz = 0;
+//float predictedPx = 0;
+//float predictedPy = 0;
+//float predictedPz = 0;
 
-double Px = 0;
-double Py = 0;
-double Pz = 255;
+//float Px = 0;
+//float Py = 0;
+//float Pz = 255;
 
 // state
-double Ax = 0;
-double Ay = 0;
-double Az = 255;
+float Ax = 0;
+float Ay = 0;
+float Az = 255;
 
 
-double prevAngle = 0;
+float prevAngle = 0;
 
 uint8_t stabilizationOn = 0;
 uint8_t kalmanOn        = 0;
-uint8_t averagingOn     = 0;
+uint8_t averagingOn     = 1;
 uint8_t impulseOn       = 0;
 
 // A = [1 DT
 //      0 1 ]
-double A[4] = {1, DT, 0, 1};
-double At[4] = {1, 0, DT, 1};
+float A[4] = {1, DT, 0, 1};
+float At[4] = {1, 0, DT, 1};
 
 // H = [1 0]
-double H[2] = {1, 0};
-double Ht[2] = {1, 0};
+float H[2] = {1, 0};
+float Ht[2] = {1, 0};
 
-double Xaposteriori[2] = {0, 0};
-double Paposteriori[4] = {0, 0, 0, 1000};
-double R[1] = {0.03};
-double Q[4] = {0.1, 0, 0, 0.1};
-double I[4] = {1, 0, 0, 1};
+float Xaposteriori[2] = {0, 0};
+float Paposteriori[4] = {0, 0, 0, 1000};
+float R[1] = {0.03};
+float Q[4] = {0.1, 0, 0, 0.1};
+float I[4] = {1, 0, 0, 1};
 
-double Xapriori[2];
-double Papriori[4];
+float Xapriori[2];
+float Papriori[4];
     
 
 void kalman() {
-    double tmp1[4]; // A * Paposteriori
-    double y[1];
-    double z[1];
-    double tmp2[1]; // H * Xapriori
-    double S[1], Sinv[1];
-    double tmp3[2]; // H * Papriori
-    double tmp4[2]; // tmp3 * Ht
-    double K[2];
-    double tmp5[4];
+    float tmp1[4]; // A * Paposteriori
+    float y[1];
+    float z[1];
+    float tmp2[1]; // H * Xapriori
+    float S[1], Sinv[1];
+    float tmp3[2]; // H * Papriori
+    float tmp4[2]; // tmp3 * Ht
+    float K[2];
+    float tmp5[4];
     
     z[0] = angle;
     
@@ -125,23 +125,23 @@ void kalman() {
 //    Ky = predictedPy * Hk / (Hk * predictedPy * Hk + Rky);
 //    Kz = predictedPz * Hk / (Hk * predictedPz * Hk + Rkz);
 //    
-//    Ax = predictedAx + Kx * ((double)ax - Hk * predictedAx);
-//    Ay = predictedAy + Ky * ((double)ay - Hk * predictedAy);
-//    Az = predictedAz + Kz * ((double)az - Hk * predictedAz);
+//    Ax = predictedAx + Kx * ((float)ax - Hk * predictedAx);
+//    Ay = predictedAy + Ky * ((float)ay - Hk * predictedAy);
+//    Az = predictedAz + Kz * ((float)az - Hk * predictedAz);
 //    
 //    Px = (1 - Kx * Hk) * predictedPx;
 //    Py = (1 - Ky * Hk) * predictedPy;
 //    Pz = (1 - Kz * Hk) * predictedPz;
 //}
 
-double Aappr = 5.13e-7;
-double Bappr = 0.001;
-double Cappr = -1.81;
-double D = 0;
-double x1 = 0;
-double x2 = 0;
+float Aappr = 5.13e-7;
+float Bappr = 0.001;
+float Cappr = -1.81;
+float D = 0;
+float x1 = 0;
+float x2 = 0;
 
-double chooseRoot() {
+float chooseRoot() {
     if (D < 0) return 2000;
     
     x1 = (-Bappr - sqrt(D)) / (2 * Aappr);
@@ -153,12 +153,12 @@ double chooseRoot() {
 }
 
 uint8_t angleCount = 0;
-double angleSum = 0;
+float angleSum = 0;
 uint8_t averaged = 0;
-double angles[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+float angles[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
 //void averaging() {
-//    angle = atan((double)Ay / (double)Az);
+//    angle = atan((float)Ay / (float)Az);
 //    angleSum += angle;
 //    angleCount++;
 //    if (angleCount == 8) {
@@ -190,7 +190,7 @@ void control() {
         if (impulseOn) {
             impulseOn = 0;
             angle -= 1;
-            angularVelocity = (angle - prevAngle) / DT;
+            angularVelocity = (angle - prevAngle) / ((float)DT);
             F = k1*angle + k2*angularVelocity;
         }
         
@@ -213,39 +213,39 @@ void control() {
             }
             TIM4->CCR1 = pwm1;
         }
-    }
-    SendTelemetry();
-        
+    }     
         // Identification block
-//        if (anglesAccumulated < 2) {
-//            y[anglesAccumulated] = angle;
-//            u[anglesAccumulated] = F;
-//        } else {
-//            y[2] = angle;
-//            u[2] = F;
-//            
-//            row = anglesAccumulated - 2;
-//            Afull[row*3 + 0] = (y[1] - y[0]) / MEASUREMENT_TIME;
-//            Afull[row*3 + 1] = y[0];
-//            Afull[row*3 + 2] = -u[0];
-//            
-//            Bfull[row] = (2*y[1] - y[2] - y[0]) / MEASUREMENT_TIME / MEASUREMENT_TIME;
-//            
-//            y[0] = y[1];
-//            y[1] = y[2];
-//            u[0] = u[1];
-//            u[1] = u[2];
-//            
-//            if (anglesAccumulated == 11) {
-//                system_solve(Afull, Bfull, w, 10, 3);
-//                anglesAccumulated = 1;
-//            }      
-//        } 
-//        anglesAccumulated++;
+        if (anglesAccumulated < 2) {
+            y[anglesAccumulated] = angle;
+            u[anglesAccumulated] = F;
+        } else {
+            y[2] = angle;
+            u[2] = F;
+            
+            row = anglesAccumulated - 2;
+            Afull[row*3 + 0] = (y[2] - y[1]) / ((float)DT);
+            Afull[row*3 + 1] = y[2];
+            Afull[row*3 + 2] = -u[2];
+            
+            Bfull[row] = (2*y[1] - y[2] - y[0]) / ((float)DT) / ((float)DT);
+            
+            y[0] = y[1];
+            y[1] = y[2];
+            u[0] = u[1];
+            u[1] = u[2];
+            
+            if (anglesAccumulated == 11) {
+                system_solve(Afull, Bfull, w, 10, 3);
+                anglesAccumulated = 1;
+            }      
+        } 
+        anglesAccumulated++;
+
+    SendTelemetry();
 }
 
 void process() {
-    angle = atan((double)ay / (double)az);
+    angle = atan((float)ay / (float)az);
        
     if (averagingOn) {
         averaging();
@@ -253,7 +253,7 @@ void process() {
     if (kalmanOn) {
         kalman();
     } else {
-        angularVelocity = (angle - prevAngle) / DT;
+        angularVelocity = (angle - prevAngle) / ((float)DT);
     }
     control();
 }

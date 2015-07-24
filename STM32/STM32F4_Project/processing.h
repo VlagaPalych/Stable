@@ -3,15 +3,15 @@
 
 #include "stdint.h"
 
-extern double F;
-extern double k1;
-extern double k2;
-extern double angle;
-extern double angularVelocity;
+extern float F;
+extern float k1;
+extern float k2;
+extern float angle;
+extern float angularVelocity;
 
-extern double Ax;
-extern double Ay;
-extern double Az;
+extern float Ax;
+extern float Ay;
+extern float Az;
 
 extern uint8_t stabilizationOn;
 extern uint8_t kalmanOn;
