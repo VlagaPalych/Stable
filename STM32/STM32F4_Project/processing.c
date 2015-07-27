@@ -6,6 +6,8 @@
 #include "motors.h"
 #include "adxl345.h"
 #include "telemetry.h"
+#include "stdlib.h"
+#include "string.h"
 
 #define DT MEASUREMENT_TIME
 
@@ -40,10 +42,14 @@ float Az = 255;
 
 float prevAngle = 0;
 
-uint8_t stabilizationOn = 0;
-uint8_t kalmanOn        = 0;
-uint8_t averagingOn     = 1;
-uint8_t impulseOn       = 0;
+uint8_t stabilizationOn     = 0;
+uint8_t kalmanOn            = 0;
+uint8_t angleAveragingOn    = 0;
+uint8_t angVelAveragingOn   = 0;
+uint8_t impulseOn           = 0;
+
+uint8_t angleWindowSize     = 8;
+uint8_t angVelWindowSize    = 8;
 
 // A = [1 DT
 //      0 1 ]
@@ -152,10 +158,61 @@ float chooseRoot() {
     return 2000;
 }
 
-uint8_t angleCount = 0;
+uint8_t angleIndex = 0;
 float angleSum = 0;
-uint8_t averaged = 0;
-float angles[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+float *angles = NULL;
+uint8_t angVelIndex = 0;
+float angVelSum = 0;
+float *angVels = NULL;
+
+uint8_t min(uint8_t val1, uint8_t val2) {
+    return val1 > val2 ? val2 : val1;
+}
+
+void allocAngleAveraging(uint8_t newSize) {
+    uint8_t shift = 0, j = 0;
+    float *newAngles = (float *)malloc(newSize * sizeof(float));
+    
+    if (newSize > angleWindowSize) {
+        memcpy(newAngles, angles, angleWindowSize * sizeof(float));
+    } else {
+        shift = angleWindowSize - newSize;
+        memcpy(newAngles, angles + shift, newSize * sizeof(float));
+        for (j = 0; j < shift; j++) {
+            angleSum -= angles[j];
+        }
+        angleIndex %= newSize;
+    }
+    free(angles);
+    angles = newAngles;
+    angleWindowSize = newSize;
+}
+
+void allocAngVelAveraging(uint8_t newSize) {
+    uint8_t shift = 0, j = 0;
+    float *newAngVels = (float *)malloc(newSize * sizeof(float));
+    
+    if (newSize > angVelWindowSize) {
+        memcpy(newAngVels, angVels, angVelWindowSize * sizeof(float));
+    } else {
+        shift = angVelWindowSize - newSize;
+        memcpy(newAngVels, angVels + shift, newSize * sizeof(float));
+        for (j = 0; j < shift; j++) {
+            angVelSum -= angVels[j];
+        }
+        angVelIndex %= newSize;
+    }
+    free(angVels);
+    angVels = newAngVels;
+    angVelWindowSize = newSize;
+}
+
+void allocAveraging() {
+    angles = (float *)malloc(angleWindowSize * sizeof(float));
+    memset(angles, 0, angleWindowSize * sizeof(float));
+    angVels = (float *)malloc(angVelWindowSize * sizeof(float));
+    memset(angVels, 0, angVelWindowSize * sizeof(float));
+}
 
 //void averaging() {
 //    angle = atan((float)Ay / (float)Az);
@@ -168,16 +225,22 @@ float angles[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 //        averaged = 1;
 //    }
 //}
-void averaging() {
-    angleSum -= angles[angleCount];
-    angles[angleCount] = angle;
+void angleAveraging() {
+    angleSum -= angles[angleIndex];
+    angles[angleIndex] = angle;
     angleSum += angle;
-    if (angleCount == 7) {
-        angleCount = 0;
-    } else {
-        angleCount++;
-    }
-    angle = angleSum / 8;
+    angle = angleSum / angleWindowSize;
+    angles[angleIndex] = angle;
+    angleIndex = (angleIndex + 1) % angleWindowSize;
+}
+
+void angVelAveraging() {
+    angVelSum -= angVels[angVelIndex];
+    angVels[angVelIndex] = angularVelocity;
+    angVelSum += angularVelocity;
+    angularVelocity = angVelSum / angVelWindowSize;
+    angVels[angVelIndex] = angularVelocity;
+    angVelIndex = (angVelIndex + 1) % angVelWindowSize;
 }
 
 void control() {
@@ -189,15 +252,15 @@ void control() {
     if (stabilizationOn/* && STABRDY*/) {
         if (impulseOn) {
             impulseOn = 0;
-            angle -= 1;
+            angle += 1;
             angularVelocity = (angle - prevAngle) / ((float)DT);
             F = k1*angle + k2*angularVelocity;
         }
-        
+        D = Bappr*Bappr - 4*Aappr*(Cappr - fabs(F));
         if (F > 0) {
             pwm1 = minPwm;
             TIM4->CCR1 = minPwm;
-            D = Bappr*Bappr - 4*Aappr*(Cappr - fabs(F));
+            
             pwm2 = (int)chooseRoot();
             if (pwm2 < minPwm) {
                 pwm2 = minPwm;
@@ -206,7 +269,6 @@ void control() {
         } else if (F < 0) {
             pwm2 = minPwm;
             TIM4->CCR3 = minPwm;
-            D = Bappr*Bappr - 4*Aappr*(Cappr - fabs(F));
             pwm1 = (int)chooseRoot();
             if (pwm1 < minPwm) {
                 pwm1 = minPwm;
@@ -215,41 +277,45 @@ void control() {
         }
     }     
         // Identification block
-        if (anglesAccumulated < 2) {
-            y[anglesAccumulated] = angle;
-            u[anglesAccumulated] = F;
-        } else {
-            y[2] = angle;
-            u[2] = F;
-            
-            row = anglesAccumulated - 2;
-            Afull[row*3 + 0] = (y[2] - y[1]) / ((float)DT);
-            Afull[row*3 + 1] = y[2];
-            Afull[row*3 + 2] = -u[2];
-            
-            Bfull[row] = (2*y[1] - y[2] - y[0]) / ((float)DT) / ((float)DT);
-            
-            y[0] = y[1];
-            y[1] = y[2];
-            u[0] = u[1];
-            u[1] = u[2];
-            
-            if (anglesAccumulated == 11) {
-                system_solve(Afull, Bfull, w, 10, 3);
-                anglesAccumulated = 1;
-            }      
-        } 
-        anglesAccumulated++;
+//        if (anglesAccumulated < 2) {
+//            y[anglesAccumulated] = angle;
+//            u[anglesAccumulated] = F;
+//        } else {
+//            y[2] = angle;
+//            u[2] = F;
+//            
+//            row = anglesAccumulated - 2;
+//            Afull[row*3 + 0] = (y[2] - y[1]) / ((float)DT);
+//            Afull[row*3 + 1] = y[2];
+//            Afull[row*3 + 2] = -u[2];
+//            
+//            Bfull[row] = (2*y[1] - y[2] - y[0]) / ((float)DT) / ((float)DT);
+//            
+//            y[0] = y[1];
+//            y[1] = y[2];
+//            u[0] = u[1];
+//            u[1] = u[2];
+//            
+//            if (anglesAccumulated == 11) {
+//                system_solve(Afull, Bfull, w, 10, 3);
+//                anglesAccumulated = 1;
+//            }      
+//        } 
+//        anglesAccumulated++;
 
     SendTelemetry();
 }
 
 void process() {
     angle = atan((float)ay / (float)az);
-       
-    if (averagingOn) {
-        averaging();
+    if (angleAveragingOn) {
+        angleAveraging();
     } 
+    angularVelocity = (angle - prevAngle) / ((float)DT); 
+    if (angVelAveragingOn) {
+        angVelAveraging();
+    }
+    
     if (kalmanOn) {
         kalman();
     } else {

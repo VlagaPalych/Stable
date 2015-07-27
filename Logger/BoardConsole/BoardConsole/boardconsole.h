@@ -60,12 +60,17 @@ private Q_SLOTS:
 
 	void handleNoFilterCheckBox();
 	void handleKalmanFilterCheckBox();
-	void handleAveragingCheckBox();
+	void handleAveragingAngleCheckBox();
+	void handleAveragingAngVelCheckBox();
+
+	void handleAngleWindowSpinBox(int);
+	void handleAngVelWindowSpinBox(int);
 
 	void handleSaveToFileCheckBox();
 
-	void handleK1Button();
-	void handleK2Button();
+	void handlePButton();
+	void handleDButton();
+	void handleIButton();
 
 	void handleTelemetryDisplayButtons();
 

@@ -28,12 +28,13 @@ BoardConsole::BoardConsole(QWidget *parent)
 
 	connect(ui.noFilterCheckBox, SIGNAL(clicked()), SLOT(handleNoFilterCheckBox()));
 	connect(ui.kalmanFilterCheckBox, SIGNAL(clicked()), SLOT(handleKalmanFilterCheckBox()));
-	connect(ui.averagingCheckBox, SIGNAL(clicked()), SLOT(handleAveragingCheckBox()));
+	connect(ui.averagingAngleCheckBox, SIGNAL(clicked()), SLOT(handleAveragingAngleCheckBox()));
+	connect(ui.averagingAngVelCheckBox, SIGNAL(clicked()), SLOT(handleAveragingAngVelCheckBox()));
 
 	connect(ui.saveToFileCheckBox, SIGNAL(clicked()), SLOT(handleSaveToFileCheckBox()));
 
-	connect(ui.k1Button, SIGNAL(clicked()), SLOT(handleK1Button()));
-	connect(ui.k2Button, SIGNAL(clicked()), SLOT(handleK2Button()));
+	connect(ui.pButton, SIGNAL(clicked()), SLOT(handleK1Button()));
+	connect(ui.dButton, SIGNAL(clicked()), SLOT(handleK2Button()));
 
 	connect(ui.angleCheckBox, SIGNAL(clicked()), SLOT(handleTelemetryDisplayButtons()));
 	connect(ui.angVelCheckBox, SIGNAL(clicked()), SLOT(handleTelemetryDisplayButtons()));
@@ -43,6 +44,9 @@ BoardConsole::BoardConsole(QWidget *parent)
 
 	connect(ui.pwm1SpinBox, SIGNAL(valueChanged(int)), SLOT(handlePwm1SpinBox(int)));
 	connect(ui.pwm2SpinBox, SIGNAL(valueChanged(int)), SLOT(handlePwm2SpinBox(int)));
+
+	connect(ui.angleWindowSpinBox, SIGNAL(valueChanged(int)), SLOT(handleAngleWindowSpinBox(int)));
+	connect(ui.angVelWindowSpinBox, SIGNAL(valueChanged(int)), SLOT(handleAngVelWindowSpinBox(int)));
 
 	stm = NULL;
 	stmReader = NULL;
@@ -136,7 +140,7 @@ void BoardConsole::handleConnectButton() {
 
 void BoardConsole::STM_Init() {
 	stm->write("a");
-	stm->write("m1000b");
+	stm->write("m1100b");
 	stm->write("o2.0b");
 	stm->write("p0.01b");
 }
@@ -324,18 +328,18 @@ void BoardConsole::handleFreshLine(QString &line) {
 void BoardConsole::handleNoFilterCheckBox() {
 	if (ui.noFilterCheckBox->isChecked()) {
 		ui.kalmanFilterCheckBox->setEnabled(false);
-		ui.averagingCheckBox->setEnabled(false);
+		ui.averagingAngleCheckBox->setEnabled(false);
 		if (ui.kalmanFilterCheckBox->isChecked()) {
 			stm->write("s");
 			ui.kalmanFilterCheckBox->setChecked(false);
 		}
-		if (ui.averagingCheckBox->isChecked()) {
+		if (ui.averagingAngleCheckBox->isChecked()) {
 			stm->write("t");
-			ui.averagingCheckBox->setChecked(false);
+			ui.averagingAngleCheckBox->setChecked(false);
 		}
 	} else {
 		ui.kalmanFilterCheckBox->setEnabled(true);
-		ui.averagingCheckBox->setEnabled(true);
+		ui.averagingAngleCheckBox->setEnabled(true);
 	}
 }
 
@@ -343,8 +347,12 @@ void BoardConsole::handleKalmanFilterCheckBox() {
 	stm->write("s");
 }
 
-void BoardConsole::handleAveragingCheckBox() {
+void BoardConsole::handleAveragingAngleCheckBox() {
 	stm->write("t");
+}
+
+void BoardConsole::handleAveragingAngVelCheckBox() {
+	stm->write("w");
 }
 
 void BoardConsole::handleSaveToFileCheckBox() {
@@ -357,15 +365,22 @@ void BoardConsole::handleSaveToFileCheckBox() {
 	}
 }
 
-void BoardConsole::handleK1Button() {
-	QString kStr = ui.k1LineEdit->text();
+void BoardConsole::handlePButton() {
+	QString kStr = ui.pLineEdit->text();
 	if (!kStr.isEmpty()) {
 		stm->write(tr("o%1b").arg(kStr).toStdString().c_str());
 	}
 }
 
-void BoardConsole::handleK2Button() {
-	QString kStr = ui.k2LineEdit->text();
+void BoardConsole::handleIButton() {
+	QString kStr = ui.iLineEdit->text();
+	if (!kStr.isEmpty()) {
+		stm->write(tr("x%1b").arg(kStr).toStdString().c_str());
+	}
+}
+
+void BoardConsole::handleDButton() {
+	QString kStr = ui.dLineEdit->text();
 	if (!kStr.isEmpty()) {
 		stm->write(tr("p%1b").arg(kStr).toStdString().c_str());
 	}
@@ -381,4 +396,11 @@ void BoardConsole::handlePwm1SpinBox(int newval) {
 
 void BoardConsole::handlePwm2SpinBox(int newval) {
 	stm->write(tr("n%1b").arg(newval).toStdString().c_str());
+}
+
+void BoardConsole::handleAngleWindowSpinBox(int newval) {
+	stm->write(tr("u%1b").arg(newval).toStdString().c_str());
+}
+void BoardConsole::handleAngVelWindowSpinBox(int newval) {
+	stm->write(tr("v%1b").arg(newval).toStdString().c_str());
 }

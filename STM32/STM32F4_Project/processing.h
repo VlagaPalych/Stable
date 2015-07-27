@@ -15,15 +15,28 @@ extern float Az;
 
 extern uint8_t stabilizationOn;
 extern uint8_t kalmanOn;
-extern uint8_t averagingOn;
+extern uint8_t angleAveragingOn;
+extern uint8_t angVelAveragingOn;
 extern uint8_t impulseOn;
+
+extern uint8_t angleWindowSize;
+extern uint8_t angVelWindowSize;
+extern uint8_t angleIndex;
+extern float angleSum;
+extern uint8_t angVelIndex;
+extern float angVelSum;
 
 extern uint8_t STABRDY;
 
 void kalman(void);
-void averaging(void);
+void angleAveraging(void);
+void angVelAveraging(void);
 void control(void);
 void process(void);
+
+void allocAngleAveraging(uint8_t newSize);
+void allocAngVelAveraging(uint8_t newSize);
+void allocAveraging(void);
 
 
 #define MEASUREMENT_TIME 0.01

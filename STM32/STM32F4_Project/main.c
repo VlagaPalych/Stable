@@ -2,6 +2,7 @@
 #include "adxl345.h"
 #include "telemetry.h"
 #include "motors.h"
+#include "processing.h"
 
 int16_t ax = 0;
 int16_t ay = 0;
@@ -45,6 +46,9 @@ int main() {
     
     while(ENGRDY != 1) {};
         
+//    angleAveragingOn = 1;
+//    angVelAveragingOn = 1;
+    allocAveraging();    
     Accel_EXTI_Init();
     EXTI->SWIER |= EXTI_SWIER_SWIER1;
     

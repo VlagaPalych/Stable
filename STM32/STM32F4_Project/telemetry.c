@@ -12,7 +12,7 @@ uint8_t UART2_RX = 3;    // PA3
 
 typedef enum { WAITING_FOR_COMMAND, WAITING_FOR_INT, WAITING_FOR_FLOAT } waiting;
 
-typedef enum { WAITING_FOR_PWM1, WAITING_FOR_PWM2, INT_NONE } waitingForInt;
+typedef enum { WAITING_FOR_PWM1, WAITING_FOR_PWM2, ANGLE_WINDOW_SIZE, ANGVEL_WINDOW_SIZE, INT_NONE } waitingForInt;
 
 typedef enum { WAITING_FOR_K1, WAITING_FOR_K2, FLOAT_NONE } waitingForFloat;
 
@@ -121,7 +121,7 @@ void USART2_IRQHandler() {
                         stabilizationOn     = 0;
                         telemetryOn         = 0;
                         kalmanOn            = 0;
-                        averagingOn         = 0;                                  
+                        angleAveragingOn    = 0;                                  
                         break;
                     case 'e':   
                         if (stabilizationOn) {
@@ -175,7 +175,26 @@ void USART2_IRQHandler() {
                         kalmanOn ^= 1;
                         break;
                     case 't':
-                        averagingOn ^= 1;
+                        angleAveragingOn ^= 1;
+                        if (angleAveragingOn) {
+                            angleSum = 0;
+                            angleIndex = 0;
+                        }
+                        break;
+                    case 'u':
+                        initWaitingForInt();
+                        curWaitingForInt = ANGLE_WINDOW_SIZE;
+                        break;
+                    case 'v':
+                        initWaitingForInt();
+                        curWaitingForInt = ANGVEL_WINDOW_SIZE;
+                        break;
+                    case 'w':
+                        angVelAveragingOn ^= 1;  
+                        if (angVelAveragingOn) {
+                            angVelSum = 0;
+                            angVelIndex = 0;
+                        }                    
                         break;
                     case 'A':
                         freshFreq = 1;
@@ -207,6 +226,12 @@ void USART2_IRQHandler() {
                             case WAITING_FOR_PWM2:
                                 pwm2 = intValue;
                                 TIM4->CCR3 	= pwm2;
+                                break;
+                            case ANGLE_WINDOW_SIZE:
+                                allocAngleAveraging(intValue);
+                                break;
+                            case ANGVEL_WINDOW_SIZE:
+                                allocAngVelAveraging(intValue);
                                 break;
                             default:
                                 break;
