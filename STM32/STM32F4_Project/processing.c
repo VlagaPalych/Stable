@@ -41,6 +41,8 @@ float Az = 255;
 
 
 float prevAngle = 0;
+float angleIntegral = 0;
+float angleIntegralMax = 1e5;
 
 uint8_t stabilizationOn     = 0;
 uint8_t kalmanOn            = 0;
@@ -247,14 +249,14 @@ void control() {
     
     prevAngle = angle;
     
-    F = k1*angle + k2*angularVelocity;
+    F = Kp*angle + Kd*angularVelocity + Ki*angleIntegral;
 
     if (stabilizationOn/* && STABRDY*/) {
         if (impulseOn) {
             impulseOn = 0;
             angle += 1;
             angularVelocity = (angle - prevAngle) / ((float)DT);
-            F = k1*angle + k2*angularVelocity;
+            F = Kp*angle + Kd*angularVelocity + Ki*angleIntegral;
         }
         D = Bappr*Bappr - 4*Aappr*(Cappr - fabs(F));
         if (F > 0) {
@@ -315,11 +317,12 @@ void process() {
     if (angVelAveragingOn) {
         angVelAveraging();
     }
-    
     if (kalmanOn) {
         kalman();
-    } else {
-        angularVelocity = (angle - prevAngle) / ((float)DT);
+    } 
+    angleIntegral += angle;
+    if (angleIntegral > angleIntegralMax) {
+        angleIntegral = angleIntegralMax;
     }
     control();
 }

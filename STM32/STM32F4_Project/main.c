@@ -16,8 +16,9 @@ int COUNT1 = 0;
 int COUNT2 = 0;
 
 float F = 0;
-float k1 = 3;
-float k2 = 2;
+float Kp = 3;
+float Kd = 2;
+float Ki = 0.001;
 float angle = 0;
 float angularVelocity = 0;
 

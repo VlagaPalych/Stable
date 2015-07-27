@@ -14,7 +14,7 @@ typedef enum { WAITING_FOR_COMMAND, WAITING_FOR_INT, WAITING_FOR_FLOAT } waiting
 
 typedef enum { WAITING_FOR_PWM1, WAITING_FOR_PWM2, ANGLE_WINDOW_SIZE, ANGVEL_WINDOW_SIZE, INT_NONE } waitingForInt;
 
-typedef enum { WAITING_FOR_K1, WAITING_FOR_K2, FLOAT_NONE } waitingForFloat;
+typedef enum { WAITING_FOR_KP, WAITING_FOR_KD, WAITING_FOR_KI, FLOAT_NONE } waitingForFloat;
 
 typedef enum { FULL, MOVE_DESCRIPTION, AX, AY, AZ} telemetryMode;
 
@@ -165,11 +165,15 @@ void USART2_IRQHandler() {
                         break;
                     case 'o':
                         initWaitingForFloat();
-                        curWaitingForFloat = WAITING_FOR_K1;
+                        curWaitingForFloat = WAITING_FOR_KP;
                         break;
                     case 'p':
                         initWaitingForFloat();
-                        curWaitingForFloat = WAITING_FOR_K2;
+                        curWaitingForFloat = WAITING_FOR_KD;
+                        break;
+                    case 'x':
+                        initWaitingForFloat();
+                        curWaitingForFloat = WAITING_FOR_KI;
                         break;
                     case 's':
                         kalmanOn ^= 1;
@@ -252,11 +256,14 @@ void USART2_IRQHandler() {
                             d_st *= my_pow; 
                         }
                         switch (curWaitingForFloat) {
-                            case WAITING_FOR_K1:
-                                k1 = floatValue;
+                            case WAITING_FOR_KP:
+                                Kp = floatValue;
                                 break;
-                            case WAITING_FOR_K2:
-                                k2 = floatValue;
+                            case WAITING_FOR_KD:
+                                Kd = floatValue;
+                                break;
+                            case WAITING_FOR_KI:
+                                Ki = floatValue;
                                 break;
                             default:
                                 break;
@@ -290,13 +297,13 @@ void SendTelemetry() {
 //    char angulVelStr[5];
 //    char fStr[5];
 //    char pwmStr[10];
-    uint8_t j;
     len = 0;
     
     if (telemetryOn) {
         switch (curTelemetryMode) {
             case FULL:
-                sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %d %d %.2f %.2f\n", angle, angularVelocity, F, ax, ay, az, pwm1, pwm2, COUNT1, COUNT2, k1, k2);
+                sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %d %d %.2f %.2f %.2f %d %d\n", 
+            angle, angularVelocity, F, ax, ay, az, pwm1, pwm2, COUNT1, COUNT2, Kp, Ki, Kd, angleWindowSize, angVelWindowSize);
                 break;
             case MOVE_DESCRIPTION:
 //                if (displayAngle) {

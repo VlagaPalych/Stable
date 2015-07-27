@@ -4,8 +4,9 @@
 #include "stdint.h"
 
 extern float F;
-extern float k1;
-extern float k2;
+extern float Kp;
+extern float Kd;
+extern float Ki;
 extern float angle;
 extern float angularVelocity;
 

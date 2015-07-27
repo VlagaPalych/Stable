@@ -33,8 +33,9 @@ BoardConsole::BoardConsole(QWidget *parent)
 
 	connect(ui.saveToFileCheckBox, SIGNAL(clicked()), SLOT(handleSaveToFileCheckBox()));
 
-	connect(ui.pButton, SIGNAL(clicked()), SLOT(handleK1Button()));
-	connect(ui.dButton, SIGNAL(clicked()), SLOT(handleK2Button()));
+	connect(ui.pButton, SIGNAL(clicked()), SLOT(handlePButton()));
+	connect(ui.iButton, SIGNAL(clicked()), SLOT(handleIButton()));
+	connect(ui.dButton, SIGNAL(clicked()), SLOT(handleDButton()));
 
 	connect(ui.angleCheckBox, SIGNAL(clicked()), SLOT(handleTelemetryDisplayButtons()));
 	connect(ui.angVelCheckBox, SIGNAL(clicked()), SLOT(handleTelemetryDisplayButtons()));

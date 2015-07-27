@@ -70,7 +70,7 @@ public:
     QPushButton *pButton;
     QLineEdit *pLineEdit;
     QHBoxLayout *horizontalLayout_9;
-    QPushButton *iPushButton;
+    QPushButton *iButton;
     QLineEdit *iLineEdit;
     QHBoxLayout *horizontalLayout_8;
     QPushButton *dButton;
@@ -317,10 +317,10 @@ public:
         horizontalLayout_9 = new QHBoxLayout();
         horizontalLayout_9->setSpacing(6);
         horizontalLayout_9->setObjectName(QStringLiteral("horizontalLayout_9"));
-        iPushButton = new QPushButton(groupBox);
-        iPushButton->setObjectName(QStringLiteral("iPushButton"));
+        iButton = new QPushButton(groupBox);
+        iButton->setObjectName(QStringLiteral("iButton"));
 
-        horizontalLayout_9->addWidget(iPushButton);
+        horizontalLayout_9->addWidget(iButton);
 
         iLineEdit = new QLineEdit(groupBox);
         iLineEdit->setObjectName(QStringLiteral("iLineEdit"));
@@ -495,7 +495,7 @@ public:
         label_2->setText(QApplication::translate("BoardConsoleClass", "PWM2", 0));
         groupBox->setTitle(QApplication::translate("BoardConsoleClass", "PID Control", 0));
         pButton->setText(QApplication::translate("BoardConsoleClass", "P", 0));
-        iPushButton->setText(QApplication::translate("BoardConsoleClass", "I", 0));
+        iButton->setText(QApplication::translate("BoardConsoleClass", "I", 0));
         dButton->setText(QApplication::translate("BoardConsoleClass", "D", 0));
         telemetryGroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Telemetry", 0));
         saveToFileCheckBox->setText(QApplication::translate("BoardConsoleClass", "Save to file", 0));
