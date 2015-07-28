@@ -65,12 +65,14 @@ void SPI2_Init() {
 	SPI2->CR1 |= SPI_CR1_MSTR;													// Master configuration	
 	SPI2->CR1 |= SPI_CR1_SPE;                                                   // Enable SPI                  
 }
-    uint8_t test = 0;
-void ADXL345_Init() {
 
-    
+uint8_t test = 0;
+
+void ADXL345_Init() {   
     ADXL345_AccelVCCInit();
     SPI2_Init();  
+    
+    allocAveraging(); 
     NSS_Low();
     //while(test!=0xE5) {
     //    NSS_Low();
@@ -198,23 +200,22 @@ void EXTI1_IRQHandler() {
     }
 }
 
-void ADXL345_DMA_Init() {  
-    DMA1->HIFCR = DMA_HIFCR_CFEIF4;
-    DMA1_Stream4->CR    = 0;
-    NVIC_SetPriority(DMA1_Stream3_IRQn, 0x03);
+void ADXL345_DMA_Init() {
+    NVIC_SetPriority(DMA1_Stream3_IRQn, 0x03);    
     NVIC_EnableIRQ(DMA1_Stream3_IRQn);
+    NVIC_EnableIRQ(DMA1_Stream4_IRQn);
+    
+    DMA1->HIFCR = DMA_HIFCR_CFEIF4;
+    
+    DMA1_Stream4->CR    = 0;
     DMA1_Stream3->CR    = 0;
     DMA1_Stream3->PAR   = (uint32_t)&(SPI2->DR);
     DMA1_Stream3->M0AR  = (uint32_t)accel;
     DMA1_Stream3->NDTR  = 6;
     DMA1_Stream3->CR    |= DMA_SxCR_MINC | DMA_SxCR_PSIZE_0 | DMA_SxCR_MSIZE_0 |
-                                DMA_SxCR_TCIE | DMA_SxCR_PL | DMA_SxCR_EN;
-    
-    
-    NVIC_EnableIRQ(DMA1_Stream4_IRQn);
+                                DMA_SxCR_TCIE | DMA_SxCR_PL | DMA_SxCR_EN; 
     
     DMA1_Stream4->PAR   = (uint32_t)&(SPI2->DR);
-     
     DMA1_Stream4->CR    = 0;
     DMA1_Stream4->M0AR  = (uint32_t)accelRegisters;     
     DMA1_Stream4->NDTR  = 6;

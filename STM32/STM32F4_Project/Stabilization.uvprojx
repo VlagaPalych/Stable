@@ -439,9 +439,39 @@
               <FilePath>.\motors.c</FilePath>
             </File>
             <File>
+              <FileName>gyro.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\gyro.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Header files</GroupName>
+          <Files>
+            <File>
               <FileName>motors.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\motors.h</FilePath>
+            </File>
+            <File>
+              <FileName>adxl345.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\adxl345.h</FilePath>
+            </File>
+            <File>
+              <FileName>processing.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\processing.h</FilePath>
+            </File>
+            <File>
+              <FileName>syssolve.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\syssolve.h</FilePath>
+            </File>
+            <File>
+              <FileName>telemetry.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\telemetry.h</FilePath>
             </File>
           </Files>
         </Group>
