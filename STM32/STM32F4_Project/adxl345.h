@@ -19,7 +19,7 @@
 #define MEASUREMENT_MODE            0x08
 
 #define DATA_FORMAT_ADDRESS         0x31
-#define FULL_RES_MODE               0x08
+#define FULL_RES_MODE               0x0b
 
 #define BW_RATE_ADDRESS             0x2c
 #define HZ100                       0x0a

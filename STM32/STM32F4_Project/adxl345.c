@@ -66,9 +66,10 @@ void SPI2_Init() {
 	SPI2->CR1 |= SPI_CR1_SPE;                                                   // Enable SPI                  
 }
 
-uint8_t test = 0;
 
-void ADXL345_Init() {   
+void ADXL345_Init() {  
+    uint8_t accel_test = 0;  
+    
     ADXL345_AccelVCCInit();
     SPI2_Init();  
     
@@ -76,26 +77,26 @@ void ADXL345_Init() {
     NSS_Low();
     //while(test!=0xE5) {
     //    NSS_Low();
-        test = ADXL345_Read(DEVID_ADDRESS);
+        accel_test = ADXL345_Read(DEVID_ADDRESS);
     //    NSS_High();
     //}
 
     ADXL345_Write(INT_MAPPING_ADDRESS, DATA_READY_INT0_MAPPING);
-    test = ADXL345_Read(INT_MAPPING_ADDRESS);
+    accel_test = ADXL345_Read(INT_MAPPING_ADDRESS);
 
     ADXL345_Write(POWER_CTL_ADDRESS, MEASUREMENT_MODE);
-    test = ADXL345_Read(POWER_CTL_ADDRESS);
+    accel_test = ADXL345_Read(POWER_CTL_ADDRESS);
 
 
     ADXL345_Write(DATA_FORMAT_ADDRESS, FULL_RES_MODE);
-    test = ADXL345_Read(DATA_FORMAT_ADDRESS);
+    accel_test = ADXL345_Read(DATA_FORMAT_ADDRESS);
 
     ADXL345_Write(BW_RATE_ADDRESS, ACCEL_FREQ);
-    test = ADXL345_Read(BW_RATE_ADDRESS);
+    accel_test = ADXL345_Read(BW_RATE_ADDRESS);
 
 
     ADXL345_Write(INT_ENABLE_ADDRESS, DATA_READY_INT);
-    test = ADXL345_Read(INT_ENABLE_ADDRESS);
+    accel_test = ADXL345_Read(INT_ENABLE_ADDRESS);
 
     NSS_High();
 }
@@ -169,7 +170,7 @@ void Accel_EXTI_Init() {
     
     EXTI->RTSR 	|= EXTI_FTSR_TR1; 
     EXTI->IMR 	|= EXTI_IMR_MR1;
-    NVIC_SetPriority(EXTI1_IRQn, 0x04);
+    NVIC_SetPriority(EXTI1_IRQn, 0x06);
     NVIC_EnableIRQ(EXTI1_IRQn); 
 }
 
@@ -177,7 +178,7 @@ void Accel_EXTI_Init() {
 
 void EXTI1_IRQHandler() {  //what to do when accelerometer is ready
     if (EXTI->PR & EXTI_PR_PR1) {
-        EXTI->PR |= EXTI_PR_PR1;
+        EXTI->PR = EXTI_PR_PR1;
         ADXL345_GetAccel(&ax, &ay, &az);
         ax -= xOffset;
         ay -= yOffset;
@@ -201,7 +202,7 @@ void EXTI1_IRQHandler() {
 }
 
 void ADXL345_DMA_Init() {
-    NVIC_SetPriority(DMA1_Stream3_IRQn, 0x03);    
+    NVIC_SetPriority(DMA1_Stream3_IRQn, 0x05);    
     NVIC_EnableIRQ(DMA1_Stream3_IRQn);
     NVIC_EnableIRQ(DMA1_Stream4_IRQn);
     

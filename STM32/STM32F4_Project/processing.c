@@ -8,6 +8,7 @@
 #include "telemetry.h"
 #include "stdlib.h"
 #include "string.h"
+#include "gyro.h"
 
 #define DT MEASUREMENT_TIME
 
@@ -313,7 +314,9 @@ void process() {
     if (angleAveragingOn) {
         angleAveraging();
     } 
+    
     angularVelocity = (angle - prevAngle) / ((float)DT); 
+    //angularVelocity = gx * 3.14159 / 180.0;
     if (angVelAveragingOn) {
         angVelAveraging();
     }
