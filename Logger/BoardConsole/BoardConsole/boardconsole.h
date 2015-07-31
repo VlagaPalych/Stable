@@ -40,6 +40,15 @@ private:
 	QVector<double> pwm2X;
 	QVector<double> pwm2Y;
 
+	QVector<double> gyroXX;
+	QVector<double> gyroXY;
+
+	QVector<double> gyroYX;
+	QVector<double> gyroYY;
+
+	QVector<double> gyroZX;
+	QVector<double> gyroZY;
+
 	QString defineLogFile();
 
 	bool firstMeasurement;
@@ -52,9 +61,10 @@ private Q_SLOTS:
 	void handleConnectButton();
 	void handleStabToggleButton();
 	void handleCalibrButton();
-	void handleTelemetryButtons();
+	void handleClearTelemetryButton();
 	void handleTelemetryToggleButton();
 	void handleAccelButtons();
+	void handleGyroButtons();
 
 	void handleFreshLine(QString &line);
 

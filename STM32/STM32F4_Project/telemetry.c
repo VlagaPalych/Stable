@@ -4,6 +4,7 @@
 
 #include "telemetry.h"
 #include "adxl345.h"
+#include "gyro.h"
 #include "motors.h"
 #include "processing.h"
 
@@ -38,9 +39,6 @@ waitingForFloat         curWaitingForFloat  = FLOAT_NONE;
 
 uint8_t telemetryOn = 0;
 telemetryMode curTelemetryMode = FULL;
-
-uint8_t curFreq = HZ100;
-uint8_t freshFreq = 0;
 
 
 uint8_t displayAngle            = 1;
@@ -203,13 +201,46 @@ void USART2_IRQHandler() {
                     case 'A':
                         freshFreq = 1;
                         curFreq = HZ100;
+                        curDT = 0.01;
                         break;
                     case 'B':
                         freshFreq = 1;
                         curFreq = HZ800;
+                        curDT = 0.00125;
                         break;
                     case 'C':
                         impulseOn = 1;
+                        break;
+                    case 'D':
+                        freshFreq = 1;
+                        curFreq = HZ1600;
+                        curDT = 0.000625;
+                        break;
+                    case 'E':
+                        freshFreq = 1;
+                        curFreq = HZ3200;
+                        curDT = 0.0003125;
+                        break;
+                    
+                    case 'F':
+                        gyroFreshFreq = 1;
+                        gyroCurFreq = GYRO_HZ100;
+                        gyroCurDT = 0.01;
+                        break;
+                    case 'G':
+                        gyroFreshFreq = 1;
+                        gyroCurFreq = GYRO_HZ250;
+                        gyroCurDT = 0.004;
+                        break;
+                    case 'H':
+                        gyroFreshFreq = 1;
+                        gyroCurFreq = GYRO_HZ500;
+                        gyroCurDT = 0.002;
+                        break;
+                    case 'I':
+                        gyroFreshFreq = 1;
+                        gyroCurFreq = GYRO_HZ1000;
+                        gyroCurDT = 0.001;
                         break;
                 }
                 break;
@@ -292,37 +323,13 @@ void send_to_uart(uint8_t data) {
 }
 
 void SendTelemetry() {
-    
-//    char angleStr[5];
-//    char angulVelStr[5];
-//    char fStr[5];
-//    char pwmStr[10];
-    len = 0;
-    
     if (telemetryOn) {
         switch (curTelemetryMode) {
             case FULL:
-                sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %d %d %.2f %.2f %.2f %d %d\n", 
-            angle, angularVelocity, F, ax, ay, az, pwm1, pwm2, COUNT1, COUNT2, Kp, Ki, Kd, angleWindowSize, angVelWindowSize);
+                sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %.2f %.2f %.2f %d %d %.2f %.2f %.2f %d %d\n", 
+            angle, angularVelocity, F, ax, ay, az, pwm1, pwm2, gyroX, gyroY, gyroZ, COUNT1, COUNT2, Kp, Ki, Kd, angleWindowSize, angVelWindowSize);
                 break;
             case MOVE_DESCRIPTION:
-//                if (displayAngle) {
-//                    sprintf(angleStr, "%.2f ", angle);
-//                    strcat(tele, angleStr);
-//                }
-//                if (displayAngularVelocity) {
-//                    sprintf(angulVelStr, "%.2f ", angularVelocity);
-//                    strcat(tele, angulVelStr);
-//                }
-//                if (displayF) {
-//                    sprintf(fStr, "%.2f ", F);
-//                    strcat(tele, fStr);
-//                } 
-//                if (displayPwm) {
-//                    sprintf(pwmStr, "%d %d", pwm1, pwm2);
-//                    strcat(tele, pwmStr);
-//                }
-//                strcat(tele, "\n");
                 sprintf(tele, "%.2f %.2f %.2f %d %d\n", angle, angularVelocity, F, pwm1, pwm2);
                 break;
             case AX:
@@ -338,24 +345,21 @@ void SendTelemetry() {
         len = strlen(tele);
         
         Telemetry_DMA_Init();
-//        for (j = 0; j < len; j++) {
-//            send_to_uart(tele[j]);
-//        }
     }
 }
-uint8_t USART_DMA_transferComleted = 1;
 
+uint8_t USART_DMA_transferComleted = 1;
 void Telemetry_DMA_Init() {
     if (USART_DMA_transferComleted) {
-    USART_DMA_transferComleted = 0;
-    NVIC_EnableIRQ(DMA1_Stream6_IRQn);
-    
-    DMA1_Stream6->CR    = 0;
-    DMA1_Stream6->PAR   = (uint32_t)&(USART2->DR);
-    DMA1_Stream6->M0AR  = (uint32_t)tele;     
-    DMA1_Stream6->NDTR  = len;
-    DMA1_Stream6->CR    |= DMA_SxCR_CHSEL_2 | DMA_SxCR_MINC /*| DMA_SxCR_PSIZE_0 | DMA_SxCR_MSIZE_0 */| 
-                                DMA_SxCR_TCIE | DMA_SxCR_DIR_0  | DMA_SxCR_PL | DMA_SxCR_EN;
+        USART_DMA_transferComleted = 0;
+        NVIC_EnableIRQ(DMA1_Stream6_IRQn);
+        
+        DMA1_Stream6->CR    = 0;
+        DMA1_Stream6->PAR   = (uint32_t)&(USART2->DR);
+        DMA1_Stream6->M0AR  = (uint32_t)tele;     
+        DMA1_Stream6->NDTR  = len;
+        DMA1_Stream6->CR    |= DMA_SxCR_CHSEL_2 | DMA_SxCR_MINC /*| DMA_SxCR_PSIZE_0 | DMA_SxCR_MSIZE_0 */| 
+                                    DMA_SxCR_TCIE | DMA_SxCR_DIR_0  | DMA_SxCR_PL | DMA_SxCR_EN;
     }
 }
 

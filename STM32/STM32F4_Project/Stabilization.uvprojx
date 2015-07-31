@@ -473,6 +473,11 @@
               <FileType>5</FileType>
               <FilePath>.\telemetry.h</FilePath>
             </File>
+            <File>
+              <FileName>gyro.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\gyro.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -17,14 +17,18 @@ BoardConsole::BoardConsole(QWidget *parent)
 	connect(ui.connectButton, SIGNAL(clicked()), SLOT(handleConnectButton()));
 	connect(ui.stabToggleButton, SIGNAL(clicked()), SLOT(handleStabToggleButton()));
 	connect(ui.calibrButton, SIGNAL(clicked()), SLOT(handleCalibrButton()));
-	connect(ui.fullRadioButton, SIGNAL(clicked()), SLOT(handleTelemetryButtons()));
-	connect(ui.moveRadioButton, SIGNAL(clicked()), SLOT(handleTelemetryButtons()));
-	connect(ui.axRadioButton, SIGNAL(clicked()), SLOT(handleTelemetryButtons()));
-	connect(ui.ayRadioButton, SIGNAL(clicked()), SLOT(handleTelemetryButtons()));
-	connect(ui.azRadioButton, SIGNAL(clicked()), SLOT(handleTelemetryButtons()));
+	connect(ui.clearTelemetryButton, SIGNAL(clicked()), SLOT(handleClearTelemetryButton()));
+
 	connect(ui.telemetryToggleButton, SIGNAL(clicked()), SLOT(handleTelemetryToggleButton()));
 	connect(ui.HZ100RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
 	connect(ui.HZ800RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
+	connect(ui.HZ1600RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
+	connect(ui.HZ3200RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
+
+	connect(ui.gyroHZ100RadioButton, SIGNAL(clicked()), SLOT(handleGyroButtons()));
+	connect(ui.gyroHZ250RadioButton, SIGNAL(clicked()), SLOT(handleGyroButtons()));
+	connect(ui.gyroHZ500RadioButton, SIGNAL(clicked()), SLOT(handleGyroButtons()));
+	connect(ui.gyroHZ1000RadioButton, SIGNAL(clicked()), SLOT(handleGyroButtons()));
 
 	connect(ui.noFilterCheckBox, SIGNAL(clicked()), SLOT(handleNoFilterCheckBox()));
 	connect(ui.kalmanFilterCheckBox, SIGNAL(clicked()), SLOT(handleKalmanFilterCheckBox()));
@@ -167,7 +171,7 @@ void BoardConsole::handleCalibrButton() {
 	ui.stabToggleButton->setText("Start");
 }
 
-void BoardConsole::handleTelemetryButtons() {
+void BoardConsole::handleClearTelemetryButton() {
 	firstMeasurement = true;
 	
 	angleX.clear();
@@ -185,26 +189,29 @@ void BoardConsole::handleTelemetryButtons() {
 	pwm2X.clear();
 	pwm2Y.clear();
 
+	gyroXX.clear();
+	gyroXY.clear();
+	gyroYX.clear();
+	gyroYY.clear();
+	gyroZX.clear();
+	gyroZY.clear();
+
 	plot1_curves[0]->setSamples(angleX, angleY);
 	plot1_curves[1]->setSamples(angVelX, angVelY);
-	plot2_curves[0]->setSamples(fX, fY);
-	plot2_curves[1]->setSamples(pwm1X, pwm1Y);
-	plot2_curves[2]->setSamples(pwm2X, pwm2Y);
+
+	if (ui.fRadioButton->isChecked()) {
+		plot2_curves[0]->setSamples(fX, fY);
+		plot2_curves[1]->setSamples(pwm1X, pwm1Y);
+		plot2_curves[2]->setSamples(pwm2X, pwm2Y);
+	}
+	else if (ui.gyroRadioButton->isChecked()) {
+		plot2_curves[0]->setSamples(gyroXX, gyroXY);
+		plot2_curves[1]->setSamples(gyroYX, gyroYY);
+		plot2_curves[2]->setSamples(gyroZX, gyroZY);
+	}
 
 	ui.plot1->replot();
 	ui.plot2->replot();
-
-	if (ui.fullRadioButton->isChecked()) {
-		stm->write("i");
-	} else if (ui.moveRadioButton->isChecked()) {
-		stm->write("k");
-	} else if (ui.axRadioButton->isChecked()) {
-		stm->write("l");
-	} else if (ui.ayRadioButton->isChecked()) {
-		stm->write("q");
-	} else if (ui.azRadioButton->isChecked()) {
-		stm->write("r");
-	}
 }	
 
 void BoardConsole::handleTelemetryToggleButton() {
@@ -224,6 +231,27 @@ void BoardConsole::handleAccelButtons() {
 	{
 		stm->write("B");
 	}
+	else if (ui.HZ1600RadioButton->isChecked()) {
+		stm->write("D");
+	}
+	else if (ui.HZ3200RadioButton->isChecked()) {
+		stm->write("E");
+	}
+}
+
+void BoardConsole::handleGyroButtons() {
+	if (ui.gyroHZ100RadioButton->isChecked()) {
+		stm->write("F");
+	}
+	else if (ui.gyroHZ250RadioButton->isChecked()) {
+		stm->write("G");
+	}
+	else if (ui.gyroHZ500RadioButton->isChecked()) {
+		stm->write("H");
+	}
+	else if (ui.gyroHZ1000RadioButton->isChecked()) {
+		stm->write("I");
+	}
 }
 
 
@@ -235,14 +263,17 @@ void BoardConsole::handleFreshLine(QString &line) {
 
 	QStringList numbers = line.split(' ');
 	qDebug() << numbers;
-	if (ui.fullRadioButton->isChecked()) {
-		if (numbers.size() < 8) return;
+	//if (ui.fullRadioButton->isChecked()) {
+		if (numbers.size() < 11) return;
 
 		double angle = numbers[0].toDouble();
 		double angularVelocity = numbers[1].toDouble();
 		double F = numbers[2].toDouble();
 		double pwm1 = numbers[6].toDouble();
 		double pwm2 = numbers[7].toDouble();
+		double gx = numbers[8].toDouble();
+		double gy = numbers[9].toDouble();
+		double gz = numbers[10].toDouble();
 
 		qint64 time = QDateTime::currentMSecsSinceEpoch() - startTime;
 
@@ -264,32 +295,64 @@ void BoardConsole::handleFreshLine(QString &line) {
 			angVelY.append(angularVelocity);
 			plot1_curves[1]->setSamples(angVelX, angVelY);
 		}
-		if (ui.fCheckBox->isChecked()) {
-			if (fX.size() == maxSize) {
-				fX.pop_front();
-				fY.pop_front();
+
+		if (ui.fRadioButton->isChecked()) {
+			if (ui.fCheckBox->isChecked()) {
+				if (fX.size() == maxSize) {
+					fX.pop_front();
+					fY.pop_front();
+				}
+				fX.append(time);
+				fY.append(F);
+				plot2_curves[0]->setSamples(fX, fY);
 			}
-			fX.append(time);
-			fY.append(F);
-			plot2_curves[0]->setSamples(fX, fY);
+			if (ui.pwm1CheckBox->isChecked()) {
+				if (pwm1X.size() == maxSize) {
+					pwm1X.pop_front();
+					pwm1Y.pop_front();
+				}
+				pwm1X.append(time);
+				pwm1Y.append(pwm1);
+				plot2_curves[1]->setSamples(pwm1X, pwm1Y);
+			}
+			if (ui.pwm2CheckBox->isChecked()) {
+				if (pwm2X.size() == maxSize) {
+					pwm2X.pop_front();
+					pwm2Y.pop_front();
+				}
+				pwm2X.append(time);
+				pwm2Y.append(pwm2);
+				plot2_curves[2]->setSamples(pwm2X, pwm2Y);
+			}
 		}
-		if (ui.pwm1CheckBox->isChecked()) {
-			if (pwm1X.size() == maxSize) {
-				pwm1X.pop_front();
-				pwm1Y.pop_front();
+		else if (ui.gyroRadioButton->isChecked()) {
+			if (ui.gxCheckBox->isChecked()) {
+				if (gyroXX.size() == maxSize) {
+					gyroXX.pop_front();
+					gyroXY.pop_front();
+				}
+				gyroXX.append(time);
+				gyroXY.append(gx);
+				plot2_curves[0]->setSamples(gyroXX, gyroXY);
 			}
-			pwm1X.append(time);
-			pwm1Y.append(pwm1);
-			plot2_curves[1]->setSamples(pwm1X, pwm1Y);
-		}
-		if (ui.pwm2CheckBox->isChecked()) {
-			if (pwm2X.size() == maxSize) {
-				pwm2X.pop_front();
-				pwm2Y.pop_front();
+			if (ui.gyCheckBox->isChecked()) {
+				if (gyroYX.size() == maxSize) {
+					gyroYX.pop_front();
+					gyroYY.pop_front();
+				}
+				gyroYX.append(time);
+				gyroYY.append(gy);
+				plot2_curves[1]->setSamples(gyroYX, gyroYY);
 			}
-			pwm2X.append(time);
-			pwm2Y.append(pwm2);
-			plot2_curves[2]->setSamples(pwm2X, pwm2Y);
+			if (ui.gzCheckBox->isChecked()) {
+				if (gyroZX.size() == maxSize) {
+					gyroZX.pop_front();
+					gyroZY.pop_front();
+				}
+				gyroZX.append(time);
+				gyroZY.append(gz);
+				plot2_curves[2]->setSamples(gyroZX, gyroZY);
+			}
 		}
 
 		/*for (int i = 0; i < plot1_yData.size(); i++) {
@@ -297,7 +360,7 @@ void BoardConsole::handleFreshLine(QString &line) {
 			plot1_yData[i].append(numbers[i].toDouble());
 			plot1_curves[i]->setSamples(plot1_xData, plot1_yData[i]);
 		}*/
-	}
+	//}
 	/*else if (ui.axRadioButton->isChecked()) {
 		if (numbers.size() != 2) return;
 		for (int i = 0; i < plot1_yData.size(); i++) {

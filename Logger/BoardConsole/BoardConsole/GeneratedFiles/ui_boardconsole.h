@@ -33,8 +33,8 @@ class Ui_BoardConsoleClass
 {
 public:
     QHBoxLayout *horizontalLayout_12;
-    QVBoxLayout *verticalLayout_8;
-    QHBoxLayout *horizontalLayout_6;
+    QVBoxLayout *verticalLayout_12;
+    QHBoxLayout *horizontalLayout_2;
     QGroupBox *connectGroupBox;
     QVBoxLayout *verticalLayout;
     QComboBox *serialComboBox;
@@ -43,6 +43,15 @@ public:
     QVBoxLayout *verticalLayout_6;
     QRadioButton *HZ100RadioButton;
     QRadioButton *HZ800RadioButton;
+    QRadioButton *HZ1600RadioButton;
+    QRadioButton *HZ3200RadioButton;
+    QGroupBox *groupBox_4;
+    QVBoxLayout *verticalLayout_10;
+    QRadioButton *gyroHZ100RadioButton;
+    QRadioButton *gyroHZ250RadioButton;
+    QRadioButton *gyroHZ500RadioButton;
+    QRadioButton *gyroHZ1000RadioButton;
+    QHBoxLayout *horizontalLayout_6;
     QGroupBox *filtergroupBox;
     QVBoxLayout *verticalLayout_4;
     QCheckBox *noFilterCheckBox;
@@ -65,7 +74,7 @@ public:
     QLabel *label_2;
     QSpinBox *pwm2SpinBox;
     QGroupBox *groupBox;
-    QVBoxLayout *verticalLayout_5;
+    QVBoxLayout *verticalLayout_8;
     QHBoxLayout *horizontalLayout_7;
     QPushButton *pButton;
     QLineEdit *pLineEdit;
@@ -75,24 +84,29 @@ public:
     QHBoxLayout *horizontalLayout_8;
     QPushButton *dButton;
     QLineEdit *dLineEdit;
-    QVBoxLayout *verticalLayout_7;
-    QGroupBox *telemetryGroupBox;
+    QVBoxLayout *verticalLayout_9;
     QHBoxLayout *horizontalLayout_3;
+    QGroupBox *telemetryGroupBox;
+    QVBoxLayout *verticalLayout_11;
     QCheckBox *saveToFileCheckBox;
-    QVBoxLayout *verticalLayout_3;
-    QHBoxLayout *horizontalLayout_2;
-    QRadioButton *fullRadioButton;
-    QRadioButton *moveRadioButton;
-    QRadioButton *axRadioButton;
-    QRadioButton *ayRadioButton;
-    QRadioButton *azRadioButton;
-    QHBoxLayout *horizontalLayout;
+    QPushButton *telemetryToggleButton;
+    QPushButton *clearTelemetryButton;
+    QGroupBox *groupBox_2;
+    QVBoxLayout *verticalLayout_7;
     QCheckBox *angleCheckBox;
     QCheckBox *angVelCheckBox;
+    QGroupBox *groupBox_3;
+    QHBoxLayout *horizontalLayout;
+    QVBoxLayout *verticalLayout_3;
+    QRadioButton *fRadioButton;
     QCheckBox *fCheckBox;
     QCheckBox *pwm1CheckBox;
     QCheckBox *pwm2CheckBox;
-    QPushButton *telemetryToggleButton;
+    QVBoxLayout *verticalLayout_5;
+    QRadioButton *gyroRadioButton;
+    QCheckBox *gxCheckBox;
+    QCheckBox *gyCheckBox;
+    QCheckBox *gzCheckBox;
     QwtPlot *plot1;
     QwtPlot *plot2;
 
@@ -100,17 +114,17 @@ public:
     {
         if (BoardConsoleClass->objectName().isEmpty())
             BoardConsoleClass->setObjectName(QStringLiteral("BoardConsoleClass"));
-        BoardConsoleClass->resize(713, 975);
+        BoardConsoleClass->resize(774, 759);
         horizontalLayout_12 = new QHBoxLayout(BoardConsoleClass);
         horizontalLayout_12->setSpacing(6);
         horizontalLayout_12->setContentsMargins(11, 11, 11, 11);
         horizontalLayout_12->setObjectName(QStringLiteral("horizontalLayout_12"));
-        verticalLayout_8 = new QVBoxLayout();
-        verticalLayout_8->setSpacing(6);
-        verticalLayout_8->setObjectName(QStringLiteral("verticalLayout_8"));
-        horizontalLayout_6 = new QHBoxLayout();
-        horizontalLayout_6->setSpacing(6);
-        horizontalLayout_6->setObjectName(QStringLiteral("horizontalLayout_6"));
+        verticalLayout_12 = new QVBoxLayout();
+        verticalLayout_12->setSpacing(6);
+        verticalLayout_12->setObjectName(QStringLiteral("verticalLayout_12"));
+        horizontalLayout_2 = new QHBoxLayout();
+        horizontalLayout_2->setSpacing(6);
+        horizontalLayout_2->setObjectName(QStringLiteral("horizontalLayout_2"));
         connectGroupBox = new QGroupBox(BoardConsoleClass);
         connectGroupBox->setObjectName(QStringLiteral("connectGroupBox"));
         verticalLayout = new QVBoxLayout(connectGroupBox);
@@ -135,7 +149,7 @@ public:
         verticalLayout->addWidget(connectButton);
 
 
-        horizontalLayout_6->addWidget(connectGroupBox);
+        horizontalLayout_2->addWidget(connectGroupBox);
 
         accelgroupBox = new QGroupBox(BoardConsoleClass);
         accelgroupBox->setObjectName(QStringLiteral("accelgroupBox"));
@@ -155,12 +169,55 @@ public:
 
         verticalLayout_6->addWidget(HZ800RadioButton);
 
+        HZ1600RadioButton = new QRadioButton(accelgroupBox);
+        HZ1600RadioButton->setObjectName(QStringLiteral("HZ1600RadioButton"));
 
-        horizontalLayout_6->addWidget(accelgroupBox);
+        verticalLayout_6->addWidget(HZ1600RadioButton);
+
+        HZ3200RadioButton = new QRadioButton(accelgroupBox);
+        HZ3200RadioButton->setObjectName(QStringLiteral("HZ3200RadioButton"));
+
+        verticalLayout_6->addWidget(HZ3200RadioButton);
 
 
-        verticalLayout_8->addLayout(horizontalLayout_6);
+        horizontalLayout_2->addWidget(accelgroupBox);
 
+        groupBox_4 = new QGroupBox(BoardConsoleClass);
+        groupBox_4->setObjectName(QStringLiteral("groupBox_4"));
+        verticalLayout_10 = new QVBoxLayout(groupBox_4);
+        verticalLayout_10->setSpacing(6);
+        verticalLayout_10->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_10->setObjectName(QStringLiteral("verticalLayout_10"));
+        gyroHZ100RadioButton = new QRadioButton(groupBox_4);
+        gyroHZ100RadioButton->setObjectName(QStringLiteral("gyroHZ100RadioButton"));
+        gyroHZ100RadioButton->setChecked(true);
+
+        verticalLayout_10->addWidget(gyroHZ100RadioButton);
+
+        gyroHZ250RadioButton = new QRadioButton(groupBox_4);
+        gyroHZ250RadioButton->setObjectName(QStringLiteral("gyroHZ250RadioButton"));
+
+        verticalLayout_10->addWidget(gyroHZ250RadioButton);
+
+        gyroHZ500RadioButton = new QRadioButton(groupBox_4);
+        gyroHZ500RadioButton->setObjectName(QStringLiteral("gyroHZ500RadioButton"));
+
+        verticalLayout_10->addWidget(gyroHZ500RadioButton);
+
+        gyroHZ1000RadioButton = new QRadioButton(groupBox_4);
+        gyroHZ1000RadioButton->setObjectName(QStringLiteral("gyroHZ1000RadioButton"));
+
+        verticalLayout_10->addWidget(gyroHZ1000RadioButton);
+
+
+        horizontalLayout_2->addWidget(groupBox_4);
+
+
+        verticalLayout_12->addLayout(horizontalLayout_2);
+
+        horizontalLayout_6 = new QHBoxLayout();
+        horizontalLayout_6->setSpacing(6);
+        horizontalLayout_6->setObjectName(QStringLiteral("horizontalLayout_6"));
         filtergroupBox = new QGroupBox(BoardConsoleClass);
         filtergroupBox->setObjectName(QStringLiteral("filtergroupBox"));
         verticalLayout_4 = new QVBoxLayout(filtergroupBox);
@@ -216,7 +273,7 @@ public:
         verticalLayout_4->addWidget(kalmanFilterCheckBox);
 
 
-        verticalLayout_8->addWidget(filtergroupBox);
+        horizontalLayout_6->addWidget(filtergroupBox);
 
         stabGroupBox = new QGroupBox(BoardConsoleClass);
         stabGroupBox->setObjectName(QStringLiteral("stabGroupBox"));
@@ -248,6 +305,11 @@ public:
         horizontalLayout_10->setObjectName(QStringLiteral("horizontalLayout_10"));
         label = new QLabel(stabGroupBox);
         label->setObjectName(QStringLiteral("label"));
+        QSizePolicy sizePolicy1(QSizePolicy::Fixed, QSizePolicy::Preferred);
+        sizePolicy1.setHorizontalStretch(0);
+        sizePolicy1.setVerticalStretch(0);
+        sizePolicy1.setHeightForWidth(label->sizePolicy().hasHeightForWidth());
+        label->setSizePolicy(sizePolicy1);
         label->setAlignment(Qt::AlignCenter);
 
         horizontalLayout_10->addWidget(label);
@@ -269,6 +331,8 @@ public:
         horizontalLayout_11->setObjectName(QStringLiteral("horizontalLayout_11"));
         label_2 = new QLabel(stabGroupBox);
         label_2->setObjectName(QStringLiteral("label_2"));
+        sizePolicy1.setHeightForWidth(label_2->sizePolicy().hasHeightForWidth());
+        label_2->setSizePolicy(sizePolicy1);
         label_2->setAlignment(Qt::AlignCenter);
 
         horizontalLayout_11->addWidget(label_2);
@@ -286,14 +350,17 @@ public:
         verticalLayout_2->addLayout(horizontalLayout_11);
 
 
-        verticalLayout_8->addWidget(stabGroupBox);
+        horizontalLayout_6->addWidget(stabGroupBox);
+
+
+        verticalLayout_12->addLayout(horizontalLayout_6);
 
         groupBox = new QGroupBox(BoardConsoleClass);
         groupBox->setObjectName(QStringLiteral("groupBox"));
-        verticalLayout_5 = new QVBoxLayout(groupBox);
-        verticalLayout_5->setSpacing(6);
-        verticalLayout_5->setContentsMargins(11, 11, 11, 11);
-        verticalLayout_5->setObjectName(QStringLiteral("verticalLayout_5"));
+        verticalLayout_8 = new QVBoxLayout(groupBox);
+        verticalLayout_8->setSpacing(6);
+        verticalLayout_8->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_8->setObjectName(QStringLiteral("verticalLayout_8"));
         horizontalLayout_7 = new QHBoxLayout();
         horizontalLayout_7->setSpacing(6);
         horizontalLayout_7->setObjectName(QStringLiteral("horizontalLayout_7"));
@@ -312,23 +379,27 @@ public:
         horizontalLayout_7->addWidget(pLineEdit);
 
 
-        verticalLayout_5->addLayout(horizontalLayout_7);
+        verticalLayout_8->addLayout(horizontalLayout_7);
 
         horizontalLayout_9 = new QHBoxLayout();
         horizontalLayout_9->setSpacing(6);
         horizontalLayout_9->setObjectName(QStringLiteral("horizontalLayout_9"));
         iButton = new QPushButton(groupBox);
         iButton->setObjectName(QStringLiteral("iButton"));
+        sizePolicy.setHeightForWidth(iButton->sizePolicy().hasHeightForWidth());
+        iButton->setSizePolicy(sizePolicy);
 
         horizontalLayout_9->addWidget(iButton);
 
         iLineEdit = new QLineEdit(groupBox);
         iLineEdit->setObjectName(QStringLiteral("iLineEdit"));
+        sizePolicy.setHeightForWidth(iLineEdit->sizePolicy().hasHeightForWidth());
+        iLineEdit->setSizePolicy(sizePolicy);
 
         horizontalLayout_9->addWidget(iLineEdit);
 
 
-        verticalLayout_5->addLayout(horizontalLayout_9);
+        verticalLayout_8->addLayout(horizontalLayout_9);
 
         horizontalLayout_8 = new QHBoxLayout();
         horizontalLayout_8->setSpacing(6);
@@ -348,125 +419,148 @@ public:
         horizontalLayout_8->addWidget(dLineEdit);
 
 
-        verticalLayout_5->addLayout(horizontalLayout_8);
+        verticalLayout_8->addLayout(horizontalLayout_8);
 
 
-        verticalLayout_8->addWidget(groupBox);
+        verticalLayout_12->addWidget(groupBox);
 
 
-        horizontalLayout_12->addLayout(verticalLayout_8);
+        horizontalLayout_12->addLayout(verticalLayout_12);
 
-        verticalLayout_7 = new QVBoxLayout();
-        verticalLayout_7->setSpacing(6);
-        verticalLayout_7->setObjectName(QStringLiteral("verticalLayout_7"));
+        verticalLayout_9 = new QVBoxLayout();
+        verticalLayout_9->setSpacing(6);
+        verticalLayout_9->setObjectName(QStringLiteral("verticalLayout_9"));
+        horizontalLayout_3 = new QHBoxLayout();
+        horizontalLayout_3->setSpacing(6);
+        horizontalLayout_3->setObjectName(QStringLiteral("horizontalLayout_3"));
         telemetryGroupBox = new QGroupBox(BoardConsoleClass);
         telemetryGroupBox->setObjectName(QStringLiteral("telemetryGroupBox"));
-        horizontalLayout_3 = new QHBoxLayout(telemetryGroupBox);
-        horizontalLayout_3->setSpacing(6);
-        horizontalLayout_3->setContentsMargins(11, 11, 11, 11);
-        horizontalLayout_3->setObjectName(QStringLiteral("horizontalLayout_3"));
+        verticalLayout_11 = new QVBoxLayout(telemetryGroupBox);
+        verticalLayout_11->setSpacing(6);
+        verticalLayout_11->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_11->setObjectName(QStringLiteral("verticalLayout_11"));
         saveToFileCheckBox = new QCheckBox(telemetryGroupBox);
         saveToFileCheckBox->setObjectName(QStringLiteral("saveToFileCheckBox"));
         saveToFileCheckBox->setChecked(false);
 
-        horizontalLayout_3->addWidget(saveToFileCheckBox);
-
-        verticalLayout_3 = new QVBoxLayout();
-        verticalLayout_3->setSpacing(6);
-        verticalLayout_3->setObjectName(QStringLiteral("verticalLayout_3"));
-        horizontalLayout_2 = new QHBoxLayout();
-        horizontalLayout_2->setSpacing(6);
-        horizontalLayout_2->setObjectName(QStringLiteral("horizontalLayout_2"));
-        fullRadioButton = new QRadioButton(telemetryGroupBox);
-        fullRadioButton->setObjectName(QStringLiteral("fullRadioButton"));
-        fullRadioButton->setChecked(true);
-
-        horizontalLayout_2->addWidget(fullRadioButton);
-
-        moveRadioButton = new QRadioButton(telemetryGroupBox);
-        moveRadioButton->setObjectName(QStringLiteral("moveRadioButton"));
-
-        horizontalLayout_2->addWidget(moveRadioButton);
-
-        axRadioButton = new QRadioButton(telemetryGroupBox);
-        axRadioButton->setObjectName(QStringLiteral("axRadioButton"));
-        axRadioButton->setChecked(false);
-
-        horizontalLayout_2->addWidget(axRadioButton);
-
-        ayRadioButton = new QRadioButton(telemetryGroupBox);
-        ayRadioButton->setObjectName(QStringLiteral("ayRadioButton"));
-
-        horizontalLayout_2->addWidget(ayRadioButton);
-
-        azRadioButton = new QRadioButton(telemetryGroupBox);
-        azRadioButton->setObjectName(QStringLiteral("azRadioButton"));
-        azRadioButton->setChecked(false);
-
-        horizontalLayout_2->addWidget(azRadioButton);
-
-
-        verticalLayout_3->addLayout(horizontalLayout_2);
-
-        horizontalLayout = new QHBoxLayout();
-        horizontalLayout->setSpacing(6);
-        horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
-        angleCheckBox = new QCheckBox(telemetryGroupBox);
-        angleCheckBox->setObjectName(QStringLiteral("angleCheckBox"));
-        angleCheckBox->setChecked(true);
-
-        horizontalLayout->addWidget(angleCheckBox);
-
-        angVelCheckBox = new QCheckBox(telemetryGroupBox);
-        angVelCheckBox->setObjectName(QStringLiteral("angVelCheckBox"));
-        angVelCheckBox->setChecked(true);
-
-        horizontalLayout->addWidget(angVelCheckBox);
-
-        fCheckBox = new QCheckBox(telemetryGroupBox);
-        fCheckBox->setObjectName(QStringLiteral("fCheckBox"));
-        fCheckBox->setChecked(true);
-
-        horizontalLayout->addWidget(fCheckBox);
-
-        pwm1CheckBox = new QCheckBox(telemetryGroupBox);
-        pwm1CheckBox->setObjectName(QStringLiteral("pwm1CheckBox"));
-        pwm1CheckBox->setChecked(false);
-
-        horizontalLayout->addWidget(pwm1CheckBox);
-
-        pwm2CheckBox = new QCheckBox(telemetryGroupBox);
-        pwm2CheckBox->setObjectName(QStringLiteral("pwm2CheckBox"));
-        pwm2CheckBox->setChecked(false);
-
-        horizontalLayout->addWidget(pwm2CheckBox);
-
-
-        verticalLayout_3->addLayout(horizontalLayout);
-
-
-        horizontalLayout_3->addLayout(verticalLayout_3);
+        verticalLayout_11->addWidget(saveToFileCheckBox);
 
         telemetryToggleButton = new QPushButton(telemetryGroupBox);
         telemetryToggleButton->setObjectName(QStringLiteral("telemetryToggleButton"));
 
-        horizontalLayout_3->addWidget(telemetryToggleButton);
+        verticalLayout_11->addWidget(telemetryToggleButton);
+
+        clearTelemetryButton = new QPushButton(telemetryGroupBox);
+        clearTelemetryButton->setObjectName(QStringLiteral("clearTelemetryButton"));
+
+        verticalLayout_11->addWidget(clearTelemetryButton);
 
 
-        verticalLayout_7->addWidget(telemetryGroupBox);
+        horizontalLayout_3->addWidget(telemetryGroupBox);
+
+        groupBox_2 = new QGroupBox(BoardConsoleClass);
+        groupBox_2->setObjectName(QStringLiteral("groupBox_2"));
+        verticalLayout_7 = new QVBoxLayout(groupBox_2);
+        verticalLayout_7->setSpacing(6);
+        verticalLayout_7->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_7->setObjectName(QStringLiteral("verticalLayout_7"));
+        angleCheckBox = new QCheckBox(groupBox_2);
+        angleCheckBox->setObjectName(QStringLiteral("angleCheckBox"));
+        angleCheckBox->setChecked(true);
+
+        verticalLayout_7->addWidget(angleCheckBox);
+
+        angVelCheckBox = new QCheckBox(groupBox_2);
+        angVelCheckBox->setObjectName(QStringLiteral("angVelCheckBox"));
+        angVelCheckBox->setChecked(true);
+
+        verticalLayout_7->addWidget(angVelCheckBox);
+
+
+        horizontalLayout_3->addWidget(groupBox_2);
+
+        groupBox_3 = new QGroupBox(BoardConsoleClass);
+        groupBox_3->setObjectName(QStringLiteral("groupBox_3"));
+        horizontalLayout = new QHBoxLayout(groupBox_3);
+        horizontalLayout->setSpacing(6);
+        horizontalLayout->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
+        verticalLayout_3 = new QVBoxLayout();
+        verticalLayout_3->setSpacing(6);
+        verticalLayout_3->setObjectName(QStringLiteral("verticalLayout_3"));
+        fRadioButton = new QRadioButton(groupBox_3);
+        fRadioButton->setObjectName(QStringLiteral("fRadioButton"));
+        fRadioButton->setChecked(false);
+
+        verticalLayout_3->addWidget(fRadioButton);
+
+        fCheckBox = new QCheckBox(groupBox_3);
+        fCheckBox->setObjectName(QStringLiteral("fCheckBox"));
+        fCheckBox->setChecked(true);
+
+        verticalLayout_3->addWidget(fCheckBox);
+
+        pwm1CheckBox = new QCheckBox(groupBox_3);
+        pwm1CheckBox->setObjectName(QStringLiteral("pwm1CheckBox"));
+        pwm1CheckBox->setChecked(false);
+
+        verticalLayout_3->addWidget(pwm1CheckBox);
+
+        pwm2CheckBox = new QCheckBox(groupBox_3);
+        pwm2CheckBox->setObjectName(QStringLiteral("pwm2CheckBox"));
+        pwm2CheckBox->setChecked(false);
+
+        verticalLayout_3->addWidget(pwm2CheckBox);
+
+
+        horizontalLayout->addLayout(verticalLayout_3);
+
+        verticalLayout_5 = new QVBoxLayout();
+        verticalLayout_5->setSpacing(6);
+        verticalLayout_5->setObjectName(QStringLiteral("verticalLayout_5"));
+        gyroRadioButton = new QRadioButton(groupBox_3);
+        gyroRadioButton->setObjectName(QStringLiteral("gyroRadioButton"));
+        gyroRadioButton->setChecked(true);
+
+        verticalLayout_5->addWidget(gyroRadioButton);
+
+        gxCheckBox = new QCheckBox(groupBox_3);
+        gxCheckBox->setObjectName(QStringLiteral("gxCheckBox"));
+        gxCheckBox->setChecked(true);
+
+        verticalLayout_5->addWidget(gxCheckBox);
+
+        gyCheckBox = new QCheckBox(groupBox_3);
+        gyCheckBox->setObjectName(QStringLiteral("gyCheckBox"));
+
+        verticalLayout_5->addWidget(gyCheckBox);
+
+        gzCheckBox = new QCheckBox(groupBox_3);
+        gzCheckBox->setObjectName(QStringLiteral("gzCheckBox"));
+
+        verticalLayout_5->addWidget(gzCheckBox);
+
+
+        horizontalLayout->addLayout(verticalLayout_5);
+
+
+        horizontalLayout_3->addWidget(groupBox_3);
+
+
+        verticalLayout_9->addLayout(horizontalLayout_3);
 
         plot1 = new QwtPlot(BoardConsoleClass);
         plot1->setObjectName(QStringLiteral("plot1"));
 
-        verticalLayout_7->addWidget(plot1);
+        verticalLayout_9->addWidget(plot1);
 
         plot2 = new QwtPlot(BoardConsoleClass);
         plot2->setObjectName(QStringLiteral("plot2"));
 
-        verticalLayout_7->addWidget(plot2);
+        verticalLayout_9->addWidget(plot2);
 
 
-        horizontalLayout_12->addLayout(verticalLayout_7);
+        horizontalLayout_12->addLayout(verticalLayout_9);
 
 
         retranslateUi(BoardConsoleClass);
@@ -479,9 +573,16 @@ public:
         BoardConsoleClass->setWindowTitle(QApplication::translate("BoardConsoleClass", "BoardConsole", 0));
         connectGroupBox->setTitle(QApplication::translate("BoardConsoleClass", "STM", 0));
         connectButton->setText(QApplication::translate("BoardConsoleClass", "Connect", 0));
-        accelgroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Accelerometer", 0));
+        accelgroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Accel", 0));
         HZ100RadioButton->setText(QApplication::translate("BoardConsoleClass", "100 Hz", 0));
         HZ800RadioButton->setText(QApplication::translate("BoardConsoleClass", "800 Hz", 0));
+        HZ1600RadioButton->setText(QApplication::translate("BoardConsoleClass", "1600 Hz", 0));
+        HZ3200RadioButton->setText(QApplication::translate("BoardConsoleClass", "3200 Hz", 0));
+        groupBox_4->setTitle(QApplication::translate("BoardConsoleClass", "Gyro", 0));
+        gyroHZ100RadioButton->setText(QApplication::translate("BoardConsoleClass", "100 Hz", 0));
+        gyroHZ250RadioButton->setText(QApplication::translate("BoardConsoleClass", "250 Hz", 0));
+        gyroHZ500RadioButton->setText(QApplication::translate("BoardConsoleClass", "500 Hz", 0));
+        gyroHZ1000RadioButton->setText(QApplication::translate("BoardConsoleClass", "1000 Hz", 0));
         filtergroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Filters", 0));
         noFilterCheckBox->setText(QApplication::translate("BoardConsoleClass", "No Filter", 0));
         averagingAngleCheckBox->setText(QApplication::translate("BoardConsoleClass", "AveragingAngle", 0));
@@ -499,17 +600,20 @@ public:
         dButton->setText(QApplication::translate("BoardConsoleClass", "D", 0));
         telemetryGroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Telemetry", 0));
         saveToFileCheckBox->setText(QApplication::translate("BoardConsoleClass", "Save to file", 0));
-        fullRadioButton->setText(QApplication::translate("BoardConsoleClass", "Full", 0));
-        moveRadioButton->setText(QApplication::translate("BoardConsoleClass", "Move", 0));
-        axRadioButton->setText(QApplication::translate("BoardConsoleClass", "AX", 0));
-        ayRadioButton->setText(QApplication::translate("BoardConsoleClass", "AY", 0));
-        azRadioButton->setText(QApplication::translate("BoardConsoleClass", "AZ", 0));
+        telemetryToggleButton->setText(QApplication::translate("BoardConsoleClass", "Start", 0));
+        clearTelemetryButton->setText(QApplication::translate("BoardConsoleClass", "Clear", 0));
+        groupBox_2->setTitle(QApplication::translate("BoardConsoleClass", "Plot 1", 0));
         angleCheckBox->setText(QApplication::translate("BoardConsoleClass", "Angle", 0));
         angVelCheckBox->setText(QApplication::translate("BoardConsoleClass", "AngVel", 0));
+        groupBox_3->setTitle(QApplication::translate("BoardConsoleClass", "Plot 2", 0));
+        fRadioButton->setText(QApplication::translate("BoardConsoleClass", "F", 0));
         fCheckBox->setText(QApplication::translate("BoardConsoleClass", "F", 0));
         pwm1CheckBox->setText(QApplication::translate("BoardConsoleClass", "pwm1", 0));
         pwm2CheckBox->setText(QApplication::translate("BoardConsoleClass", "pwm2", 0));
-        telemetryToggleButton->setText(QApplication::translate("BoardConsoleClass", "Start", 0));
+        gyroRadioButton->setText(QApplication::translate("BoardConsoleClass", "Gyro", 0));
+        gxCheckBox->setText(QApplication::translate("BoardConsoleClass", "X", 0));
+        gyCheckBox->setText(QApplication::translate("BoardConsoleClass", "Y", 0));
+        gzCheckBox->setText(QApplication::translate("BoardConsoleClass", "Z", 0));
     } // retranslateUi
 
 };

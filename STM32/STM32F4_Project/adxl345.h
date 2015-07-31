@@ -25,9 +25,13 @@
 #define HZ100                       0x0a
 #define HZ800                       0x0d
 #define HZ1600                      0x0e
-#define ACCEL_FREQ                  HZ100
+#define HZ3200                      0x0f
 
 #define CALIBR_NUMBER               800
+
+extern uint8_t freshFreq;
+extern uint8_t curFreq;
+extern float curDT;
 
 extern int16_t ax, ay, az;
 

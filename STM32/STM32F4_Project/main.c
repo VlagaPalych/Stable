@@ -37,10 +37,10 @@ void RCC_Init() {
                     RCC_APB1ENR_TIM5EN | RCC_APB1ENR_TIM7EN | RCC_APB1ENR_TIM12EN | RCC_APB1ENR_USART2EN;
 }
 
-uint8_t gyros[6];
-
 int main() {
     RCC_Init();   
+    
+    GPIOD->MODER = 1 << 15*2;
     
     ADXL345_Init();
     ADXL345_Calibr();
@@ -60,11 +60,5 @@ int main() {
     EXTI->SWIER |= EXTI_SWIER_SWIER3;
     
     while(1) {
-//        gyros[1] = Gyro_SingleByteRead(0x1d);
-//        gyros[1] = Gyro_SingleByteRead(0x1e);
-//        gyros[2] = Gyro_SingleByteRead(0x1f);
-//        gyros[3] = Gyro_SingleByteRead(0x20);
-//        gyros[4] = Gyro_SingleByteRead(0x21);
-//        gyros[5] = Gyro_SingleByteRead(0x22);
     }
 }

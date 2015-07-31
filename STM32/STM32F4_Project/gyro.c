@@ -5,6 +5,10 @@
 uint8_t I2C1_SCL = 6; // PB
 uint8_t I2C1_SDA = 7; // PB
 
+uint8_t gyroFreshFreq = 0;
+uint8_t gyroCurFreq = GYRO_HZ100;
+float gyroCurDT = 0.01;
+
 uint8_t gyro[6];
 uint8_t gyroRegisters[6] = {0x1d, 0x1e, 0x1f, 0x20, 0x21, 0x22};
 
@@ -28,6 +32,7 @@ void I2C1_GPIO_Init() {
     
     GPIOB->BSRRL |= 1 << 5;
 }
+
 void delay() {
     volatile uint32_t value;
     value = 0xfff;
@@ -52,7 +57,7 @@ void Gyro_Init() {
     
     I2C1_Init();
     
-    Gyro_SingleByteWrite(0x15, 0x09);
+    Gyro_SingleByteWrite(0x15, gyroCurFreq);
     gyro_test = Gyro_SingleByteRead(0x15);
     
     Gyro_SingleByteWrite(0x16, 0x1A);
@@ -156,6 +161,8 @@ void Gyro_EXTI_Init() {
 void EXTI3_IRQHandler() {
     if (EXTI->PR & EXTI_PR_PR3) {
         EXTI->PR = EXTI_PR_PR3;
+        
+        //GPIOD->BSRRL |= 1 << 15;
         Gyro_ReadWithInterrupt();
     }
 }
@@ -204,12 +211,12 @@ void Gyro_MultipleBytesRead() {
         gyro[gyroIndex] = I2C1->DR;     
     }
     
-    ((uint8_t *)(&gx))[0] = gyro[0];
-    ((uint8_t *)(&gx))[1] = gyro[1];
-    ((uint8_t *)(&gy))[0] = gyro[2];
-    ((uint8_t *)(&gy))[1] = gyro[3];
-    ((uint8_t *)(&gz))[0] = gyro[4];
-    ((uint8_t *)(&gz))[1] = gyro[5];
+    ((uint8_t *)(&gx))[1] = gyro[0];
+    ((uint8_t *)(&gx))[0] = gyro[1];
+    ((uint8_t *)(&gy))[1] = gyro[2];
+    ((uint8_t *)(&gy))[0] = gyro[3];
+    ((uint8_t *)(&gz))[1] = gyro[4];
+    ((uint8_t *)(&gz))[0] = gyro[5];
 }
 
 void Gyro_ReadWithInterrupt() {
@@ -310,28 +317,32 @@ void Gyro_DMA_Init() {
 }
 
 void DMA1_Stream0_IRQHandler() {
-    float tmp;
     if (DMA1->LISR & DMA_LISR_TCIF0) {
         I2C1->CR1 |= I2C_CR1_STOP;
         
         DMA1->LIFCR = DMA_LIFCR_CTCIF0;
         DMA1->LIFCR = DMA_LIFCR_CHTIF0;
-        
-        
-        
-        ((uint8_t *)(&gx))[0] = gyro[0];
-        ((uint8_t *)(&gx))[1] = gyro[1];
-        ((uint8_t *)(&gy))[0] = gyro[2];
-        ((uint8_t *)(&gy))[1] = gyro[3];
-        ((uint8_t *)(&gz))[0] = gyro[4];
-        ((uint8_t *)(&gz))[1] = gyro[5];
+
+        ((uint8_t *)(&gx))[1] = gyro[0];
+        ((uint8_t *)(&gx))[0] = gyro[1];
+        ((uint8_t *)(&gy))[1] = gyro[2];
+        ((uint8_t *)(&gy))[0] = gyro[3];
+        ((uint8_t *)(&gz))[1] = gyro[4];
+        ((uint8_t *)(&gz))[0] = gyro[5];
         
         gx -= gyro_xOffset;
         gy -= gyro_yOffset;
         gz -= gyro_zOffset;
+        
+        if (gyroFreshFreq) {
+            gyroFreshFreq = 0;
+            I2C1->CR2 &= ~I2C_CR2_ITEVTEN;
+            delay();
+            Gyro_SingleByteWrite(0x15, gyroCurFreq);
+            delay();
+            I2C1->CR2 |= I2C_CR2_ITEVTEN;
+        }
 
-        gx = (int16_t)(((float)gx/32767) * 2000);
-        gy = (int16_t)(((float)gy/32767) * 2000);
-        gz = (int16_t)(((float)gz/32767) * 2000);
+        //GPIOD->BSRRH |= 1 << 15;
     }
 }

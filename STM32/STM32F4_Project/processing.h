@@ -14,6 +14,10 @@ extern float Ax;
 extern float Ay;
 extern float Az;
 
+extern float gyroX;
+extern float gyroY;
+extern float gyroZ;
+
 extern uint8_t stabilizationOn;
 extern uint8_t kalmanOn;
 extern uint8_t angleAveragingOn;

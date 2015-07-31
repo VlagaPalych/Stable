@@ -19,8 +19,8 @@
 
 QT_BEGIN_MOC_NAMESPACE
 struct qt_meta_stringdata_BoardConsole_t {
-    QByteArrayData data[24];
-    char stringdata0[469];
+    QByteArrayData data[25];
+    char stringdata0[491];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -34,33 +34,35 @@ QT_MOC_LITERAL(1, 13, 19), // "handleConnectButton"
 QT_MOC_LITERAL(2, 33, 0), // ""
 QT_MOC_LITERAL(3, 34, 22), // "handleStabToggleButton"
 QT_MOC_LITERAL(4, 57, 18), // "handleCalibrButton"
-QT_MOC_LITERAL(5, 76, 22), // "handleTelemetryButtons"
-QT_MOC_LITERAL(6, 99, 27), // "handleTelemetryToggleButton"
-QT_MOC_LITERAL(7, 127, 18), // "handleAccelButtons"
-QT_MOC_LITERAL(8, 146, 15), // "handleFreshLine"
-QT_MOC_LITERAL(9, 162, 8), // "QString&"
-QT_MOC_LITERAL(10, 171, 4), // "line"
-QT_MOC_LITERAL(11, 176, 22), // "handleNoFilterCheckBox"
-QT_MOC_LITERAL(12, 199, 26), // "handleKalmanFilterCheckBox"
-QT_MOC_LITERAL(13, 226, 28), // "handleAveragingAngleCheckBox"
-QT_MOC_LITERAL(14, 255, 29), // "handleAveragingAngVelCheckBox"
-QT_MOC_LITERAL(15, 285, 24), // "handleAngleWindowSpinBox"
-QT_MOC_LITERAL(16, 310, 25), // "handleAngVelWindowSpinBox"
-QT_MOC_LITERAL(17, 336, 24), // "handleSaveToFileCheckBox"
-QT_MOC_LITERAL(18, 361, 13), // "handlePButton"
-QT_MOC_LITERAL(19, 375, 13), // "handleDButton"
-QT_MOC_LITERAL(20, 389, 13), // "handleIButton"
-QT_MOC_LITERAL(21, 403, 29), // "handleTelemetryDisplayButtons"
-QT_MOC_LITERAL(22, 433, 17), // "handlePwm1SpinBox"
-QT_MOC_LITERAL(23, 451, 17) // "handlePwm2SpinBox"
+QT_MOC_LITERAL(5, 76, 26), // "handleClearTelemetryButton"
+QT_MOC_LITERAL(6, 103, 27), // "handleTelemetryToggleButton"
+QT_MOC_LITERAL(7, 131, 18), // "handleAccelButtons"
+QT_MOC_LITERAL(8, 150, 17), // "handleGyroButtons"
+QT_MOC_LITERAL(9, 168, 15), // "handleFreshLine"
+QT_MOC_LITERAL(10, 184, 8), // "QString&"
+QT_MOC_LITERAL(11, 193, 4), // "line"
+QT_MOC_LITERAL(12, 198, 22), // "handleNoFilterCheckBox"
+QT_MOC_LITERAL(13, 221, 26), // "handleKalmanFilterCheckBox"
+QT_MOC_LITERAL(14, 248, 28), // "handleAveragingAngleCheckBox"
+QT_MOC_LITERAL(15, 277, 29), // "handleAveragingAngVelCheckBox"
+QT_MOC_LITERAL(16, 307, 24), // "handleAngleWindowSpinBox"
+QT_MOC_LITERAL(17, 332, 25), // "handleAngVelWindowSpinBox"
+QT_MOC_LITERAL(18, 358, 24), // "handleSaveToFileCheckBox"
+QT_MOC_LITERAL(19, 383, 13), // "handlePButton"
+QT_MOC_LITERAL(20, 397, 13), // "handleDButton"
+QT_MOC_LITERAL(21, 411, 13), // "handleIButton"
+QT_MOC_LITERAL(22, 425, 29), // "handleTelemetryDisplayButtons"
+QT_MOC_LITERAL(23, 455, 17), // "handlePwm1SpinBox"
+QT_MOC_LITERAL(24, 473, 17) // "handlePwm2SpinBox"
 
     },
     "BoardConsole\0handleConnectButton\0\0"
     "handleStabToggleButton\0handleCalibrButton\0"
-    "handleTelemetryButtons\0"
+    "handleClearTelemetryButton\0"
     "handleTelemetryToggleButton\0"
-    "handleAccelButtons\0handleFreshLine\0"
-    "QString&\0line\0handleNoFilterCheckBox\0"
+    "handleAccelButtons\0handleGyroButtons\0"
+    "handleFreshLine\0QString&\0line\0"
+    "handleNoFilterCheckBox\0"
     "handleKalmanFilterCheckBox\0"
     "handleAveragingAngleCheckBox\0"
     "handleAveragingAngVelCheckBox\0"
@@ -79,7 +81,7 @@ static const uint qt_meta_data_BoardConsole[] = {
        7,       // revision
        0,       // classname
        0,    0, // classinfo
-      20,   14, // methods
+      21,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -87,26 +89,27 @@ static const uint qt_meta_data_BoardConsole[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags
-       1,    0,  114,    2, 0x08 /* Private */,
-       3,    0,  115,    2, 0x08 /* Private */,
-       4,    0,  116,    2, 0x08 /* Private */,
-       5,    0,  117,    2, 0x08 /* Private */,
-       6,    0,  118,    2, 0x08 /* Private */,
-       7,    0,  119,    2, 0x08 /* Private */,
-       8,    1,  120,    2, 0x08 /* Private */,
-      11,    0,  123,    2, 0x08 /* Private */,
-      12,    0,  124,    2, 0x08 /* Private */,
-      13,    0,  125,    2, 0x08 /* Private */,
-      14,    0,  126,    2, 0x08 /* Private */,
-      15,    1,  127,    2, 0x08 /* Private */,
-      16,    1,  130,    2, 0x08 /* Private */,
-      17,    0,  133,    2, 0x08 /* Private */,
-      18,    0,  134,    2, 0x08 /* Private */,
-      19,    0,  135,    2, 0x08 /* Private */,
-      20,    0,  136,    2, 0x08 /* Private */,
-      21,    0,  137,    2, 0x08 /* Private */,
-      22,    1,  138,    2, 0x08 /* Private */,
-      23,    1,  141,    2, 0x08 /* Private */,
+       1,    0,  119,    2, 0x08 /* Private */,
+       3,    0,  120,    2, 0x08 /* Private */,
+       4,    0,  121,    2, 0x08 /* Private */,
+       5,    0,  122,    2, 0x08 /* Private */,
+       6,    0,  123,    2, 0x08 /* Private */,
+       7,    0,  124,    2, 0x08 /* Private */,
+       8,    0,  125,    2, 0x08 /* Private */,
+       9,    1,  126,    2, 0x08 /* Private */,
+      12,    0,  129,    2, 0x08 /* Private */,
+      13,    0,  130,    2, 0x08 /* Private */,
+      14,    0,  131,    2, 0x08 /* Private */,
+      15,    0,  132,    2, 0x08 /* Private */,
+      16,    1,  133,    2, 0x08 /* Private */,
+      17,    1,  136,    2, 0x08 /* Private */,
+      18,    0,  139,    2, 0x08 /* Private */,
+      19,    0,  140,    2, 0x08 /* Private */,
+      20,    0,  141,    2, 0x08 /* Private */,
+      21,    0,  142,    2, 0x08 /* Private */,
+      22,    0,  143,    2, 0x08 /* Private */,
+      23,    1,  144,    2, 0x08 /* Private */,
+      24,    1,  147,    2, 0x08 /* Private */,
 
  // slots: parameters
     QMetaType::Void,
@@ -115,7 +118,8 @@ static const uint qt_meta_data_BoardConsole[] = {
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
-    QMetaType::Void, 0x80000000 | 9,   10,
+    QMetaType::Void,
+    QMetaType::Void, 0x80000000 | 10,   11,
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
@@ -142,23 +146,24 @@ void BoardConsole::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id
         case 0: _t->handleConnectButton(); break;
         case 1: _t->handleStabToggleButton(); break;
         case 2: _t->handleCalibrButton(); break;
-        case 3: _t->handleTelemetryButtons(); break;
+        case 3: _t->handleClearTelemetryButton(); break;
         case 4: _t->handleTelemetryToggleButton(); break;
         case 5: _t->handleAccelButtons(); break;
-        case 6: _t->handleFreshLine((*reinterpret_cast< QString(*)>(_a[1]))); break;
-        case 7: _t->handleNoFilterCheckBox(); break;
-        case 8: _t->handleKalmanFilterCheckBox(); break;
-        case 9: _t->handleAveragingAngleCheckBox(); break;
-        case 10: _t->handleAveragingAngVelCheckBox(); break;
-        case 11: _t->handleAngleWindowSpinBox((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 12: _t->handleAngVelWindowSpinBox((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 13: _t->handleSaveToFileCheckBox(); break;
-        case 14: _t->handlePButton(); break;
-        case 15: _t->handleDButton(); break;
-        case 16: _t->handleIButton(); break;
-        case 17: _t->handleTelemetryDisplayButtons(); break;
-        case 18: _t->handlePwm1SpinBox((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 19: _t->handlePwm2SpinBox((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 6: _t->handleGyroButtons(); break;
+        case 7: _t->handleFreshLine((*reinterpret_cast< QString(*)>(_a[1]))); break;
+        case 8: _t->handleNoFilterCheckBox(); break;
+        case 9: _t->handleKalmanFilterCheckBox(); break;
+        case 10: _t->handleAveragingAngleCheckBox(); break;
+        case 11: _t->handleAveragingAngVelCheckBox(); break;
+        case 12: _t->handleAngleWindowSpinBox((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 13: _t->handleAngVelWindowSpinBox((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 14: _t->handleSaveToFileCheckBox(); break;
+        case 15: _t->handlePButton(); break;
+        case 16: _t->handleDButton(); break;
+        case 17: _t->handleIButton(); break;
+        case 18: _t->handleTelemetryDisplayButtons(); break;
+        case 19: _t->handlePwm1SpinBox((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 20: _t->handlePwm2SpinBox((*reinterpret_cast< int(*)>(_a[1]))); break;
         default: ;
         }
     }
@@ -189,13 +194,13 @@ int BoardConsole::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 20)
+        if (_id < 21)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 20;
+        _id -= 21;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 20)
+        if (_id < 21)
             *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 20;
+        _id -= 21;
     }
     return _id;
 }

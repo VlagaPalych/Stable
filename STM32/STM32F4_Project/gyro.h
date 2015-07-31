@@ -3,6 +3,15 @@
 
 #include "stdint.h"
 
+#define GYRO_HZ100  0x09
+#define GYRO_HZ250  0x03
+#define GYRO_HZ500  0x01
+#define GYRO_HZ1000 0x00
+
+extern uint8_t gyroFreshFreq;
+extern uint8_t gyroCurFreq;
+extern float gyroCurDT;
+
 extern int16_t gx, gy, gz;
 
 extern uint8_t vals_index;

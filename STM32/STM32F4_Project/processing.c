@@ -309,13 +309,26 @@ void control() {
     SendTelemetry();
 }
 
+float gyroX = 0;
+float gyroY = 0;
+float gyroZ = 0;
+
+void transformGyroData() {
+    gyroX = gx / 32767.0 * 2000 * 3.14159 / 180.0;
+    gyroY = gy / 32767.0 * 2000 * 3.14159 / 180.0;
+    gyroZ = gz / 32767.0 * 2000 * 3.14159 / 180.0;
+}
+
 void process() {
-    angle = atan((float)ay / (float)az);
+    //GPIOD->BSRRL |= 1 << 15;
+    
+    angle = atan((float)ax / (float)az);
     if (angleAveragingOn) {
         angleAveraging();
     } 
     
-    angularVelocity = (angle - prevAngle) / ((float)DT); 
+    angularVelocity = (angle - prevAngle) / curDT; 
+    transformGyroData();
     //angularVelocity = gx * 3.14159 / 180.0;
     if (angVelAveragingOn) {
         angVelAveraging();
@@ -328,4 +341,6 @@ void process() {
         angleIntegral = angleIntegralMax;
     }
     control();
+    
+    //GPIOD->BSRRH |= 1 << 15;
 }

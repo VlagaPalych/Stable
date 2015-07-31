@@ -18,6 +18,9 @@ int16_t accel[6];
 
 int16_t xOffset, yOffset, zOffset;
 
+uint8_t freshFreq   = 0;
+uint8_t curFreq     = HZ100;
+float curDT         = 0.01;
 
 void Delay() {
   volatile uint32_t i;
@@ -91,7 +94,7 @@ void ADXL345_Init() {
     ADXL345_Write(DATA_FORMAT_ADDRESS, FULL_RES_MODE);
     accel_test = ADXL345_Read(DATA_FORMAT_ADDRESS);
 
-    ADXL345_Write(BW_RATE_ADDRESS, ACCEL_FREQ);
+    ADXL345_Write(BW_RATE_ADDRESS, curFreq);
     accel_test = ADXL345_Read(BW_RATE_ADDRESS);
 
 
