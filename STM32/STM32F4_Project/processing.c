@@ -11,6 +11,7 @@
 #include "gyro.h"
 
 #define DT MEASUREMENT_TIME
+#define G2 75746
 
 //float Ak = 1;
 //float Hk = 1;
@@ -319,20 +320,30 @@ void transformGyroData() {
     gyroZ = gz / 32767.0 * 2000 * 3.14159 / 180.0;
 }
 
+float a2 = 0;
+
 void process() {
     //GPIOD->BSRRL |= 1 << 15;
+    transformGyroData();
     
-    angle = atan((float)ax / (float)az);
+    a2 = ax * ax + ay * ay + az * az;
+    if (abs(a2 - G2) < 0.25 * G2) {
+        gyroAngle = atan((float)ax / (float)az);
+    } else {
+        gyroAngle += gyroX *gyroCurDT;
+    }
+    
+    angle = gyroAngle;
     if (angleAveragingOn) {
         angleAveraging();
     } 
     
-    angularVelocity = (angle - prevAngle) / curDT; 
-    transformGyroData();
-    //angularVelocity = gx * 3.14159 / 180.0;
+    //angularVelocity = (angle - prevAngle) / curDT; 
+    angularVelocity = gyroX;   
     if (angVelAveragingOn) {
         angVelAveraging();
     }
+
     if (kalmanOn) {
         kalman();
     } 

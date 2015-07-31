@@ -145,8 +145,9 @@ void ADXL345_GetAccel(int16_t *x, int16_t *y, int16_t *z) {
 }
 
 void ADXL345_Calibr() {
-    int i = 0;
+    int i = 0, calibrNumber;
     float xSum = 0, ySum = 0, zSum = 0;
+    calibrNumber = (int)(8.0 / curDT);
     
     while (!(GPIOA->IDR & (1 << ACCEL_INT1))) {}
     ADXL345_GetAccel(&ax, &ay, &az); 
@@ -154,16 +155,16 @@ void ADXL345_Calibr() {
     ySum += ay;
     zSum += az;
         
-    for (i = 0; i < CALIBR_NUMBER; i++) {
+    for (i = 0; i < calibrNumber; i++) {
         while (!(GPIOA->IDR & (1 << ACCEL_INT1))) {}
         ADXL345_GetAccel(&ax, &ay, &az); 
         xSum += ax;
         ySum += ay;
         zSum += az;  
     }         
-    xOffset = (int16_t)(xSum / CALIBR_NUMBER);
-    yOffset = (int16_t)(ySum / CALIBR_NUMBER);
-    zOffset = (int16_t)(zSum / CALIBR_NUMBER) - 0xFF;
+    xOffset = (int16_t)(xSum / calibrNumber);
+    yOffset = (int16_t)(ySum / calibrNumber);
+    zOffset = (int16_t)(zSum / calibrNumber) - 0xFF;
 }
 
 void Accel_EXTI_Init() {    

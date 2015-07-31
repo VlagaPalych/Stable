@@ -9,6 +9,8 @@ uint8_t gyroFreshFreq = 0;
 uint8_t gyroCurFreq = GYRO_HZ100;
 float gyroCurDT = 0.01;
 
+float gyroAngle = 0;
+
 uint8_t gyro[6];
 uint8_t gyroRegisters[6] = {0x1d, 0x1e, 0x1f, 0x20, 0x21, 0x22};
 
@@ -282,8 +284,12 @@ void I2C1_EV_IRQHandler() {
 }
 
 void Gyro_Calibr(void) {
-    int i = 0;
+    int i = 0, calibrNumber;
     float xSum = 0, ySum = 0, zSum = 0;
+    calibrNumber = (int)(8.0 / gyroCurDT);
+    
+    I2C1->CR2 &= ~(I2C_CR2_ITEVTEN | I2C_CR2_LAST | I2C_CR2_DMAEN);
+    delay();
     
     while (!(GPIOB->IDR & (1 << 3))) {}
     Gyro_MultipleBytesRead();
@@ -291,18 +297,18 @@ void Gyro_Calibr(void) {
     ySum += gy;
     zSum += gz;
         
-    for (i = 0; i < CALIBR_NUMBER; i++) {
+    for (i = 0; i < calibrNumber; i++) {
         while (!(GPIOB->IDR & (1 << 3))) {}
         Gyro_MultipleBytesRead();
         xSum += gx;
         ySum += gy;
         zSum += gz; 
     }         
-    gyro_xOffset = (int16_t)(xSum / CALIBR_NUMBER);
-    gyro_yOffset = (int16_t)(ySum / CALIBR_NUMBER);
-    gyro_zOffset = (int16_t)(zSum / CALIBR_NUMBER);
+    gyro_xOffset = (int16_t)(xSum / calibrNumber);
+    gyro_yOffset = (int16_t)(ySum / calibrNumber);
+    gyro_zOffset = (int16_t)(zSum / calibrNumber);
     
-    I2C1->CR2 |= I2C_CR2_LAST | I2C_CR2_DMAEN;
+    I2C1->CR2 |= I2C_CR2_LAST | I2C_CR2_DMAEN | I2C_CR2_ITEVTEN;
 }
 
 void Gyro_DMA_Init() {

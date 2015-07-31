@@ -12,6 +12,8 @@ extern uint8_t gyroFreshFreq;
 extern uint8_t gyroCurFreq;
 extern float gyroCurDT;
 
+extern float gyroAngle;
+
 extern int16_t gx, gy, gz;
 
 extern uint8_t vals_index;

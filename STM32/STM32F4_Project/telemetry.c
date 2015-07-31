@@ -134,6 +134,7 @@ void USART2_IRQHandler() {
                         stabilizationOn = 0;
                         Motors_Stop();
                         ADXL345_Calibr();
+                        Gyro_Calibr();
                         break;
                     case 'h':
                         telemetryOn ^= 1;
