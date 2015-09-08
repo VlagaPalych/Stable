@@ -33,8 +33,8 @@ void RCC_Init() {
     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN | RCC_AHB1ENR_GPIOBEN | RCC_AHB1ENR_GPIOCEN |
                     RCC_AHB1ENR_GPIODEN | RCC_AHB1ENR_GPIOEEN | RCC_AHB1ENR_DMA1EN;
     
-    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM4EN | RCC_APB1ENR_SPI2EN | RCC_APB1ENR_I2C1EN |
-                    RCC_APB1ENR_TIM5EN | RCC_APB1ENR_TIM7EN | RCC_APB1ENR_TIM12EN | RCC_APB1ENR_USART2EN;
+    RCC->APB1ENR |= RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM4EN | RCC_APB1ENR_SPI2EN | RCC_APB1ENR_I2C1EN |
+                    RCC_APB1ENR_TIM5EN | RCC_APB1ENR_TIM7EN | RCC_APB1ENR_USART2EN;
 }
 
 int main() {
@@ -58,7 +58,32 @@ int main() {
     
     Gyro_EXTI_Init();
     EXTI->SWIER |= EXTI_SWIER_SWIER3;
+        
+    Processing_TIM_Init();
     
     while(1) {
+//        if (recalibrate) {
+//            ADXL345_Calibr();
+//            Gyro_Calibr();
+//        
+//            EXTI->SWIER |= EXTI_SWIER_SWIER1;
+//            EXTI->SWIER |= EXTI_SWIER_SWIER3;
+//        }
+        
+        if (doGyroProcess) {
+            
+            finalGX = lowpass(gxHistory, gxCurHistoryIndex, gyro_b, GYRO_FILTER_SIZE);
+            doGyroProcess = 0;
+            
+        } 
+        // Lowpass filtering of accelerations
+        if (doAccelProcess) {
+            
+            finalAX = lowpass(axHistory, axCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE);
+            finalAZ = lowpass(azHistory, azCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE); 
+            doAccelProcess = 0;
+        } 
+        
+        
     }
 }

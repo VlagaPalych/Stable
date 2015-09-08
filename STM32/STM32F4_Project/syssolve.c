@@ -64,11 +64,13 @@ void mat_sub(const float *A, const float *B, float *C, int n, int m) {
    B - matrix k x m */
 void mat_mul(const float *A, const float *B, float *C, int n, int m, int k) {
     int i, j, h;
+    float tmp = 0;
     for (i = 0; i < n; i++) {
         for (j = 0; j < m; j++) {
             C[i*m + j] = 0;
             for (h = 0; h < k; h++) {
-                C[i*m + j] += A[i*k + h] * B[h*m + j];  
+                tmp = A[i*k + h] * B[h*m + j];
+                C[i*m + j] += tmp;  
             }
         }
     }
@@ -93,14 +95,18 @@ void system_solve(float *F, float *B, float *x, int n, int m) {
     }
 
     A_3x3 = (float *)malloc(m*m*sizeof(float));
-    b = (float *)malloc(m*sizeof(float));
-
     mat_mul(Ft, F, A_3x3, m, m, n);
-    mat_mul(Ft, B, b, m, 1, n);
-
+    
     det = det3(A_3x3);
-    if (det == 0) return;
-
+    if (det == 0) {
+        free(Ft);
+        free(A_3x3);
+        return;
+    }
+    
+    b = (float *)malloc(m*sizeof(float));
+    mat_mul(Ft, B, b, m, 1, n);
+    
     tmp = (float *)malloc(m*m*sizeof(float));
 
     for (i = 0; i < m; i++) {

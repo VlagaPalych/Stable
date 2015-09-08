@@ -98,7 +98,13 @@ void SerialPortReader::handleReadyRead()
 	while (endLineIndex != -1) {
 		endLineIndex = m_readData.indexOf('\n');
 		if (endLineIndex != -1) {
-			QString line = QString::fromLatin1(m_readData.mid(0, endLineIndex));
+			/*QByteArray dataLine = m_readData.mid(0, endLineIndex);
+			QByteArray axByteArray = dataLine.mid(0, 2);
+			qint16 ax = 0;
+			((quint8 *)&ax)[0] = axByteArray.at(0);
+			((quint8 *)&ax)[1] = axByteArray.at(1);*/
+		QString line = QString::fromLatin1(m_readData.mid(0, endLineIndex));
+			//QString line = QString::number(ax);
 			qDebug() << line;
 			if (logStream) {
 				(*logStream) << line << endl;

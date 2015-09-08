@@ -69,6 +69,7 @@ private Q_SLOTS:
 	void handleFreshLine(QString &line);
 
 	void handleNoFilterCheckBox();
+	void handleLowpassFilterCheckBox();
 	void handleKalmanFilterCheckBox();
 	void handleAveragingAngleCheckBox();
 	void handleAveragingAngVelCheckBox();

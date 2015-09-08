@@ -61,6 +61,7 @@ public:
     QHBoxLayout *horizontalLayout_5;
     QCheckBox *averagingAngVelCheckBox;
     QSpinBox *angVelWindowSpinBox;
+    QCheckBox *lowpassFilterCheckBox;
     QCheckBox *kalmanFilterCheckBox;
     QGroupBox *stabGroupBox;
     QVBoxLayout *verticalLayout_2;
@@ -114,7 +115,7 @@ public:
     {
         if (BoardConsoleClass->objectName().isEmpty())
             BoardConsoleClass->setObjectName(QStringLiteral("BoardConsoleClass"));
-        BoardConsoleClass->resize(774, 759);
+        BoardConsoleClass->resize(774, 1019);
         horizontalLayout_12 = new QHBoxLayout(BoardConsoleClass);
         horizontalLayout_12->setSpacing(6);
         horizontalLayout_12->setContentsMargins(11, 11, 11, 11);
@@ -266,6 +267,11 @@ public:
 
 
         verticalLayout_4->addLayout(horizontalLayout_5);
+
+        lowpassFilterCheckBox = new QCheckBox(filtergroupBox);
+        lowpassFilterCheckBox->setObjectName(QStringLiteral("lowpassFilterCheckBox"));
+
+        verticalLayout_4->addWidget(lowpassFilterCheckBox);
 
         kalmanFilterCheckBox = new QCheckBox(filtergroupBox);
         kalmanFilterCheckBox->setObjectName(QStringLiteral("kalmanFilterCheckBox"));
@@ -587,6 +593,7 @@ public:
         noFilterCheckBox->setText(QApplication::translate("BoardConsoleClass", "No Filter", 0));
         averagingAngleCheckBox->setText(QApplication::translate("BoardConsoleClass", "AveragingAngle", 0));
         averagingAngVelCheckBox->setText(QApplication::translate("BoardConsoleClass", "AveraginVelo", 0));
+        lowpassFilterCheckBox->setText(QApplication::translate("BoardConsoleClass", "lowpass", 0));
         kalmanFilterCheckBox->setText(QApplication::translate("BoardConsoleClass", "Kalman", 0));
         stabGroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Stabilization", 0));
         impulseCheckBox->setText(QApplication::translate("BoardConsoleClass", "impulse", 0));

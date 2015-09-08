@@ -31,6 +31,7 @@ BoardConsole::BoardConsole(QWidget *parent)
 	connect(ui.gyroHZ1000RadioButton, SIGNAL(clicked()), SLOT(handleGyroButtons()));
 
 	connect(ui.noFilterCheckBox, SIGNAL(clicked()), SLOT(handleNoFilterCheckBox()));
+	connect(ui.lowpassFilterCheckBox, SIGNAL(clicked()), SLOT(handleLowpassFilterCheckBox()));
 	connect(ui.kalmanFilterCheckBox, SIGNAL(clicked()), SLOT(handleKalmanFilterCheckBox()));
 	connect(ui.averagingAngleCheckBox, SIGNAL(clicked()), SLOT(handleAveragingAngleCheckBox()));
 	connect(ui.averagingAngVelCheckBox, SIGNAL(clicked()), SLOT(handleAveragingAngVelCheckBox()));
@@ -405,6 +406,10 @@ void BoardConsole::handleNoFilterCheckBox() {
 		ui.kalmanFilterCheckBox->setEnabled(true);
 		ui.averagingAngleCheckBox->setEnabled(true);
 	}
+}
+
+void BoardConsole::handleLowpassFilterCheckBox() {
+	stm->write("f");
 }
 
 void BoardConsole::handleKalmanFilterCheckBox() {

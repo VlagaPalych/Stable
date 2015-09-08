@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>774</width>
-    <height>759</height>
+    <height>1019</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -197,6 +197,13 @@
              </widget>
             </item>
            </layout>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="lowpassFilterCheckBox">
+            <property name="text">
+             <string>lowpass</string>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QCheckBox" name="kalmanFilterCheckBox">

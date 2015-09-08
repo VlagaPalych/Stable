@@ -19,8 +19,8 @@ int16_t accel[6];
 int16_t xOffset, yOffset, zOffset;
 
 uint8_t freshFreq   = 0;
-uint8_t curFreq     = HZ100;
-float curDT         = 0.01;
+uint8_t curFreq     = HZ1600;
+float curDT         = 0.000625;
 
 void Delay() {
   volatile uint32_t i;
@@ -199,7 +199,7 @@ void EXTI1_IRQHandler() {
         EXTI->PR = EXTI_PR_PR1;
         
         //Delay(5000);
-        GPIOD->BSRRL |= 1 << 15;
+        //GPIOD->BSRRL |= 1 << 15;
         NSS_Low();
         ADXL345_DMA_Init();
     }
@@ -240,12 +240,12 @@ void updateFreq() {
 
 void DMA1_Stream3_IRQHandler() {
     if (DMA1->LISR & DMA_LISR_TCIF3) {
+        //GPIOD->ODR ^= 1 << 15;
         DMA1->LIFCR = DMA_LIFCR_CTCIF3;
         DMA1->LIFCR = DMA_LIFCR_CHTIF3;
 
         if(GPIOA->IDR & GPIO_IDR_IDR_1) {  
             ADXL345_DMA_Init();
-            GPIOD->ODR ^= 1 << 15;
         } else NSS_High();
         
         updateFreq();
@@ -261,8 +261,27 @@ void DMA1_Stream3_IRQHandler() {
         ay -= yOffset;
         az -= zOffset;
         
-        process();
-        GPIOD->BSRRH |= 1 << 15;
+        axHistory[axHistoryIndex] = ax;
+        axHistoryIndex++;
+        
+        azHistory[azHistoryIndex] = az;
+        azHistoryIndex++;
+        
+        if (azHistoryIndex >= ACCEL_FILTER_SIZE) {
+            accelLowpassReady = 1;
+        }
+        
+        processCounter++;
+        
+        if (processCounter == 16) {
+            processCounter = 0;
+            
+            axCurHistoryIndex = axHistoryIndex - 1;
+            azCurHistoryIndex = azHistoryIndex - 1;
+            if (lowpassOn && accelLowpassReady) {
+                doAccelProcess = 1;
+            }
+        } 
     }
 }
 

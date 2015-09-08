@@ -1,13 +1,14 @@
 #include "gyro.h"
 #include "stm32f4xx.h"
 #include "adxl345.h"
+#include "processing.h"
 
 uint8_t I2C1_SCL = 6; // PB
 uint8_t I2C1_SDA = 7; // PB
 
 uint8_t gyroFreshFreq = 0;
-uint8_t gyroCurFreq = GYRO_HZ100;
-float gyroCurDT = 0.01;
+uint8_t gyroCurFreq = GYRO_HZ1000;
+float gyroCurDT = 0.001;
 
 float gyroAngle = 0;
 
@@ -24,6 +25,8 @@ uint8_t gyroIndex = 0;
 int16_t gyro_xOffset;
 int16_t gyro_yOffset;
 int16_t gyro_zOffset;
+
+uint8_t gyroProcessCounter = 0;
 
 void I2C1_GPIO_Init() {
     GPIOB->AFR[0]   |= (4 << I2C1_SCL*4) | (4 << I2C1_SDA*4); 
@@ -288,6 +291,9 @@ void Gyro_Calibr(void) {
     float xSum = 0, ySum = 0, zSum = 0;
     calibrNumber = (int)(8.0 / gyroCurDT);
     
+//    I2C1->CR1 |= I2C_CR1_STOP;
+//    while ((I2C1->SR2 & I2C_SR2_BUSY) !=0 ) {}
+    
     I2C1->CR2 &= ~(I2C_CR2_ITEVTEN | I2C_CR2_LAST | I2C_CR2_DMAEN);
     delay();
     
@@ -349,6 +355,22 @@ void DMA1_Stream0_IRQHandler() {
             I2C1->CR2 |= I2C_CR2_ITEVTEN;
         }
 
-        //GPIOD->BSRRH |= 1 << 15;
+        gxHistory[gxHistoryIndex] = gx;
+        gxHistoryIndex++;
+        
+        if (gxHistoryIndex >= GYRO_FILTER_SIZE) {
+            gyroLowpassReady = 1;
+        }
+        
+        gyroProcessCounter++;
+        
+        if (gyroProcessCounter == 10) {
+            gyroProcessCounter = 0;
+            
+            gxCurHistoryIndex = gxHistoryIndex - 1;
+            if (lowpassOn && gyroLowpassReady) {
+                doGyroProcess = 1;
+            }
+        } 
     }
 }

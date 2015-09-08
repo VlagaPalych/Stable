@@ -17,7 +17,7 @@ typedef enum { WAITING_FOR_PWM1, WAITING_FOR_PWM2, ANGLE_WINDOW_SIZE, ANGVEL_WIN
 
 typedef enum { WAITING_FOR_KP, WAITING_FOR_KD, WAITING_FOR_KI, FLOAT_NONE } waitingForFloat;
 
-typedef enum { FULL, MOVE_DESCRIPTION, AX, AY, AZ} telemetryMode;
+typedef enum { FULL } telemetryMode;
 
 uint8_t received;
 char str[100];
@@ -40,11 +40,7 @@ waitingForFloat         curWaitingForFloat  = FLOAT_NONE;
 uint8_t telemetryOn = 0;
 telemetryMode curTelemetryMode = FULL;
 
-
-uint8_t displayAngle            = 1;
-uint8_t displayAngularVelocity  = 1;
-uint8_t displayF                = 1;
-uint8_t displayPwm              = 1;
+uint8_t recalibrate = 0;
 
 char tele[100] = "";
 uint8_t len = 0, j;
@@ -74,21 +70,6 @@ void USART_Init(void) {
 //        }
 //    }
     
-}
-
-void Telemetry_TIM_Init() {
-    TIM7->PSC = 7;
-    TIM7->ARR = 2500;
-    TIM7->DIER |= 1;
-    NVIC_SetPriority(TIM7_IRQn, 0xFF);
-    NVIC_EnableIRQ(TIM7_IRQn);
-    
-    //TIM7->CR1 |= TIM_CR1_CEN;
-}
-
-void TIM7_IRQHandler(void) {
-    TIM7->SR &= ~TIM_SR_UIF;
-    SendTelemetry();
 }
 
 void initWaitingForInt() {
@@ -133,26 +114,17 @@ void USART2_IRQHandler() {
                     case 'd':
                         stabilizationOn = 0;
                         Motors_Stop();
-                        ADXL345_Calibr();
-                        Gyro_Calibr();
+                        recalibrate = 1;
+                        
+                        break;
+                    case 'f':
+                        lowpassOn ^= 1;
                         break;
                     case 'h':
                         telemetryOn ^= 1;
                         break;
                     case 'i':
                         curTelemetryMode = FULL;
-                        break;
-                    case 'k':
-                        curTelemetryMode = MOVE_DESCRIPTION;
-                        break;
-                    case 'l':
-                        curTelemetryMode = AX;
-                        break;
-                    case 'q':
-                        curTelemetryMode = AY;
-                        break;
-                    case 'r':
-                        curTelemetryMode = AZ;
                         break;
                     case 'm':
                         initWaitingForInt();
@@ -323,28 +295,33 @@ void send_to_uart(uint8_t data) {
     USART2->DR = data; 
 }
 
+void SendRaw() {
+    sprintf(tele, "r%hd\n", azHistory[azHistoryIndex]);
+    len = strlen(tele);
+    Telemetry_DMA_Init();
+}
+
+void SendRawAndProcessed() {
+    sprintf(tele, "%hd\n", az);
+    len = strlen(tele);
+    Telemetry_DMA_Init();
+}
+
 void SendTelemetry() {
     if (telemetryOn) {
         switch (curTelemetryMode) {
             case FULL:
-                sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %.2f %.2f %.2f %d %d %.2f %.2f %.2f %d %d\n", 
-            angle, angularVelocity, F, ax, ay, az, pwm1, pwm2, gyroX, gyroY, gyroZ, COUNT1, COUNT2, Kp, Ki, Kd, angleWindowSize, angVelWindowSize);
-                break;
-            case MOVE_DESCRIPTION:
-                sprintf(tele, "%.2f %.2f %.2f %d %d\n", angle, angularVelocity, F, pwm1, pwm2);
-                break;
-            case AX:
-                sprintf(tele, "%hd %.2f\n", ax, Ax);
-                break;
-            case AY:
-                sprintf(tele, "%hd %.2f\n", ay, Ay);
-                break;
-            case AZ:
-                sprintf(tele, "%hd %.2f\n", az, Az);
+                sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %hd %d %d %.2f %.2f %.2f\n", 
+            angle, angularVelocity, F, finalAX, ay, finalAZ, pwm1, pwm2, finalGX, COUNT1, COUNT2, Kp, Ki, Kd);
+//                if (lowpassOn) {
+//                    sprintf(tele, "%hd\n", finalGX);
+//                } else {
+//                    sprintf(tele, "%hd\n", gx);
+//                }
                 break;
         }
         len = strlen(tele);
-        
+
         Telemetry_DMA_Init();
     }
 }

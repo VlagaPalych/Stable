@@ -196,9 +196,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>250</LineNumber>
+          <LineNumber>262</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134227118</Address>
+          <Address>134227446</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -212,9 +212,9 @@
         <Bp>
           <Number>1</Number>
           <Type>0</Type>
-          <LineNumber>244</LineNumber>
+          <LineNumber>256</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134227086</Address>
+          <Address>134227414</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -228,9 +228,9 @@
         <Bp>
           <Number>2</Number>
           <Type>0</Type>
-          <LineNumber>238</LineNumber>
+          <LineNumber>250</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134227056</Address>
+          <Address>134227384</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -244,9 +244,9 @@
         <Bp>
           <Number>3</Number>
           <Type>0</Type>
-          <LineNumber>231</LineNumber>
+          <LineNumber>243</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134227022</Address>
+          <Address>134227350</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -260,9 +260,9 @@
         <Bp>
           <Number>4</Number>
           <Type>0</Type>
-          <LineNumber>200</LineNumber>
+          <LineNumber>212</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134226320</Address>
+          <Address>134226648</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -276,9 +276,9 @@
         <Bp>
           <Number>5</Number>
           <Type>0</Type>
-          <LineNumber>197</LineNumber>
+          <LineNumber>209</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134226296</Address>
+          <Address>134226624</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -292,9 +292,9 @@
         <Bp>
           <Number>6</Number>
           <Type>0</Type>
-          <LineNumber>194</LineNumber>
+          <LineNumber>206</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134226286</Address>
+          <Address>134226614</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -308,9 +308,9 @@
         <Bp>
           <Number>7</Number>
           <Type>0</Type>
-          <LineNumber>185</LineNumber>
+          <LineNumber>197</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134226224</Address>
+          <Address>134226552</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -324,9 +324,9 @@
         <Bp>
           <Number>8</Number>
           <Type>0</Type>
-          <LineNumber>181</LineNumber>
+          <LineNumber>193</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134226186</Address>
+          <Address>134226514</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -340,9 +340,9 @@
         <Bp>
           <Number>9</Number>
           <Type>0</Type>
-          <LineNumber>176</LineNumber>
+          <LineNumber>188</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134226160</Address>
+          <Address>134226488</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -356,9 +356,9 @@
         <Bp>
           <Number>10</Number>
           <Type>0</Type>
-          <LineNumber>171</LineNumber>
+          <LineNumber>183</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134226130</Address>
+          <Address>134226458</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -372,24 +372,24 @@
         <Bp>
           <Number>11</Number>
           <Type>0</Type>
-          <LineNumber>168</LineNumber>
-          <EnabledFlag>0</EnabledFlag>
-          <Address>0</Address>
+          <LineNumber>256</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134234660</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>0</BreakIfRCount>
-          <Filename>.\gyro.c</Filename>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>.\processing.c</Filename>
           <ExecCommand></ExecCommand>
           <Expression></Expression>
         </Bp>
         <Bp>
           <Number>12</Number>
           <Type>0</Type>
-          <LineNumber>173</LineNumber>
-          <EnabledFlag>0</EnabledFlag>
+          <LineNumber>296</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
           <Address>0</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
@@ -404,7 +404,7 @@
         <Bp>
           <Number>13</Number>
           <Type>0</Type>
-          <LineNumber>178</LineNumber>
+          <LineNumber>180</LineNumber>
           <EnabledFlag>0</EnabledFlag>
           <Address>0</Address>
           <ByteObject>0</ByteObject>
@@ -420,7 +420,7 @@
         <Bp>
           <Number>14</Number>
           <Type>0</Type>
-          <LineNumber>182</LineNumber>
+          <LineNumber>185</LineNumber>
           <EnabledFlag>0</EnabledFlag>
           <Address>0</Address>
           <ByteObject>0</ByteObject>
@@ -436,7 +436,7 @@
         <Bp>
           <Number>15</Number>
           <Type>0</Type>
-          <LineNumber>191</LineNumber>
+          <LineNumber>190</LineNumber>
           <EnabledFlag>0</EnabledFlag>
           <Address>0</Address>
           <ByteObject>0</ByteObject>
@@ -452,7 +452,7 @@
         <Bp>
           <Number>16</Number>
           <Type>0</Type>
-          <LineNumber>228</LineNumber>
+          <LineNumber>194</LineNumber>
           <EnabledFlag>0</EnabledFlag>
           <Address>0</Address>
           <ByteObject>0</ByteObject>
@@ -468,7 +468,7 @@
         <Bp>
           <Number>17</Number>
           <Type>0</Type>
-          <LineNumber>235</LineNumber>
+          <LineNumber>203</LineNumber>
           <EnabledFlag>0</EnabledFlag>
           <Address>0</Address>
           <ByteObject>0</ByteObject>
@@ -484,7 +484,7 @@
         <Bp>
           <Number>18</Number>
           <Type>0</Type>
-          <LineNumber>241</LineNumber>
+          <LineNumber>240</LineNumber>
           <EnabledFlag>0</EnabledFlag>
           <Address>0</Address>
           <ByteObject>0</ByteObject>
@@ -532,7 +532,7 @@
         <Bp>
           <Number>21</Number>
           <Type>0</Type>
-          <LineNumber>256</LineNumber>
+          <LineNumber>259</LineNumber>
           <EnabledFlag>0</EnabledFlag>
           <Address>0</Address>
           <ByteObject>0</ByteObject>
@@ -548,7 +548,7 @@
         <Bp>
           <Number>22</Number>
           <Type>0</Type>
-          <LineNumber>274</LineNumber>
+          <LineNumber>265</LineNumber>
           <EnabledFlag>0</EnabledFlag>
           <Address>0</Address>
           <ByteObject>0</ByteObject>
@@ -561,129 +561,192 @@
           <ExecCommand></ExecCommand>
           <Expression></Expression>
         </Bp>
+        <Bp>
+          <Number>23</Number>
+          <Type>0</Type>
+          <LineNumber>268</LineNumber>
+          <EnabledFlag>0</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>.\gyro.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
+        <Bp>
+          <Number>24</Number>
+          <Type>0</Type>
+          <LineNumber>286</LineNumber>
+          <EnabledFlag>0</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>.\gyro.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
+        <Bp>
+          <Number>25</Number>
+          <Type>0</Type>
+          <LineNumber>251</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>.\processing.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
       </Breakpoint>
       <WatchWindow1>
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>angleAveragingOn</ItemText>
+          <ItemText>tmp</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>angVelAveragingOn</ItemText>
+          <ItemText>C[i*m+j]</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>angle</ItemText>
+          <ItemText>A[i*k+h]</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>angularVelocity</ItemText>
+          <ItemText>B[h*m+j]</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>angleWindowSize,0x0A</ItemText>
+          <ItemText>C[0]</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>1</WinNumber>
-          <ItemText>angVelWindowSize,0x0A</ItemText>
+          <ItemText>C[1]</ItemText>
         </Ww>
         <Ww>
           <count>6</count>
           <WinNumber>1</WinNumber>
-          <ItemText>angles[0]</ItemText>
+          <ItemText>C[2]</ItemText>
         </Ww>
         <Ww>
           <count>7</count>
           <WinNumber>1</WinNumber>
-          <ItemText>angles[1]</ItemText>
+          <ItemText>C[3]</ItemText>
         </Ww>
         <Ww>
           <count>8</count>
           <WinNumber>1</WinNumber>
-          <ItemText>angles[2]</ItemText>
+          <ItemText>C[4]</ItemText>
         </Ww>
         <Ww>
           <count>9</count>
           <WinNumber>1</WinNumber>
-          <ItemText>angles[3]</ItemText>
+          <ItemText>C[5]</ItemText>
         </Ww>
         <Ww>
           <count>10</count>
           <WinNumber>1</WinNumber>
-          <ItemText>angles[4]</ItemText>
+          <ItemText>C[6]</ItemText>
         </Ww>
         <Ww>
           <count>11</count>
           <WinNumber>1</WinNumber>
-          <ItemText>angles[5]</ItemText>
+          <ItemText>C[7]</ItemText>
         </Ww>
         <Ww>
           <count>12</count>
           <WinNumber>1</WinNumber>
-          <ItemText>angles[6]</ItemText>
+          <ItemText>C[8]</ItemText>
         </Ww>
         <Ww>
           <count>13</count>
           <WinNumber>1</WinNumber>
-          <ItemText>angles[7]</ItemText>
+          <ItemText>Afull</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
         <Ww>
           <count>0</count>
           <WinNumber>2</WinNumber>
-          <ItemText>gyro</ItemText>
+          <ItemText>det</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>2</WinNumber>
-          <ItemText>vals_index</ItemText>
+          <ItemText>detI</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>2</WinNumber>
-          <ItemText>gyros</ItemText>
+          <ItemText>w</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>2</WinNumber>
-          <ItemText>gyro_test</ItemText>
+          <ItemText>A_3x3[0]</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>2</WinNumber>
-          <ItemText>gx,0x0A</ItemText>
+          <ItemText>A_3x3[1]</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>2</WinNumber>
-          <ItemText>gy,0x0A</ItemText>
+          <ItemText>A_3x3[2]</ItemText>
         </Ww>
         <Ww>
           <count>6</count>
           <WinNumber>2</WinNumber>
-          <ItemText>gz,0x0A</ItemText>
+          <ItemText>A_3x3[3]</ItemText>
         </Ww>
         <Ww>
           <count>7</count>
           <WinNumber>2</WinNumber>
-          <ItemText>gyro_xOffset,0x0A</ItemText>
+          <ItemText>A_3x3[4]</ItemText>
         </Ww>
         <Ww>
           <count>8</count>
           <WinNumber>2</WinNumber>
-          <ItemText>gyro_yOffset,0x0A</ItemText>
+          <ItemText>A_3x3[5]</ItemText>
         </Ww>
         <Ww>
           <count>9</count>
           <WinNumber>2</WinNumber>
-          <ItemText>gyro_zOffset,0x0A</ItemText>
+          <ItemText>A_3x3[6]</ItemText>
+        </Ww>
+        <Ww>
+          <count>10</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>A_3x3[7]</ItemText>
+        </Ww>
+        <Ww>
+          <count>11</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>A_3x3[8]</ItemText>
+        </Ww>
+        <Ww>
+          <count>12</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>Afull</ItemText>
         </Ww>
       </WatchWindow2>
       <Tracepoint>
@@ -735,6 +798,10 @@
           <WinId>35902</WinId>
         </Entry>
         <Entry>
+          <Name>System Viewer\GPIOD</Name>
+          <WinId>35899</WinId>
+        </Entry>
+        <Entry>
           <Name>System Viewer\I2C1</Name>
           <WinId>35901</WinId>
         </Entry>
@@ -745,6 +812,10 @@
         <Entry>
           <Name>System Viewer\SYSCFG</Name>
           <WinId>35896</WinId>
+        </Entry>
+        <Entry>
+          <Name>System Viewer\TIM7</Name>
+          <WinId>35898</WinId>
         </Entry>
       </SystemViewers>
     </TargetOption>
