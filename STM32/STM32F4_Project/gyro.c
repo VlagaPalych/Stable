@@ -22,6 +22,11 @@ uint8_t gyro_val = 0;
 
 uint8_t gyroIndex = 0;
 
+uint8_t gyroCalibrationOn = 0;
+uint32_t calibrIndex = 0;
+uint32_t calibrNumber = 0;
+float xSum = 0, ySum = 0, zSum = 0;
+
 int16_t gyro_xOffset;
 int16_t gyro_yOffset;
 int16_t gyro_zOffset;
@@ -73,6 +78,8 @@ void Gyro_Init() {
     
     Gyro_SingleByteWrite(0x3E, 0x19);
     gyro_test = Gyro_SingleByteRead(0x3E);
+    
+    I2C1->CR2 |= I2C_CR2_LAST | I2C_CR2_DMAEN;
 }
 
 uint8_t Gyro_SingleByteRead(uint8_t gyroAddress) {
@@ -172,57 +179,57 @@ void EXTI3_IRQHandler() {
     }
 }
 
-void Gyro_MultipleBytesRead() {
-    while ((I2C1->SR2 & I2C_SR2_BUSY)!=0) {}
-    addr = 0x1d;
-    I2C1->CR1 |= I2C_CR1_ACK;
-    I2C1->CR1 |= I2C_CR1_START;
-    
-    // EV5
-    while ((I2C1->SR1 & I2C_SR1_SB) == 0) {}
-    (void) I2C1->SR1;
-    I2C1->DR = 0xd0;
-    
-    // EV6
-    while ((I2C1->SR1 & I2C_SR1_ADDR) == 0) {}
-    (void) I2C1->SR1;
-    (void) I2C1->SR2;
-        
-    // EV8_1    
-    while ((I2C1->SR1 & I2C_SR1_TXE) == 0) {}    
-    I2C1->DR = addr;
-        
-    // EV8_2
-    while (((I2C1->SR1 & I2C_SR1_TXE) == 0) && ((I2C1->SR1 & I2C_SR1_BTF) == 0)) {}
-    I2C1->CR1 |= I2C_CR1_START;
-    
-    // EV5
-    while ((I2C1->SR1 & I2C_SR1_SB) == 0) {}
-	(void) I2C1->SR1;
-    I2C1->DR = 0xd1;
-    
-    // EV6
-    while ((I2C1->SR1 & I2C_SR1_ADDR) == 0) {}
-	(void) I2C1->SR1;
-	(void) I2C1->SR2;
-    
-    for (gyroIndex = 0; gyroIndex < 6; gyroIndex++) {
-        // EV7
-        while ((I2C1->SR1 & I2C_SR1_RXNE) == 0)	{}
-        if (gyroIndex == 5) {
-            I2C1->CR1 &= ~I2C_CR1_ACK;
-            I2C1->CR1 |= I2C_CR1_STOP;
-        }
-        gyro[gyroIndex] = I2C1->DR;     
-    }
-    
-    ((uint8_t *)(&gx))[1] = gyro[0];
-    ((uint8_t *)(&gx))[0] = gyro[1];
-    ((uint8_t *)(&gy))[1] = gyro[2];
-    ((uint8_t *)(&gy))[0] = gyro[3];
-    ((uint8_t *)(&gz))[1] = gyro[4];
-    ((uint8_t *)(&gz))[0] = gyro[5];
-}
+//void Gyro_MultipleBytesRead() {
+//    while ((I2C1->SR2 & I2C_SR2_BUSY)!=0) {}
+//    addr = 0x1d;
+//    I2C1->CR1 |= I2C_CR1_ACK;
+//    I2C1->CR1 |= I2C_CR1_START;
+//    
+//    // EV5
+//    while ((I2C1->SR1 & I2C_SR1_SB) == 0) {}
+//    (void) I2C1->SR1;
+//    I2C1->DR = 0xd0;
+//    
+//    // EV6
+//    while ((I2C1->SR1 & I2C_SR1_ADDR) == 0) {}
+//    (void) I2C1->SR1;
+//    (void) I2C1->SR2;
+//        
+//    // EV8_1    
+//    while ((I2C1->SR1 & I2C_SR1_TXE) == 0) {}    
+//    I2C1->DR = addr;
+//        
+//    // EV8_2
+//    while (((I2C1->SR1 & I2C_SR1_TXE) == 0) && ((I2C1->SR1 & I2C_SR1_BTF) == 0)) {}
+//    I2C1->CR1 |= I2C_CR1_START;
+//    
+//    // EV5
+//    while ((I2C1->SR1 & I2C_SR1_SB) == 0) {}
+//	(void) I2C1->SR1;
+//    I2C1->DR = 0xd1;
+//    
+//    // EV6
+//    while ((I2C1->SR1 & I2C_SR1_ADDR) == 0) {}
+//	(void) I2C1->SR1;
+//	(void) I2C1->SR2;
+//    
+//    for (gyroIndex = 0; gyroIndex < 6; gyroIndex++) {
+//        // EV7
+//        while ((I2C1->SR1 & I2C_SR1_RXNE) == 0)	{}
+//        if (gyroIndex == 5) {
+//            I2C1->CR1 &= ~I2C_CR1_ACK;
+//            I2C1->CR1 |= I2C_CR1_STOP;
+//        }
+//        gyro[gyroIndex] = I2C1->DR;     
+//    }
+//    
+//    ((uint8_t *)(&gx))[1] = gyro[0];
+//    ((uint8_t *)(&gx))[0] = gyro[1];
+//    ((uint8_t *)(&gy))[1] = gyro[2];
+//    ((uint8_t *)(&gy))[0] = gyro[3];
+//    ((uint8_t *)(&gz))[1] = gyro[4];
+//    ((uint8_t *)(&gz))[0] = gyro[5];
+//}
 
 void Gyro_ReadWithInterrupt() {
     while ((I2C1->SR2 & I2C_SR2_BUSY) !=0 ) {}
@@ -287,34 +294,33 @@ void I2C1_EV_IRQHandler() {
 }
 
 void Gyro_Calibr(void) {
-    int i = 0, calibrNumber;
-    float xSum = 0, ySum = 0, zSum = 0;
-    calibrNumber = (int)(8.0 / gyroCurDT);
+    xSum = 0; ySum = 0; zSum = 0;
+    calibrIndex = 0;
+    calibrNumber = (uint32_t)(8.0 / gyroCurDT);
+    gyroCalibrationOn = 1;
+
     
-//    I2C1->CR1 |= I2C_CR1_STOP;
-//    while ((I2C1->SR2 & I2C_SR2_BUSY) !=0 ) {}
-    
-    I2C1->CR2 &= ~(I2C_CR2_ITEVTEN | I2C_CR2_LAST | I2C_CR2_DMAEN);
-    delay();
-    
-    while (!(GPIOB->IDR & (1 << 3))) {}
-    Gyro_MultipleBytesRead();
-    xSum += gx;
-    ySum += gy;
-    zSum += gz;
-        
-    for (i = 0; i < calibrNumber; i++) {
-        while (!(GPIOB->IDR & (1 << 3))) {}
-        Gyro_MultipleBytesRead();
-        xSum += gx;
-        ySum += gy;
-        zSum += gz; 
-    }         
-    gyro_xOffset = (int16_t)(xSum / calibrNumber);
-    gyro_yOffset = (int16_t)(ySum / calibrNumber);
-    gyro_zOffset = (int16_t)(zSum / calibrNumber);
-    
-    I2C1->CR2 |= I2C_CR2_LAST | I2C_CR2_DMAEN | I2C_CR2_ITEVTEN;
+//    I2C1->CR2 &= ~(I2C_CR2_ITEVTEN | I2C_CR2_LAST | I2C_CR2_DMAEN);
+//    delay();
+//    
+//    while (!(GPIOB->IDR & (1 << 3))) {}
+//    Gyro_MultipleBytesRead();
+//    xSum += gx;
+//    ySum += gy;
+//    zSum += gz;
+//        
+//    for (i = 0; i < calibrNumber; i++) {
+//        while (!(GPIOB->IDR & (1 << 3))) {}
+//        Gyro_MultipleBytesRead();
+//        xSum += gx;
+//        ySum += gy;
+//        zSum += gz; 
+//    }         
+//    gyro_xOffset = (int16_t)(xSum / calibrNumber);
+//    gyro_yOffset = (int16_t)(ySum / calibrNumber);
+//    gyro_zOffset = (int16_t)(zSum / calibrNumber);
+//    
+//    I2C1->CR2 |= I2C_CR2_LAST | I2C_CR2_DMAEN | I2C_CR2_ITEVTEN;
 }
 
 void Gyro_DMA_Init() {
@@ -324,7 +330,7 @@ void Gyro_DMA_Init() {
     DMA1_Stream0->CR    = 0;
     DMA1_Stream0->PAR   = (uint32_t)&(I2C1->DR);
     DMA1_Stream0->M0AR  = (uint32_t)gyro;
-    DMA1_Stream0->NDTR  = 6;
+    DMA1_Stream0->NDTR  = 2;
     DMA1_Stream0->CR    |= DMA_SxCR_CHSEL_0 | DMA_SxCR_MINC | DMA_SxCR_TCIE | DMA_SxCR_PL | DMA_SxCR_EN; 
 }
 
@@ -337,14 +343,30 @@ void DMA1_Stream0_IRQHandler() {
 
         ((uint8_t *)(&gx))[1] = gyro[0];
         ((uint8_t *)(&gx))[0] = gyro[1];
-        ((uint8_t *)(&gy))[1] = gyro[2];
-        ((uint8_t *)(&gy))[0] = gyro[3];
-        ((uint8_t *)(&gz))[1] = gyro[4];
-        ((uint8_t *)(&gz))[0] = gyro[5];
+//        ((uint8_t *)(&gy))[1] = gyro[2];
+//        ((uint8_t *)(&gy))[0] = gyro[3];
+//        ((uint8_t *)(&gz))[1] = gyro[4];
+//        ((uint8_t *)(&gz))[0] = gyro[5];
+        
+        if (gyroCalibrationOn) {
+            xSum += gx;
+//            ySum += gy;
+//            zSum += gz;
+            
+            calibrIndex++;
+            
+            if (calibrIndex == calibrNumber) {
+                gyro_xOffset = (int16_t)(xSum / calibrNumber);
+//                gyro_yOffset = (int16_t)(ySum / calibrNumber);
+//                gyro_zOffset = (int16_t)(zSum / calibrNumber);
+                
+                gyroCalibrationOn = 0;
+            }
+        }
         
         gx -= gyro_xOffset;
-        gy -= gyro_yOffset;
-        gz -= gyro_zOffset;
+//        gy -= gyro_yOffset;
+//        gz -= gyro_zOffset;
         
         if (gyroFreshFreq) {
             gyroFreshFreq = 0;
@@ -355,22 +377,22 @@ void DMA1_Stream0_IRQHandler() {
             I2C1->CR2 |= I2C_CR2_ITEVTEN;
         }
 
-        gxHistory[gxHistoryIndex] = gx;
-        gxHistoryIndex++;
-        
-        if (gxHistoryIndex >= GYRO_FILTER_SIZE) {
-            gyroLowpassReady = 1;
-        }
-        
-        gyroProcessCounter++;
-        
-        if (gyroProcessCounter == 10) {
-            gyroProcessCounter = 0;
-            
-            gxCurHistoryIndex = gxHistoryIndex - 1;
-            if (lowpassOn && gyroLowpassReady) {
-                doGyroProcess = 1;
-            }
-        } 
+//        gxHistory[gxHistoryIndex] = gx;
+//        gxHistoryIndex++;
+//        
+//        if (gxHistoryIndex >= GYRO_FILTER_SIZE) {
+//            gyroLowpassReady = 1;
+//        }
+//        
+//        gyroProcessCounter++;
+//        
+//        if (gyroProcessCounter == 10) {
+//            gyroProcessCounter = 0;
+//            
+//            gxCurHistoryIndex = gxHistoryIndex - 1;
+//            if (lowpassOn && gyroLowpassReady) {
+//                doGyroProcess = 1;
+//            }
+//        } 
     }
 }

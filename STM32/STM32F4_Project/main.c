@@ -43,9 +43,12 @@ int main() {
     GPIOD->MODER = 1 << 15*2;
     
     ADXL345_Init();
+    Accel_EXTI_Init();
     ADXL345_Calibr();
+    EXTI->SWIER |= EXTI_SWIER_SWIER1;
     
     Gyro_Init();
+    Gyro_EXTI_Init();
     Gyro_Calibr();
 
     Motors_Init();
@@ -53,23 +56,13 @@ int main() {
     
     while(ENGRDY != 1) {};
         
-    Accel_EXTI_Init();
-    EXTI->SWIER |= EXTI_SWIER_SWIER1;
+//    Accel_EXTI_Init();
+//    EXTI->SWIER |= EXTI_SWIER_SWIER1;
     
-    Gyro_EXTI_Init();
-    EXTI->SWIER |= EXTI_SWIER_SWIER3;
-        
+//        
     Processing_TIM_Init();
     
-    while(1) {
-//        if (recalibrate) {
-//            ADXL345_Calibr();
-//            Gyro_Calibr();
-//        
-//            EXTI->SWIER |= EXTI_SWIER_SWIER1;
-//            EXTI->SWIER |= EXTI_SWIER_SWIER3;
-//        }
-        
+    while(1) {    
         if (doGyroProcess) {
             
             finalGX = lowpass(gxHistory, gxCurHistoryIndex, gyro_b, GYRO_FILTER_SIZE);

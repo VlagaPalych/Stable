@@ -16,6 +16,11 @@ uint8_t ACCEL_VCC   = 13;   // PC
 int16_t accelRegisters[6] = {0xB200, 0xB300, 0xB400, 0xB500, 0xB600, 0xB700};
 int16_t accel[6];
 
+uint8_t accelCalibrationOn = 0;
+uint32_t accelCalibrIndex = 0;
+uint32_t accelCalibrNumber = 0;
+float accel_xSum = 0, accel_ySum = 0, accel_zSum = 0;
+
 int16_t xOffset, yOffset, zOffset;
 
 uint8_t freshFreq   = 0;
@@ -145,26 +150,27 @@ void ADXL345_GetAccel(int16_t *x, int16_t *y, int16_t *z) {
 }
 
 void ADXL345_Calibr() {
-    int i = 0, calibrNumber;
-    float xSum = 0, ySum = 0, zSum = 0;
-    calibrNumber = (int)(8.0 / curDT);
+    accel_xSum = 0; accel_ySum = 0; accel_zSum = 0;
+    accelCalibrIndex = 0;
+    accelCalibrNumber = (int)(8.0 / curDT);
+    accelCalibrationOn = 1;
     
-    while (!(GPIOA->IDR & (1 << ACCEL_INT1))) {}
-    ADXL345_GetAccel(&ax, &ay, &az); 
-    xSum += ax;
-    ySum += ay;
-    zSum += az;
-        
-    for (i = 0; i < calibrNumber; i++) {
-        while (!(GPIOA->IDR & (1 << ACCEL_INT1))) {}
-        ADXL345_GetAccel(&ax, &ay, &az); 
-        xSum += ax;
-        ySum += ay;
-        zSum += az;  
-    }         
-    xOffset = (int16_t)(xSum / calibrNumber);
-    yOffset = (int16_t)(ySum / calibrNumber);
-    zOffset = (int16_t)(zSum / calibrNumber) - 0xFF;
+//    while (!(GPIOA->IDR & (1 << ACCEL_INT1))) {}
+//    ADXL345_GetAccel(&ax, &ay, &az); 
+//    xSum += ax;
+//    ySum += ay;
+//    zSum += az;
+//        
+//    for (i = 0; i < calibrNumber; i++) {
+//        while (!(GPIOA->IDR & (1 << ACCEL_INT1))) {}
+//        ADXL345_GetAccel(&ax, &ay, &az); 
+//        xSum += ax;
+//        ySum += ay;
+//        zSum += az;  
+//    }         
+//    xOffset = (int16_t)(xSum / calibrNumber);
+//    yOffset = (int16_t)(ySum / calibrNumber);
+//    zOffset = (int16_t)(zSum / calibrNumber) - 0xFF;
 }
 
 void Accel_EXTI_Init() {    
@@ -256,6 +262,21 @@ void DMA1_Stream3_IRQHandler() {
         ((uint8_t *)(&ay))[1] = (uint8_t)(accel[3] & 0xFF);
         ((uint8_t *)(&az))[0] = (uint8_t)(accel[4] & 0xFF);
         ((uint8_t *)(&az))[1] = (uint8_t)(accel[5] & 0xFF);
+        
+        if (accelCalibrationOn) {
+            accel_xSum += ax;
+            accel_ySum += ay;
+            accel_zSum += az;  
+            
+            accelCalibrIndex++;
+            
+            if (accelCalibrIndex == accelCalibrNumber) {
+                xOffset = (int16_t)(accel_xSum / accelCalibrNumber);
+                yOffset = (int16_t)(accel_ySum / accelCalibrNumber);
+                zOffset = (int16_t)(accel_zSum / accelCalibrNumber) - 0xFF;
+                accelCalibrationOn = 0;
+            }
+        }
         
         ax -= xOffset;
         ay -= yOffset;

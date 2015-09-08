@@ -114,7 +114,9 @@ void USART2_IRQHandler() {
                     case 'd':
                         stabilizationOn = 0;
                         Motors_Stop();
-                        recalibrate = 1;
+                        
+                        ADXL345_Calibr();
+                        Gyro_Calibr();
                         
                         break;
                     case 'f':
