@@ -2,6 +2,7 @@
 #include <QtSerialPort\qserialportinfo.h>
 #include <qdir.h>
 #include <qdatetime.h>
+#include "commands.h"
 
 BoardConsole::BoardConsole(QWidget *parent)
 	: QWidget(parent)
@@ -14,12 +15,15 @@ BoardConsole::BoardConsole(QWidget *parent)
 	}
 	ui.serialComboBox->setCurrentText("COM18");
 
+	connect(ui.programButton, SIGNAL(clicked()), SLOT(handleProgramButton()));
 	connect(ui.connectButton, SIGNAL(clicked()), SLOT(handleConnectButton()));
 	connect(ui.stabToggleButton, SIGNAL(clicked()), SLOT(handleStabToggleButton()));
 	connect(ui.calibrButton, SIGNAL(clicked()), SLOT(handleCalibrButton()));
 	connect(ui.clearTelemetryButton, SIGNAL(clicked()), SLOT(handleClearTelemetryButton()));
 
 	connect(ui.telemetryToggleButton, SIGNAL(clicked()), SLOT(handleTelemetryToggleButton()));
+	connect(ui.HZ25RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
+	connect(ui.HZ50RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
 	connect(ui.HZ100RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
 	connect(ui.HZ800RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
 	connect(ui.HZ1600RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
@@ -125,10 +129,24 @@ QString BoardConsole::defineLogFile() {
 	
 }
 
+QByteArray BoardConsole::command(const char c) {
+	return QString(c).toLatin1();
+}
+
+QByteArray BoardConsole::number_command(const char c, QString number) {
+	QString str = QString(c) + number + QString(NUMBER_END);
+	return str.toLatin1();
+}
+
+void BoardConsole::handleProgramButton() {
+	stm->write(command(PROGRAMMING_MODE));
+}
+
+
 void BoardConsole::handleConnectButton() {
 	stm = new QSerialPort(ui.serialComboBox->currentText());
 	stm->setBaudRate(QSerialPort::Baud115200);
-	stm->setParity(QSerialPort::NoParity);
+	stm->setParity(QSerialPort::EvenParity);
 	stm->setStopBits(QSerialPort::OneStop);
 	if (!stm->open(QIODevice::ReadWrite)) {
 		qDebug() << QObject::tr("Failed to open port %1, error: %2").arg(stm->portName()).arg(stm->errorString()) << endl;
@@ -145,10 +163,10 @@ void BoardConsole::handleConnectButton() {
 }
 
 void BoardConsole::STM_Init() {
-	stm->write("a");
-	stm->write("m1100b");
-	stm->write("o2.0b");
-	stm->write("p0.01b");
+	stm->write(command(TURN_EVERYTHING_OFF));
+	stm->write(number_command(PWM1, "1100"));
+	stm->write(number_command(KP, "2.0"));
+	stm->write(number_command(KD, "0.01"));
 }
 
 void BoardConsole::handleStabToggleButton() {	
@@ -156,7 +174,7 @@ void BoardConsole::handleStabToggleButton() {
 		ui.stabToggleButton->setText("Stop");
 		ui.saveToFileCheckBox->setChecked(true);
 		if (ui.impulseCheckBox->isChecked()) {
-			stm->write("C");
+			stm->write(command(IMPULSE));
 		}
 	}
 	else {
@@ -164,11 +182,11 @@ void BoardConsole::handleStabToggleButton() {
 		ui.saveToFileCheckBox->setChecked(false);
 	}
 	handleSaveToFileCheckBox();
-	stm->write("e");
+	stm->write(command(STABILIZATION));
 }
 
 void BoardConsole::handleCalibrButton() {
-	stm->write("d");
+	stm->write(command(CALIBRATION));
 	ui.stabToggleButton->setText("Start");
 }
 
@@ -216,7 +234,7 @@ void BoardConsole::handleClearTelemetryButton() {
 }	
 
 void BoardConsole::handleTelemetryToggleButton() {
-	stm->write("h");
+	stm->write(command(TELEMETRY));
 	if (ui.telemetryToggleButton->text() == "Start") {
 		ui.telemetryToggleButton->setText("Stop");
 	} else {
@@ -225,33 +243,39 @@ void BoardConsole::handleTelemetryToggleButton() {
 }
 
 void BoardConsole::handleAccelButtons() {
-	if (ui.HZ100RadioButton->isChecked()) {
-		stm->write("A");
+	if (ui.HZ25RadioButton->isChecked()) {
+		stm->write(command(ACCEL_FREQ_HZ25));
+	}
+	else if (ui.HZ50RadioButton->isChecked()) {
+		stm->write(command(ACCEL_FREQ_HZ50));
+	}
+	else if (ui.HZ100RadioButton->isChecked()) {
+		stm->write(command(ACCEL_FREQ_HZ100));
 	}
 	else if (ui.HZ800RadioButton->isChecked())
 	{
-		stm->write("B");
+		stm->write(command(ACCEL_FREQ_HZ800));
 	}
 	else if (ui.HZ1600RadioButton->isChecked()) {
-		stm->write("D");
+		stm->write(command(ACCEL_FREQ_HZ1600));
 	}
 	else if (ui.HZ3200RadioButton->isChecked()) {
-		stm->write("E");
+		stm->write(command(ACCEL_FREQ_HZ3200));
 	}
 }
 
 void BoardConsole::handleGyroButtons() {
 	if (ui.gyroHZ100RadioButton->isChecked()) {
-		stm->write("F");
+		stm->write(command(GYRO_FREQ_HZ100));
 	}
 	else if (ui.gyroHZ250RadioButton->isChecked()) {
-		stm->write("G");
+		stm->write(command(GYRO_FREQ_HZ250));
 	}
 	else if (ui.gyroHZ500RadioButton->isChecked()) {
-		stm->write("H");
+		stm->write(command(GYRO_FREQ_HZ500));
 	}
 	else if (ui.gyroHZ1000RadioButton->isChecked()) {
-		stm->write("I");
+		stm->write(command(GYRO_FREQ_HZ1000));
 	}
 }
 
@@ -395,11 +419,11 @@ void BoardConsole::handleNoFilterCheckBox() {
 		ui.kalmanFilterCheckBox->setEnabled(false);
 		ui.averagingAngleCheckBox->setEnabled(false);
 		if (ui.kalmanFilterCheckBox->isChecked()) {
-			stm->write("s");
+			stm->write(command(KALMAN));
 			ui.kalmanFilterCheckBox->setChecked(false);
 		}
 		if (ui.averagingAngleCheckBox->isChecked()) {
-			stm->write("t");
+			stm->write(command(ANGLE_MOVING_AVERAGE));
 			ui.averagingAngleCheckBox->setChecked(false);
 		}
 	} else {
@@ -409,19 +433,19 @@ void BoardConsole::handleNoFilterCheckBox() {
 }
 
 void BoardConsole::handleLowpassFilterCheckBox() {
-	stm->write("f");
+	stm->write(command(LOWPASS));
 }
 
 void BoardConsole::handleKalmanFilterCheckBox() {
-	stm->write("s");
+	stm->write(command(KALMAN));
 }
 
 void BoardConsole::handleAveragingAngleCheckBox() {
-	stm->write("t");
+	stm->write(command(ANGLE_MOVING_AVERAGE));
 }
 
 void BoardConsole::handleAveragingAngVelCheckBox() {
-	stm->write("w");
+	stm->write(command(ANGVEL_MOVING_AVERAGE));
 }
 
 void BoardConsole::handleSaveToFileCheckBox() {
@@ -437,21 +461,21 @@ void BoardConsole::handleSaveToFileCheckBox() {
 void BoardConsole::handlePButton() {
 	QString kStr = ui.pLineEdit->text();
 	if (!kStr.isEmpty()) {
-		stm->write(tr("o%1b").arg(kStr).toStdString().c_str());
+		stm->write(number_command(KP, kStr));
 	}
 }
 
 void BoardConsole::handleIButton() {
 	QString kStr = ui.iLineEdit->text();
 	if (!kStr.isEmpty()) {
-		stm->write(tr("x%1b").arg(kStr).toStdString().c_str());
+		stm->write(number_command(KI, kStr));
 	}
 }
 
 void BoardConsole::handleDButton() {
 	QString kStr = ui.dLineEdit->text();
 	if (!kStr.isEmpty()) {
-		stm->write(tr("p%1b").arg(kStr).toStdString().c_str());
+		stm->write(number_command(KD, kStr));
 	}
 }
 
@@ -460,16 +484,16 @@ void BoardConsole::handleTelemetryDisplayButtons() {
 }
 
 void BoardConsole::handlePwm1SpinBox(int newval) {
-	stm->write(tr("m%1b").arg(newval).toStdString().c_str());
+	stm->write(number_command(PWM1, QString::number(newval)));
 }
 
 void BoardConsole::handlePwm2SpinBox(int newval) {
-	stm->write(tr("n%1b").arg(newval).toStdString().c_str());
+	stm->write(number_command(PWM2, QString::number(newval)));
 }
 
 void BoardConsole::handleAngleWindowSpinBox(int newval) {
-	stm->write(tr("u%1b").arg(newval).toStdString().c_str());
+	stm->write(number_command(ANGLE_WINDOW_SIZE, QString::number(newval)));
 }
 void BoardConsole::handleAngVelWindowSpinBox(int newval) {
-	stm->write(tr("v%1b").arg(newval).toStdString().c_str());
+	stm->write(number_command(ANGVEL_WINDOW_SIZE, QString::number(newval)));
 }

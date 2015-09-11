@@ -56,8 +56,11 @@ private:
 	qint64 startTime;
 
 	void STM_Init();
+	QByteArray command(const char c);
+	QByteArray number_command(const char c, QString number);
 
 private Q_SLOTS:
+void handleProgramButton();
 	void handleConnectButton();
 	void handleStabToggleButton();
 	void handleCalibrButton();

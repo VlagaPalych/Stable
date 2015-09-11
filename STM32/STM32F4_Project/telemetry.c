@@ -7,13 +7,14 @@
 #include "gyro.h"
 #include "motors.h"
 #include "processing.h"
+#include "commands.h"
 
-uint8_t UART2_TX = 2;    // PA2
-uint8_t UART2_RX = 3;    // PA3
+uint8_t UART1_TX = 9;    // PA
+uint8_t UART1_RX = 10;    // PA
 
 typedef enum { WAITING_FOR_COMMAND, WAITING_FOR_INT, WAITING_FOR_FLOAT } waiting;
 
-typedef enum { WAITING_FOR_PWM1, WAITING_FOR_PWM2, ANGLE_WINDOW_SIZE, ANGVEL_WINDOW_SIZE, INT_NONE } waitingForInt;
+typedef enum { WAITING_FOR_PWM1, WAITING_FOR_PWM2, WAITING_FOR_ANGLE_WINDOW_SIZE, WAITING_FOR_ANGVEL_WINDOW_SIZE, INT_NONE } waitingForInt;
 
 typedef enum { WAITING_FOR_KP, WAITING_FOR_KD, WAITING_FOR_KI, FLOAT_NONE } waitingForFloat;
 
@@ -46,28 +47,29 @@ char tele[100] = "";
 uint8_t len = 0, j;
 
 void USART_Init(void) {
-    GPIOA->MODER    |= (2 << UART2_TX*2) | (2 << UART2_RX*2);
-    GPIOA->OTYPER   &= ~((1 << UART2_TX) | (1 << UART2_RX));
-    GPIOA->OSPEEDR  |= (3 << UART2_TX*2) | (3 << UART2_RX*2);
-    GPIOA->PUPDR    |= (1 << UART2_TX*2) | (1 << UART2_RX*2);
-    GPIOA->AFR[0]   |= (7 << UART2_TX*4) | (7 << UART2_RX*4);
+    GPIOA->MODER    |= (2 << UART1_TX*2) | (2 << UART1_RX*2);
+    GPIOA->OTYPER   &= ~((1 << UART1_TX) | (1 << UART1_RX));
+    GPIOA->OSPEEDR  |= (3 << UART1_TX*2) | (3 << UART1_RX*2);
+    GPIOA->PUPDR    |= (1 << UART1_TX*2) | (1 << UART1_RX*2);
+    GPIOA->AFR[1]   |= (7 << (UART1_TX-8)*4) | (7 << (UART1_RX-8)*4);
 
-    USART2->BRR     = 0x45;//0x341; 
-    USART2->CR3     |= USART_CR3_DMAT;
-    USART2->CR1     |= USART_CR1_UE | USART_CR1_RE | USART_CR1_TE | USART_CR1_RXNEIE; 
-    NVIC_SetPriority(USART2_IRQn, 0x02);
-    NVIC_EnableIRQ(USART2_IRQn);
+    USART1->BRR     = 0x45;//0x341; 
+    USART1->CR3     |= USART_CR3_DMAT;
+    USART1->CR1     |= USART_CR1_UE | USART_CR1_M | USART_CR1_PCE | USART_CR1_RE | USART_CR1_TE | USART_CR1_RXNEIE; 
+    NVIC_SetPriority(USART1_IRQn, 0x02);
+    NVIC_EnableIRQ(USART1_IRQn);
     
 //    GPIOA->MODER &= ~(3UL << 15*2);
 //    GPIOA->MODER |= 1 << (15*2);GPIOA->BSRRH |= 1 << 15;
 ////    GPIOA->BSRRL |= 1 << 15;
 //    
-//    while (1) {
-//    sprintf(tele, "AT\r\n");
+//    sprintf(tele, "123456789");while (1) {
+//        
 //        len = strlen(tele);
-//        for (j = 0; j < len; j++) {
-//            send_to_uart(tele[j]);
-//        }
+////        for (j = 0; j < len; j++) {
+////            send_to_uart(tele[j]);
+////        }
+//        Telemetry_DMA_Init();
 //    }
     
 }
@@ -87,22 +89,22 @@ void initWaitingForFloat() {
     floatValue = 0;
 }
 
-
-void USART2_IRQHandler() {
-    if (USART2->SR & USART_SR_RXNE) {
-        USART2->SR &= ~USART_SR_RXNE;
-        received = USART2->DR;
+int rst = 0;
+void USART1_IRQHandler() {
+    if (USART1->SR & USART_SR_RXNE) {
+        USART1->SR &= ~USART_SR_RXNE;
+        received = USART1->DR;
 
         switch (curWaiting) {
             case WAITING_FOR_COMMAND:
                 switch (received) {
-                    case 'a':
+                    case TURN_EVERYTHING_OFF:
                         stabilizationOn     = 0;
                         telemetryOn         = 0;
                         kalmanOn            = 0;
                         angleAveragingOn    = 0;                                  
                         break;
-                    case 'e':   
+                    case STABILIZATION:   
                         if (stabilizationOn) {
                             stabilizationOn = 0;
                             Motors_Stop();
@@ -111,7 +113,7 @@ void USART2_IRQHandler() {
                             stabilizationOn = 1; 
                         }
                         break;
-                    case 'd':
+                    case CALIBRATION:
                         stabilizationOn = 0;
                         Motors_Stop();
                         
@@ -119,109 +121,125 @@ void USART2_IRQHandler() {
                         Gyro_Calibr();
                         
                         break;
-                    case 'f':
+                    case LOWPASS:
                         lowpassOn ^= 1;
                         break;
-                    case 'h':
+                    case TELEMETRY:
                         telemetryOn ^= 1;
                         break;
-                    case 'i':
+                    case TELEMETRY_MODE_FULL:
                         curTelemetryMode = FULL;
                         break;
-                    case 'm':
+                    case PWM1:
                         initWaitingForInt();
                         curWaitingForInt = WAITING_FOR_PWM1;
                         break;
-                    case 'n':
+                    case PWM2:
                         initWaitingForInt();
                         curWaitingForInt = WAITING_FOR_PWM2;
                         break;
-                    case 'o':
+                    case KP:
                         initWaitingForFloat();
                         curWaitingForFloat = WAITING_FOR_KP;
                         break;
-                    case 'p':
+                    case KD:
                         initWaitingForFloat();
                         curWaitingForFloat = WAITING_FOR_KD;
                         break;
-                    case 'x':
+                    case KI:
                         initWaitingForFloat();
                         curWaitingForFloat = WAITING_FOR_KI;
                         break;
-                    case 's':
+                    case KALMAN:
                         kalmanOn ^= 1;
                         break;
-                    case 't':
+                    case ANGLE_MOVING_AVERAGE:
                         angleAveragingOn ^= 1;
                         if (angleAveragingOn) {
                             angleSum = 0;
                             angleIndex = 0;
                         }
                         break;
-                    case 'u':
+                    case ANGLE_WINDOW_SIZE:
                         initWaitingForInt();
-                        curWaitingForInt = ANGLE_WINDOW_SIZE;
+                        curWaitingForInt = WAITING_FOR_ANGLE_WINDOW_SIZE;
                         break;
-                    case 'v':
+                    case ANGVEL_WINDOW_SIZE:
                         initWaitingForInt();
-                        curWaitingForInt = ANGVEL_WINDOW_SIZE;
+                        curWaitingForInt = WAITING_FOR_ANGVEL_WINDOW_SIZE;
                         break;
-                    case 'w':
+                    case ANGVEL_MOVING_AVERAGE:
                         angVelAveragingOn ^= 1;  
                         if (angVelAveragingOn) {
                             angVelSum = 0;
                             angVelIndex = 0;
                         }                    
                         break;
-                    case 'A':
+                    case ACCEL_FREQ_HZ100:
                         freshFreq = 1;
                         curFreq = HZ100;
                         curDT = 0.01;
                         break;
-                    case 'B':
+                    case ACCEL_FREQ_HZ800:
                         freshFreq = 1;
                         curFreq = HZ800;
                         curDT = 0.00125;
                         break;
-                    case 'C':
+                    case IMPULSE:
                         impulseOn = 1;
                         break;
-                    case 'D':
+                    case ACCEL_FREQ_HZ1600:
                         freshFreq = 1;
                         curFreq = HZ1600;
                         curDT = 0.000625;
                         break;
-                    case 'E':
+                    case ACCEL_FREQ_HZ3200:
                         freshFreq = 1;
                         curFreq = HZ3200;
                         curDT = 0.0003125;
                         break;
-                    
-                    case 'F':
+                    case ACCEL_FREQ_HZ25:
+                        freshFreq = 1;
+                        curFreq = HZ25;
+                        curDT = 0.04;
+                        break;
+                    case ACCEL_FREQ_HZ50:
+                        freshFreq = 1;
+                        curFreq = HZ50;
+                        curDT = 0.02;
+                        break;
+                    case GYRO_FREQ_HZ100:
                         gyroFreshFreq = 1;
                         gyroCurFreq = GYRO_HZ100;
                         gyroCurDT = 0.01;
                         break;
-                    case 'G':
+                    case GYRO_FREQ_HZ250:
                         gyroFreshFreq = 1;
                         gyroCurFreq = GYRO_HZ250;
                         gyroCurDT = 0.004;
                         break;
-                    case 'H':
+                    case GYRO_FREQ_HZ500:
                         gyroFreshFreq = 1;
                         gyroCurFreq = GYRO_HZ500;
                         gyroCurDT = 0.002;
                         break;
-                    case 'I':
+                    case GYRO_FREQ_HZ1000:
                         gyroFreshFreq = 1;
                         gyroCurFreq = GYRO_HZ1000;
                         gyroCurDT = 0.001;
+                        break;
+                    case PROGRAMMING_MODE:
+                        GPIOB->BSRRL |= 1 << 8;
+                        for (rst = 0; rst < 100000; rst++) {
+                            __nop();
+                        }
+                        SCB->AIRCR = (0x5fa << 16) | (1 << 2);
                         break;
                 }
                 break;
             case WAITING_FOR_INT:
                 switch (received) {
-                    case 'b':   
+                    case NUMBER_END:   
                         curWaiting = WAITING_FOR_COMMAND;
                         while (i >= 0) {
                             intValue += (str[i--] - '0') * st;
@@ -237,10 +255,10 @@ void USART2_IRQHandler() {
                                 pwm2 = intValue;
                                 TIM4->CCR3 	= pwm2;
                                 break;
-                            case ANGLE_WINDOW_SIZE:
+                            case WAITING_FOR_ANGLE_WINDOW_SIZE:
                                 allocAngleAveraging(intValue);
                                 break;
-                            case ANGVEL_WINDOW_SIZE:
+                            case WAITING_FOR_ANGVEL_WINDOW_SIZE:
                                 allocAngVelAveraging(intValue);
                                 break;
                             default:
@@ -293,8 +311,8 @@ void USART2_IRQHandler() {
 }
 
 void send_to_uart(uint8_t data) {
-    while(!(USART2->SR & USART_SR_TC)); 
-    USART2->DR = data; 
+    while((USART1->SR & USART_SR_TC)==0); 
+    USART1->DR = data; 
 }
 
 void SendRaw() {
@@ -313,8 +331,13 @@ void SendTelemetry() {
     if (telemetryOn) {
         switch (curTelemetryMode) {
             case FULL:
-                sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %hd %d %d %.2f %.2f %.2f\n", 
-            angle, angularVelocity, F, finalAX, ay, finalAZ, pwm1, pwm2, finalGX, COUNT1, COUNT2, Kp, Ki, Kd);
+                if (lowpassOn) {
+                        sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %hd %d %d %.2f %.2f %.2f\n", 
+                    angle, angularVelocity, F, finalAX, ay, finalAZ, pwm1, pwm2, finalGX, COUNT1, COUNT2, Kp, Ki, Kd);
+                } else {
+                    sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %hd %d %d %.2f %.2f %.2f\n", 
+                    angle, angularVelocity, F, ax, ay, az, pwm1, pwm2, gx, COUNT1, COUNT2, Kp, Ki, Kd);
+                }
 //                if (lowpassOn) {
 //                    sprintf(tele, "%hd\n", finalGX);
 //                } else {
@@ -325,6 +348,7 @@ void SendTelemetry() {
         len = strlen(tele);
 
         Telemetry_DMA_Init();
+//        send_to_uart('a');
     }
 }
 
@@ -332,20 +356,20 @@ uint8_t USART_DMA_transferComleted = 1;
 void Telemetry_DMA_Init() {
     if (USART_DMA_transferComleted) {
         USART_DMA_transferComleted = 0;
-        NVIC_EnableIRQ(DMA1_Stream6_IRQn);
+        NVIC_EnableIRQ(DMA2_Stream7_IRQn);
         
-        DMA1_Stream6->CR    = 0;
-        DMA1_Stream6->PAR   = (uint32_t)&(USART2->DR);
-        DMA1_Stream6->M0AR  = (uint32_t)tele;     
-        DMA1_Stream6->NDTR  = len;
-        DMA1_Stream6->CR    |= DMA_SxCR_CHSEL_2 | DMA_SxCR_MINC /*| DMA_SxCR_PSIZE_0 | DMA_SxCR_MSIZE_0 */| 
+        DMA2_Stream7->CR    = 0;
+        DMA2_Stream7->PAR   = (uint32_t)&(USART1->DR);
+        DMA2_Stream7->M0AR  = (uint32_t)tele;     
+        DMA2_Stream7->NDTR  = len;
+        DMA2_Stream7->CR    |= DMA_SxCR_CHSEL_2 | DMA_SxCR_MINC /*| DMA_SxCR_PSIZE_0 | DMA_SxCR_MSIZE_0 */| 
                                     DMA_SxCR_TCIE | DMA_SxCR_DIR_0  | DMA_SxCR_PL | DMA_SxCR_EN;
     }
 }
 
-void DMA1_Stream6_IRQHandler() {
-    if (DMA1->HISR & DMA_HISR_TCIF6) {
-        DMA1->HIFCR = DMA_HIFCR_CTCIF6;
+void DMA2_Stream7_IRQHandler() {
+    if (DMA2->HISR & DMA_HISR_TCIF7) {
+        DMA2->HIFCR = DMA_HIFCR_CTCIF7;
         USART_DMA_transferComleted = 1;
     }
 }

@@ -22,6 +22,8 @@
 #define FULL_RES_MODE               0x0b
 
 #define BW_RATE_ADDRESS             0x2c
+#define HZ25                        0x08
+#define HZ50                        0x09
 #define HZ100                       0x0a
 #define HZ800                       0x0d
 #define HZ1600                      0x0e

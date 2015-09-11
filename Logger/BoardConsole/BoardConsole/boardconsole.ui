@@ -47,6 +47,13 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QPushButton" name="programButton">
+            <property name="text">
+             <string>Program</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
@@ -57,12 +64,26 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_6">
           <item>
+           <widget class="QRadioButton" name="HZ25RadioButton">
+            <property name="text">
+             <string>25 Hz</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="HZ50RadioButton">
+            <property name="text">
+             <string>50 Hz</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QRadioButton" name="HZ100RadioButton">
             <property name="text">
              <string>100 Hz</string>
             </property>
             <property name="checked">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -80,6 +101,9 @@
            <widget class="QRadioButton" name="HZ1600RadioButton">
             <property name="text">
              <string>1600 Hz</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -105,7 +129,7 @@
              <string>100 Hz</string>
             </property>
             <property name="checked">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -121,12 +145,18 @@
             <property name="text">
              <string>500 Hz</string>
             </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
            </widget>
           </item>
           <item>
            <widget class="QRadioButton" name="gyroHZ1000RadioButton">
             <property name="text">
              <string>1000 Hz</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -202,6 +232,9 @@
            <widget class="QCheckBox" name="lowpassFilterCheckBox">
             <property name="text">
              <string>lowpass</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>

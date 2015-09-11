@@ -325,9 +325,17 @@ void TIM7_IRQHandler(void) {
     GPIOD->BSRRL |= 1 << 15;
     transformGyroData();
       
-    a2 = finalAX * finalAX + ay * ay + finalAZ * finalAZ;
+    if (lowpassOn) {
+        a2 = finalAX * finalAX + ay * ay + finalAZ * finalAZ;
+    } else {
+        a2 = ax*ax + ay*ay + az*az;
+    }
     if (abs(a2 - G2) < 0.25 * G2) {
-        gyroAngle = atan((float)finalAX / (float)finalAZ);
+        if (lowpassOn) {
+            gyroAngle = atan((float)finalAX / (float)finalAZ);
+        } else {
+            gyroAngle = atan((float)ax / (float)az);
+        }
     } else {
         gyroAngle += gyroX *gyroCurDT;
     }

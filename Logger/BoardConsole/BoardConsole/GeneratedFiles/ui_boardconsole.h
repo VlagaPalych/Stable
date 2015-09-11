@@ -39,8 +39,11 @@ public:
     QVBoxLayout *verticalLayout;
     QComboBox *serialComboBox;
     QPushButton *connectButton;
+    QPushButton *programButton;
     QGroupBox *accelgroupBox;
     QVBoxLayout *verticalLayout_6;
+    QRadioButton *HZ25RadioButton;
+    QRadioButton *HZ50RadioButton;
     QRadioButton *HZ100RadioButton;
     QRadioButton *HZ800RadioButton;
     QRadioButton *HZ1600RadioButton;
@@ -149,6 +152,11 @@ public:
 
         verticalLayout->addWidget(connectButton);
 
+        programButton = new QPushButton(connectGroupBox);
+        programButton->setObjectName(QStringLiteral("programButton"));
+
+        verticalLayout->addWidget(programButton);
+
 
         horizontalLayout_2->addWidget(connectGroupBox);
 
@@ -158,9 +166,19 @@ public:
         verticalLayout_6->setSpacing(6);
         verticalLayout_6->setContentsMargins(11, 11, 11, 11);
         verticalLayout_6->setObjectName(QStringLiteral("verticalLayout_6"));
+        HZ25RadioButton = new QRadioButton(accelgroupBox);
+        HZ25RadioButton->setObjectName(QStringLiteral("HZ25RadioButton"));
+
+        verticalLayout_6->addWidget(HZ25RadioButton);
+
+        HZ50RadioButton = new QRadioButton(accelgroupBox);
+        HZ50RadioButton->setObjectName(QStringLiteral("HZ50RadioButton"));
+
+        verticalLayout_6->addWidget(HZ50RadioButton);
+
         HZ100RadioButton = new QRadioButton(accelgroupBox);
         HZ100RadioButton->setObjectName(QStringLiteral("HZ100RadioButton"));
-        HZ100RadioButton->setChecked(true);
+        HZ100RadioButton->setChecked(false);
 
         verticalLayout_6->addWidget(HZ100RadioButton);
 
@@ -172,6 +190,7 @@ public:
 
         HZ1600RadioButton = new QRadioButton(accelgroupBox);
         HZ1600RadioButton->setObjectName(QStringLiteral("HZ1600RadioButton"));
+        HZ1600RadioButton->setChecked(true);
 
         verticalLayout_6->addWidget(HZ1600RadioButton);
 
@@ -191,7 +210,7 @@ public:
         verticalLayout_10->setObjectName(QStringLiteral("verticalLayout_10"));
         gyroHZ100RadioButton = new QRadioButton(groupBox_4);
         gyroHZ100RadioButton->setObjectName(QStringLiteral("gyroHZ100RadioButton"));
-        gyroHZ100RadioButton->setChecked(true);
+        gyroHZ100RadioButton->setChecked(false);
 
         verticalLayout_10->addWidget(gyroHZ100RadioButton);
 
@@ -202,11 +221,13 @@ public:
 
         gyroHZ500RadioButton = new QRadioButton(groupBox_4);
         gyroHZ500RadioButton->setObjectName(QStringLiteral("gyroHZ500RadioButton"));
+        gyroHZ500RadioButton->setChecked(false);
 
         verticalLayout_10->addWidget(gyroHZ500RadioButton);
 
         gyroHZ1000RadioButton = new QRadioButton(groupBox_4);
         gyroHZ1000RadioButton->setObjectName(QStringLiteral("gyroHZ1000RadioButton"));
+        gyroHZ1000RadioButton->setChecked(true);
 
         verticalLayout_10->addWidget(gyroHZ1000RadioButton);
 
@@ -270,6 +291,7 @@ public:
 
         lowpassFilterCheckBox = new QCheckBox(filtergroupBox);
         lowpassFilterCheckBox->setObjectName(QStringLiteral("lowpassFilterCheckBox"));
+        lowpassFilterCheckBox->setChecked(true);
 
         verticalLayout_4->addWidget(lowpassFilterCheckBox);
 
@@ -579,7 +601,10 @@ public:
         BoardConsoleClass->setWindowTitle(QApplication::translate("BoardConsoleClass", "BoardConsole", 0));
         connectGroupBox->setTitle(QApplication::translate("BoardConsoleClass", "STM", 0));
         connectButton->setText(QApplication::translate("BoardConsoleClass", "Connect", 0));
+        programButton->setText(QApplication::translate("BoardConsoleClass", "Program", 0));
         accelgroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Accel", 0));
+        HZ25RadioButton->setText(QApplication::translate("BoardConsoleClass", "25 Hz", 0));
+        HZ50RadioButton->setText(QApplication::translate("BoardConsoleClass", "50 Hz", 0));
         HZ100RadioButton->setText(QApplication::translate("BoardConsoleClass", "100 Hz", 0));
         HZ800RadioButton->setText(QApplication::translate("BoardConsoleClass", "800 Hz", 0));
         HZ1600RadioButton->setText(QApplication::translate("BoardConsoleClass", "1600 Hz", 0));

@@ -377,22 +377,22 @@ void DMA1_Stream0_IRQHandler() {
             I2C1->CR2 |= I2C_CR2_ITEVTEN;
         }
 
-//        gxHistory[gxHistoryIndex] = gx;
-//        gxHistoryIndex++;
-//        
-//        if (gxHistoryIndex >= GYRO_FILTER_SIZE) {
-//            gyroLowpassReady = 1;
-//        }
-//        
-//        gyroProcessCounter++;
-//        
-//        if (gyroProcessCounter == 10) {
-//            gyroProcessCounter = 0;
-//            
-//            gxCurHistoryIndex = gxHistoryIndex - 1;
-//            if (lowpassOn && gyroLowpassReady) {
-//                doGyroProcess = 1;
-//            }
-//        } 
+        gxHistory[gxHistoryIndex] = gx;
+        gxHistoryIndex++;
+        
+        if (gxHistoryIndex >= GYRO_FILTER_SIZE) {
+            gyroLowpassReady = 1;
+        }
+        
+        gyroProcessCounter++;
+        
+        if (gyroProcessCounter == 10) {
+            gyroProcessCounter = 0;
+            
+            gxCurHistoryIndex = gxHistoryIndex - 1;
+            if (lowpassOn && gyroLowpassReady) {
+                doGyroProcess = 1;
+            }
+        } 
     }
 }
