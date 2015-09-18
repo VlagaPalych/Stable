@@ -7,10 +7,12 @@ uint8_t MOT_PWM2    = 14;   // PD14
 uint8_t MOT_FREQ1   = 2;    // PE2
 uint8_t MOT_FREQ2   = 4;    // PE4
 
-int minPwm = 1300;
+int minPwm = 1100;
+int maxPwm = 2000;
 
 extern uint8_t ENGRDY;
 extern uint8_t STABRDY;
+
 
 void Motors_GPIO_Init() {
     // PD12, PD14 - motor pwm
@@ -141,8 +143,7 @@ void Motors_InitForStab() {
 void Motors_Stop() {
     pwm1 = 1000;
     pwm2 = 1000;
-    TIM4->CCR1 = pwm1;
-    TIM4->CCR3 = pwm2;
+    Motors_Run();
 }
 
 void EXTI2_IRQHandler() { //this used to calculate the frequency of motor
@@ -175,4 +176,9 @@ void EXTI4_IRQHandler() { //this used to calculate the frequency of motor
             TIM9->CR1 |= 1;
         }
     }
+}
+
+void Motors_Run(void) {
+    TIM4->CCR1 = pwm1;
+    TIM4->CCR3 = pwm2;
 }

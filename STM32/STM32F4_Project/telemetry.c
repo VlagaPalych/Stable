@@ -16,7 +16,7 @@ typedef enum { WAITING_FOR_COMMAND, WAITING_FOR_INT, WAITING_FOR_FLOAT } waiting
 
 typedef enum { WAITING_FOR_PWM1, WAITING_FOR_PWM2, WAITING_FOR_ANGLE_WINDOW_SIZE, WAITING_FOR_ANGVEL_WINDOW_SIZE, INT_NONE } waitingForInt;
 
-typedef enum { WAITING_FOR_KP, WAITING_FOR_KD, WAITING_FOR_KI, FLOAT_NONE } waitingForFloat;
+typedef enum { WAITING_FOR_KP, WAITING_FOR_KD, WAITING_FOR_KI, WAITING_FOR_RESEARCH_AMPL, WAITING_FOR_RESEARCH_FREQ, WAITING_FOR_MAX_ANGLE, FLOAT_NONE } waitingForFloat;
 
 typedef enum { FULL } telemetryMode;
 
@@ -138,18 +138,20 @@ void USART1_IRQHandler() {
                         initWaitingForInt();
                         curWaitingForInt = WAITING_FOR_PWM2;
                         break;
+                    
                     case KP:
                         initWaitingForFloat();
                         curWaitingForFloat = WAITING_FOR_KP;
-                        break;
-                    case KD:
-                        initWaitingForFloat();
-                        curWaitingForFloat = WAITING_FOR_KD;
                         break;
                     case KI:
                         initWaitingForFloat();
                         curWaitingForFloat = WAITING_FOR_KI;
                         break;
+                    case KD:
+                        initWaitingForFloat();
+                        curWaitingForFloat = WAITING_FOR_KD;
+                        break;
+                    
                     case KALMAN:
                         kalmanOn ^= 1;
                         break;
@@ -175,6 +177,17 @@ void USART1_IRQHandler() {
                             angVelIndex = 0;
                         }                    
                         break;
+                        
+                    case ACCEL_FREQ_HZ25:
+                        freshFreq = 1;
+                        curFreq = HZ25;
+                        curDT = 0.04;
+                        break;
+                    case ACCEL_FREQ_HZ50:
+                        freshFreq = 1;
+                        curFreq = HZ50;
+                        curDT = 0.02;
+                        break;    
                     case ACCEL_FREQ_HZ100:
                         freshFreq = 1;
                         curFreq = HZ100;
@@ -184,9 +197,6 @@ void USART1_IRQHandler() {
                         freshFreq = 1;
                         curFreq = HZ800;
                         curDT = 0.00125;
-                        break;
-                    case IMPULSE:
-                        impulseOn = 1;
                         break;
                     case ACCEL_FREQ_HZ1600:
                         freshFreq = 1;
@@ -198,16 +208,8 @@ void USART1_IRQHandler() {
                         curFreq = HZ3200;
                         curDT = 0.0003125;
                         break;
-                    case ACCEL_FREQ_HZ25:
-                        freshFreq = 1;
-                        curFreq = HZ25;
-                        curDT = 0.04;
-                        break;
-                    case ACCEL_FREQ_HZ50:
-                        freshFreq = 1;
-                        curFreq = HZ50;
-                        curDT = 0.02;
-                        break;
+                    
+                    
                     case GYRO_FREQ_HZ100:
                         gyroFreshFreq = 1;
                         gyroCurFreq = GYRO_HZ100;
@@ -228,6 +230,42 @@ void USART1_IRQHandler() {
                         gyroCurFreq = GYRO_HZ1000;
                         gyroCurDT = 0.001;
                         break;
+                    
+                    case MAX_ANGLE:
+                        curWaiting = WAITING_FOR_FLOAT;
+                        curWaitingForFloat = WAITING_FOR_MAX_ANGLE;
+                        initWaitingForFloat();
+                        break;
+                    
+                    case IMPULSE:
+                        research = IMPULSE_RESPONSE;
+                        researchIndex = 0;
+                        break;
+                    case STEP:
+                        research = STEP_RESPONSE;
+                        researchIndex = 0;
+                        break;
+                    case SINE:
+                        curWaiting = WAITING_FOR_FLOAT;
+                        curWaitingForFloat = WAITING_FOR_RESEARCH_AMPL;
+                        initWaitingForFloat();
+                        research = SINE_RESPONSE;
+                        break;
+                    case EXP:
+                        curWaiting = WAITING_FOR_FLOAT;
+                        curWaitingForFloat = WAITING_FOR_RESEARCH_AMPL;
+                        initWaitingForFloat();
+                        research = EXP_RESPONSE;
+                        break;
+                    case NO_RESEARCH_SYMBOL:
+                        research = NO_RESEARCH;
+                        Motors_Stop();
+                        researchIndex = 0;
+                        break;
+                    case SIMPLE:
+                        research = SIMPLE_CONTROL;
+                        break;
+                    
                     case PROGRAMMING_MODE:
                         GPIOB->BSRRL |= 1 << 8;
                         for (rst = 0; rst < 100000; rst++) {
@@ -289,6 +327,19 @@ void USART1_IRQHandler() {
                             case WAITING_FOR_KI:
                                 Ki = floatValue;
                                 break;
+                            case WAITING_FOR_RESEARCH_AMPL:
+                                researchAmplitude = floatValue;
+                                curWaiting = WAITING_FOR_FLOAT;
+                                curWaitingForFloat = WAITING_FOR_RESEARCH_FREQ;
+                                initWaitingForFloat();
+                                break;
+                            case WAITING_FOR_RESEARCH_FREQ:
+                                researchFrequency = floatValue;
+                                researchIndex = 0;
+                                break;
+                            case WAITING_FOR_MAX_ANGLE:
+                                maxAngle = floatValue;
+                                break;
                             default:
                                 break;
                         }
@@ -332,8 +383,8 @@ void SendTelemetry() {
         switch (curTelemetryMode) {
             case FULL:
                 if (lowpassOn) {
-                        sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %hd %d %d %.2f %.2f %.2f\n", 
-                    angle, angularVelocity, F, finalAX, ay, finalAZ, pwm1, pwm2, finalGX, COUNT1, COUNT2, Kp, Ki, Kd);
+                        sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %.2f %d %d %.2f %.2f %.2f %d\n", 
+                    angle, angularVelocity, F, finalAX, ay, finalAZ, pwm1, pwm2, filteredGX, COUNT1, COUNT2, Kp, Ki, Kd, research);
                 } else {
                     sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %hd %d %d %.2f %.2f %.2f\n", 
                     angle, angularVelocity, F, ax, ay, az, pwm1, pwm2, gx, COUNT1, COUNT2, Kp, Ki, Kd);

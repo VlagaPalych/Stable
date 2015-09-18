@@ -55,20 +55,21 @@ public:
     QRadioButton *gyroHZ500RadioButton;
     QRadioButton *gyroHZ1000RadioButton;
     QHBoxLayout *horizontalLayout_6;
-    QGroupBox *filtergroupBox;
+    QGroupBox *researchGroupBox;
     QVBoxLayout *verticalLayout_4;
-    QCheckBox *noFilterCheckBox;
-    QHBoxLayout *horizontalLayout_4;
-    QCheckBox *averagingAngleCheckBox;
-    QSpinBox *angleWindowSpinBox;
-    QHBoxLayout *horizontalLayout_5;
-    QCheckBox *averagingAngVelCheckBox;
-    QSpinBox *angVelWindowSpinBox;
     QCheckBox *lowpassFilterCheckBox;
-    QCheckBox *kalmanFilterCheckBox;
+    QRadioButton *simpleRadioButton;
+    QRadioButton *noResearchRadioButton;
+    QRadioButton *impulseRadioButton;
+    QRadioButton *stepRadioButton;
+    QRadioButton *sineRadioButton;
+    QRadioButton *expRadioButton;
+    QLabel *label_3;
+    QLineEdit *researchAmplLineEdit;
+    QLabel *label_4;
+    QLineEdit *researchFreqLineEdit;
     QGroupBox *stabGroupBox;
     QVBoxLayout *verticalLayout_2;
-    QCheckBox *impulseCheckBox;
     QPushButton *stabToggleButton;
     QPushButton *calibrButton;
     QHBoxLayout *horizontalLayout_10;
@@ -240,68 +241,79 @@ public:
         horizontalLayout_6 = new QHBoxLayout();
         horizontalLayout_6->setSpacing(6);
         horizontalLayout_6->setObjectName(QStringLiteral("horizontalLayout_6"));
-        filtergroupBox = new QGroupBox(BoardConsoleClass);
-        filtergroupBox->setObjectName(QStringLiteral("filtergroupBox"));
-        verticalLayout_4 = new QVBoxLayout(filtergroupBox);
+        researchGroupBox = new QGroupBox(BoardConsoleClass);
+        researchGroupBox->setObjectName(QStringLiteral("researchGroupBox"));
+        verticalLayout_4 = new QVBoxLayout(researchGroupBox);
         verticalLayout_4->setSpacing(6);
         verticalLayout_4->setContentsMargins(11, 11, 11, 11);
         verticalLayout_4->setObjectName(QStringLiteral("verticalLayout_4"));
-        noFilterCheckBox = new QCheckBox(filtergroupBox);
-        noFilterCheckBox->setObjectName(QStringLiteral("noFilterCheckBox"));
-
-        verticalLayout_4->addWidget(noFilterCheckBox);
-
-        horizontalLayout_4 = new QHBoxLayout();
-        horizontalLayout_4->setSpacing(6);
-        horizontalLayout_4->setObjectName(QStringLiteral("horizontalLayout_4"));
-        averagingAngleCheckBox = new QCheckBox(filtergroupBox);
-        averagingAngleCheckBox->setObjectName(QStringLiteral("averagingAngleCheckBox"));
-
-        horizontalLayout_4->addWidget(averagingAngleCheckBox);
-
-        angleWindowSpinBox = new QSpinBox(filtergroupBox);
-        angleWindowSpinBox->setObjectName(QStringLiteral("angleWindowSpinBox"));
-        angleWindowSpinBox->setMinimum(1);
-        angleWindowSpinBox->setMaximum(24);
-        angleWindowSpinBox->setValue(8);
-
-        horizontalLayout_4->addWidget(angleWindowSpinBox);
-
-
-        verticalLayout_4->addLayout(horizontalLayout_4);
-
-        horizontalLayout_5 = new QHBoxLayout();
-        horizontalLayout_5->setSpacing(6);
-        horizontalLayout_5->setObjectName(QStringLiteral("horizontalLayout_5"));
-        averagingAngVelCheckBox = new QCheckBox(filtergroupBox);
-        averagingAngVelCheckBox->setObjectName(QStringLiteral("averagingAngVelCheckBox"));
-
-        horizontalLayout_5->addWidget(averagingAngVelCheckBox);
-
-        angVelWindowSpinBox = new QSpinBox(filtergroupBox);
-        angVelWindowSpinBox->setObjectName(QStringLiteral("angVelWindowSpinBox"));
-        angVelWindowSpinBox->setMinimum(1);
-        angVelWindowSpinBox->setMaximum(24);
-        angVelWindowSpinBox->setValue(8);
-
-        horizontalLayout_5->addWidget(angVelWindowSpinBox);
-
-
-        verticalLayout_4->addLayout(horizontalLayout_5);
-
-        lowpassFilterCheckBox = new QCheckBox(filtergroupBox);
+        lowpassFilterCheckBox = new QCheckBox(researchGroupBox);
         lowpassFilterCheckBox->setObjectName(QStringLiteral("lowpassFilterCheckBox"));
         lowpassFilterCheckBox->setChecked(true);
 
         verticalLayout_4->addWidget(lowpassFilterCheckBox);
 
-        kalmanFilterCheckBox = new QCheckBox(filtergroupBox);
-        kalmanFilterCheckBox->setObjectName(QStringLiteral("kalmanFilterCheckBox"));
+        simpleRadioButton = new QRadioButton(researchGroupBox);
+        simpleRadioButton->setObjectName(QStringLiteral("simpleRadioButton"));
 
-        verticalLayout_4->addWidget(kalmanFilterCheckBox);
+        verticalLayout_4->addWidget(simpleRadioButton);
+
+        noResearchRadioButton = new QRadioButton(researchGroupBox);
+        noResearchRadioButton->setObjectName(QStringLiteral("noResearchRadioButton"));
+        noResearchRadioButton->setChecked(true);
+
+        verticalLayout_4->addWidget(noResearchRadioButton);
+
+        impulseRadioButton = new QRadioButton(researchGroupBox);
+        impulseRadioButton->setObjectName(QStringLiteral("impulseRadioButton"));
+
+        verticalLayout_4->addWidget(impulseRadioButton);
+
+        stepRadioButton = new QRadioButton(researchGroupBox);
+        stepRadioButton->setObjectName(QStringLiteral("stepRadioButton"));
+
+        verticalLayout_4->addWidget(stepRadioButton);
+
+        sineRadioButton = new QRadioButton(researchGroupBox);
+        sineRadioButton->setObjectName(QStringLiteral("sineRadioButton"));
+
+        verticalLayout_4->addWidget(sineRadioButton);
+
+        expRadioButton = new QRadioButton(researchGroupBox);
+        expRadioButton->setObjectName(QStringLiteral("expRadioButton"));
+
+        verticalLayout_4->addWidget(expRadioButton);
+
+        label_3 = new QLabel(researchGroupBox);
+        label_3->setObjectName(QStringLiteral("label_3"));
+        sizePolicy.setHeightForWidth(label_3->sizePolicy().hasHeightForWidth());
+        label_3->setSizePolicy(sizePolicy);
+
+        verticalLayout_4->addWidget(label_3);
+
+        researchAmplLineEdit = new QLineEdit(researchGroupBox);
+        researchAmplLineEdit->setObjectName(QStringLiteral("researchAmplLineEdit"));
+        sizePolicy.setHeightForWidth(researchAmplLineEdit->sizePolicy().hasHeightForWidth());
+        researchAmplLineEdit->setSizePolicy(sizePolicy);
+
+        verticalLayout_4->addWidget(researchAmplLineEdit);
+
+        label_4 = new QLabel(researchGroupBox);
+        label_4->setObjectName(QStringLiteral("label_4"));
+        sizePolicy.setHeightForWidth(label_4->sizePolicy().hasHeightForWidth());
+        label_4->setSizePolicy(sizePolicy);
+
+        verticalLayout_4->addWidget(label_4);
+
+        researchFreqLineEdit = new QLineEdit(researchGroupBox);
+        researchFreqLineEdit->setObjectName(QStringLiteral("researchFreqLineEdit"));
+        sizePolicy.setHeightForWidth(researchFreqLineEdit->sizePolicy().hasHeightForWidth());
+        researchFreqLineEdit->setSizePolicy(sizePolicy);
+
+        verticalLayout_4->addWidget(researchFreqLineEdit);
 
 
-        horizontalLayout_6->addWidget(filtergroupBox);
+        horizontalLayout_6->addWidget(researchGroupBox);
 
         stabGroupBox = new QGroupBox(BoardConsoleClass);
         stabGroupBox->setObjectName(QStringLiteral("stabGroupBox"));
@@ -309,11 +321,6 @@ public:
         verticalLayout_2->setSpacing(6);
         verticalLayout_2->setContentsMargins(11, 11, 11, 11);
         verticalLayout_2->setObjectName(QStringLiteral("verticalLayout_2"));
-        impulseCheckBox = new QCheckBox(stabGroupBox);
-        impulseCheckBox->setObjectName(QStringLiteral("impulseCheckBox"));
-
-        verticalLayout_2->addWidget(impulseCheckBox);
-
         stabToggleButton = new QPushButton(stabGroupBox);
         stabToggleButton->setObjectName(QStringLiteral("stabToggleButton"));
         sizePolicy.setHeightForWidth(stabToggleButton->sizePolicy().hasHeightForWidth());
@@ -518,7 +525,7 @@ public:
         verticalLayout_3->setObjectName(QStringLiteral("verticalLayout_3"));
         fRadioButton = new QRadioButton(groupBox_3);
         fRadioButton->setObjectName(QStringLiteral("fRadioButton"));
-        fRadioButton->setChecked(false);
+        fRadioButton->setChecked(true);
 
         verticalLayout_3->addWidget(fRadioButton);
 
@@ -548,7 +555,7 @@ public:
         verticalLayout_5->setObjectName(QStringLiteral("verticalLayout_5"));
         gyroRadioButton = new QRadioButton(groupBox_3);
         gyroRadioButton->setObjectName(QStringLiteral("gyroRadioButton"));
-        gyroRadioButton->setChecked(true);
+        gyroRadioButton->setChecked(false);
 
         verticalLayout_5->addWidget(gyroRadioButton);
 
@@ -614,14 +621,19 @@ public:
         gyroHZ250RadioButton->setText(QApplication::translate("BoardConsoleClass", "250 Hz", 0));
         gyroHZ500RadioButton->setText(QApplication::translate("BoardConsoleClass", "500 Hz", 0));
         gyroHZ1000RadioButton->setText(QApplication::translate("BoardConsoleClass", "1000 Hz", 0));
-        filtergroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Filters", 0));
-        noFilterCheckBox->setText(QApplication::translate("BoardConsoleClass", "No Filter", 0));
-        averagingAngleCheckBox->setText(QApplication::translate("BoardConsoleClass", "AveragingAngle", 0));
-        averagingAngVelCheckBox->setText(QApplication::translate("BoardConsoleClass", "AveraginVelo", 0));
+        researchGroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Research", 0));
         lowpassFilterCheckBox->setText(QApplication::translate("BoardConsoleClass", "lowpass", 0));
-        kalmanFilterCheckBox->setText(QApplication::translate("BoardConsoleClass", "Kalman", 0));
+        simpleRadioButton->setText(QApplication::translate("BoardConsoleClass", "Simple", 0));
+        noResearchRadioButton->setText(QApplication::translate("BoardConsoleClass", "No Research", 0));
+        impulseRadioButton->setText(QApplication::translate("BoardConsoleClass", "Impulse", 0));
+        stepRadioButton->setText(QApplication::translate("BoardConsoleClass", "Step", 0));
+        sineRadioButton->setText(QApplication::translate("BoardConsoleClass", "Sine", 0));
+        expRadioButton->setText(QApplication::translate("BoardConsoleClass", "Exp", 0));
+        label_3->setText(QApplication::translate("BoardConsoleClass", "Amplitude", 0));
+        researchAmplLineEdit->setText(QApplication::translate("BoardConsoleClass", "1.0", 0));
+        label_4->setText(QApplication::translate("BoardConsoleClass", "Frequency", 0));
+        researchFreqLineEdit->setText(QApplication::translate("BoardConsoleClass", "0.01", 0));
         stabGroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Stabilization", 0));
-        impulseCheckBox->setText(QApplication::translate("BoardConsoleClass", "impulse", 0));
         stabToggleButton->setText(QApplication::translate("BoardConsoleClass", "Start", 0));
         calibrButton->setText(QApplication::translate("BoardConsoleClass", "Calibrate", 0));
         label->setText(QApplication::translate("BoardConsoleClass", "PWM1", 0));

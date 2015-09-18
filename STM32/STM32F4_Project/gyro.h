@@ -12,6 +12,15 @@ extern uint8_t gyroFreshFreq;
 extern uint8_t gyroCurFreq;
 extern float gyroCurDT;
 
+extern uint8_t gyroCalibrationOn;
+extern uint32_t calibrIndex;
+extern uint32_t calibrNumber;
+extern float xSum, ySum, zSum;
+
+extern float gyro_xOffset;
+extern float gyro_yOffset;
+extern float gyro_zOffset;
+
 extern float gyroAngle;
 
 extern int16_t gx, gy, gz;

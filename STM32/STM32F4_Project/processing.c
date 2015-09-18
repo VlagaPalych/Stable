@@ -13,6 +13,12 @@
 #define DT MEASUREMENT_TIME
 #define G2 75746
 
+float maxAngle = 0.26;
+
+researchType research = NO_RESEARCH;
+uint32_t researchIndex = 0;
+float researchAmplitude = 0;
+float researchFrequency = 0;
 
 uint8_t processCounter = 0;
 
@@ -21,7 +27,7 @@ float gyro_b[GYRO_FILTER_SIZE] = {-0.000687685100567948, -0.000503796863668868, 
 int16_t gxHistory[HISTORY_SIZE];
 uint8_t gxHistoryIndex = 0;
 uint8_t gxCurHistoryIndex = 0;
-int16_t finalGX = 0;    
+float filteredGX = 0;    
     
 // accel FIR-filter coefficients
 float accel_b[ACCEL_FILTER_SIZE] = {-0.000971251596459908, -7.69406717604047e-05, -6.19799209654469e-05, -3.30906543649738e-05, 1.10814561797306e-05, 7.24805531343648e-05, 0.000152598071257586, 0.000253698805736882, 0.000377317468335945, 0.000525701202486072, 0.000700518195310734, 0.000903997339458505, 0.00113739692160716, 0.00140312152077752, 0.00170195103075679, 0.00203566452362004, 0.00240546060485815, 0.00281231733030840, 0.00325638090562598, 0.00373853563596467, 0.00425842477132322, 0.00481595944431221, 0.00541027647136111, 0.00604061130952030, 0.00670524975565512, 0.00740308239924367, 0.00813154544121787, 0.00888873230285860, 0.00967096533068780, 0.0104756034830591, 0.0112971993347504, 0.0121352733530491, 0.0129849453923593, 0.0138385519287171, 0.0146955841292333, 0.0155486053454725, 0.0163942550438339, 0.0172263771763229, 0.0180408483356263, 0.0188316697226914, 0.0195946307655523, 0.0203241247156848, 0.0210158009852968, 0.0216645459211678, 0.0222667388005664, 0.0228165591799628, 0.0233122609941272, 0.0237489436996918, 0.0241240737240030, 0.0244343475043236, 0.0246784705527375, 0.0248538046118870, 0.0249598963537244, 0.0249951385161779, 0.0249598963537244, 0.0248538046118870, 0.0246784705527375, 0.0244343475043236, 0.0241240737240030, 0.0237489436996918, 0.0233122609941272, 0.0228165591799628, 0.0222667388005664, 0.0216645459211678, 0.0210158009852968, 0.0203241247156848, 0.0195946307655523, 0.0188316697226914, 0.0180408483356263, 0.0172263771763229, 0.0163942550438339, 0.0155486053454725, 0.0146955841292333, 0.0138385519287171, 0.0129849453923593, 0.0121352733530491, 0.0112971993347504, 0.0104756034830591, 0.00967096533068780, 0.00888873230285860, 0.00813154544121787, 0.00740308239924367, 0.00670524975565512, 0.00604061130952030, 0.00541027647136111, 0.00481595944431221, 0.00425842477132322, 0.00373853563596467, 0.00325638090562598, 0.00281231733030840, 0.00240546060485815, 0.00203566452362004, 0.00170195103075679, 0.00140312152077752, 0.00113739692160716, 0.000903997339458505, 0.000700518195310734, 0.000525701202486072, 0.000377317468335945, 0.000253698805736882, 0.000152598071257586, 7.24805531343648e-05, 1.10814561797306e-05, -3.30906543649738e-05, -6.19799209654469e-05, -7.69406717604047e-05, -0.000971251596459908};
@@ -214,69 +220,54 @@ void angVelAveraging() {
 
 uint8_t identificationReady = 0;
 
+void calcPwms() {
+    D = Bappr*Bappr - 4*Aappr*(Cappr - fabs(F));
+    if (F > 0) {
+        pwm1 = minPwm;
+        pwm2 = (int)chooseRoot();
+    } else {
+        pwm2 = minPwm;
+        pwm1 = (int)chooseRoot();
+    }
+}
+
 void control() {
-    
-    prevAngle = angle;
-    
     F = Kp*angle + Kd*angularVelocity + Ki*angleIntegral;
 
-    if (stabilizationOn/* && STABRDY*/) {
-        if (impulseOn) {
-            impulseOn = 0;
-            angle += 1;
-            angularVelocity = (angle - prevAngle) / ((float)DT);
-            F = Kp*angle + Kd*angularVelocity + Ki*angleIntegral;
-        }
-        D = Bappr*Bappr - 4*Aappr*(Cappr - fabs(F));
-        if (F > 0) {
-            pwm1 = minPwm;
-            TIM4->CCR1 = minPwm;
-            
-            pwm2 = (int)chooseRoot();
-            if (pwm2 < minPwm) {
-                pwm2 = minPwm;
-            }
-            TIM4->CCR3 = pwm2;
-        } else if (F < 0) {
-            pwm2 = minPwm;
-            TIM4->CCR3 = minPwm;
-            pwm1 = (int)chooseRoot();
-            if (pwm1 < minPwm) {
-                pwm1 = minPwm;
-            }
-            TIM4->CCR1 = pwm1;
-        }
+    if (stabilizationOn) {
+        calcPwms();
+        Motors_Run();
     }     
-        // Identification block
-        if (anglesAccumulated < 2) {
-            y[anglesAccumulated] = angle;
-            u[anglesAccumulated] = F;
-        } else {
-            y[2] = angle;
-            u[2] = F;
-            
-            row = anglesAccumulated - 2;
-            Afull[row*3 + 0] = (y[2] - y[1]) / ((float)DT);
-            Afull[row*3 + 1] = y[2];
-            Afull[row*3 + 2] = -u[2];
-            
-            Bfull[row] = (2*y[1] - y[2] - y[0]) / ((float)DT) / ((float)DT);
-            
-            y[0] = y[1];
-            y[1] = y[2];
-            u[0] = u[1];
-            u[1] = u[2];
-            
-            if (anglesAccumulated == 11) {
-                identificationReady = 1;         
-                anglesAccumulated = 1;
-            }      
-            
-            if (identificationReady) {
-                system_solve(Afull, Bfull, w, 10, 3);
-            }
-        } 
-        anglesAccumulated++;
+//        // Identification block
+//        if (anglesAccumulated < 2) {
+//            y[anglesAccumulated] = angle;
+//            u[anglesAccumulated] = F;
+//        } else {
+//            y[2] = angle;
+//            u[2] = F;
+//            
+//            row = anglesAccumulated - 2;
+//            Afull[row*3 + 0] = (y[2] - y[1]) / ((float)DT);
+//            Afull[row*3 + 1] = y[2];
+//            Afull[row*3 + 2] = -u[2];
+//            
+//            Bfull[row] = (2*y[1] - y[2] - y[0]) / ((float)DT) / ((float)DT);
+//            
+//            y[0] = y[1];
+//            y[1] = y[2];
+//            u[0] = u[1];
+//            u[1] = u[2];
+//            
+//            if (anglesAccumulated == 11) {
+//                identificationReady = 1;         
+//                anglesAccumulated = 1;
+//            }      
+//            
+//            if (identificationReady) {
+//                system_solve(Afull, Bfull, w, 10, 3);
+//            }
+//        } 
+//        anglesAccumulated++;
 
     
 }
@@ -287,7 +278,7 @@ float gyroZ = 0;
 
 void transformGyroData() {
     if (lowpassOn) {
-        gyroX = finalGX / 32767.0 * 2000 * 3.14159 / 180.0;
+        gyroX = filteredGX / 32767.0 * 2000 * 3.14159 / 180.0;
     } else {
         gyroX = gx / 32767.0 * 2000 * 3.14159 / 180.0;
     }
@@ -295,7 +286,7 @@ void transformGyroData() {
     gyroZ = gz / 32767.0 * 2000 * 3.14159 / 180.0;
 }
 
-int16_t lowpass(int16_t *history, uint8_t lowpassIndex, float *fir, uint8_t firSize) {
+float lowpass(int16_t *history, uint8_t lowpassIndex, float *fir, uint8_t firSize) {
     uint8_t i = 0, tmpIndex = 0;
     float output = 0;
     float tmp = 0;
@@ -304,7 +295,7 @@ int16_t lowpass(int16_t *history, uint8_t lowpassIndex, float *fir, uint8_t firS
         tmp = fir[i] * history[tmpIndex];
         output += tmp;
     }
-    return (int16_t)output;
+    return output;
 }
 
 void Processing_TIM_Init() {
@@ -315,6 +306,23 @@ void Processing_TIM_Init() {
     NVIC_EnableIRQ(TIM7_IRQn);
     
     TIM7->CR1 |= TIM_CR1_CEN;
+}
+
+void simplestControl(){
+    if (angle > 0) {
+        pwm2 = maxPwm * fabs(angle) / maxAngle + minPwm;
+        pwm1 = minPwm;
+        if (pwm2 > maxPwm) {
+            pwm2 = maxPwm;
+        }
+    } else {
+        pwm1 = maxPwm * fabs(angle) / maxAngle + minPwm;
+        pwm2 = minPwm;
+        if (pwm1 > maxPwm) {
+            pwm1 = maxPwm;
+        }
+    }
+    Motors_Run();
 }
 
 float a2 = 0;
@@ -330,35 +338,62 @@ void TIM7_IRQHandler(void) {
     } else {
         a2 = ax*ax + ay*ay + az*az;
     }
-    if (abs(a2 - G2) < 0.25 * G2) {
-        if (lowpassOn) {
-            gyroAngle = atan((float)finalAX / (float)finalAZ);
-        } else {
-            gyroAngle = atan((float)ax / (float)az);
-        }
-    } else {
-        gyroAngle += gyroX *gyroCurDT;
-    }
+    //if (abs(a2 - G2) < 0.25 * G2) {
+//        if (lowpassOn) {
+//            gyroAngle = atan((float)finalAX / (float)finalAZ);
+//        } else {
+//            gyroAngle = atan((float)ax / (float)az);
+//        }
+    //} else {
+        gyroAngle += gyroX * DT;
+    //}
     
     angle = gyroAngle;
-//    if (angleAveragingOn) {
-//        angleAveraging();
-//    } 
-//    
-//    //angularVelocity = (angle - prevAngle) / curDT; 
     angularVelocity = gyroX;   
-//    if (angVelAveragingOn) {
-//        angVelAveraging();
-//    }
-
-//    if (kalmanOn) {
-//        kalman();
-//    } 
-//    angleIntegral += angle;
-//    if (angleIntegral > angleIntegralMax) {
-//        angleIntegral = angleIntegralMax;
-//    }
-    control();
+ 
+    angleIntegral += angle;
+    if (angleIntegral > angleIntegralMax) {
+        angleIntegral = angleIntegralMax;
+    }
+    
+    researchIndex++;
+    switch (research) {
+        case IMPULSE_RESPONSE:
+            if (researchIndex == 1) {
+                F = 1.0;
+                calcPwms();
+                Motors_Run();
+            } else if (researchIndex == 50) {
+                Motors_Stop();
+                research = NO_RESEARCH;
+            }
+            break;
+        case STEP_RESPONSE:
+            if (researchIndex == 1) {
+                F = 1.0;
+                calcPwms();
+                Motors_Run();
+            }
+            break;
+        case SINE_RESPONSE:
+            F = researchAmplitude * sin(researchFrequency * researchIndex);
+            calcPwms();
+            Motors_Run();
+            break;
+        case EXP_RESPONSE:
+            F = researchAmplitude * exp(-researchFrequency * researchIndex);
+            calcPwms();
+            Motors_Run();
+            break;
+        case NO_RESEARCH:
+            researchIndex--;
+            control();
+            break;
+        case SIMPLE_CONTROL:
+            simplestControl();
+            break;
+    }
+    
     
     SendTelemetry();
     GPIOD->BSRRH |= 1 << 15;

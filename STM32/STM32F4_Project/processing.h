@@ -3,6 +3,8 @@
 
 #include "stdint.h"
 
+extern float maxAngle;
+
 extern float F;
 extern float Kp;
 extern float Kd;
@@ -47,7 +49,7 @@ extern int16_t finalAZ;
 extern int16_t gxHistory[HISTORY_SIZE];
 extern uint8_t gxHistoryIndex;
 extern uint8_t gxCurHistoryIndex;
-extern int16_t finalGX;  
+extern float filteredGX;  
 
 extern uint8_t doAccelProcess;
 extern uint8_t doGyroProcess;
@@ -56,6 +58,12 @@ extern uint8_t accelLowpassReady;
 extern uint8_t gyroLowpassReady;
 
 extern uint8_t processCounter;
+
+typedef enum {IMPULSE_RESPONSE, STEP_RESPONSE, SINE_RESPONSE, EXP_RESPONSE, NO_RESEARCH, SIMPLE_CONTROL} researchType;
+extern researchType research;
+extern float researchAmplitude;
+extern float researchFrequency;
+extern uint32_t researchIndex;
 
 void kalman(void);
 void angleAveraging(void);
@@ -68,7 +76,7 @@ void allocAngVelAveraging(uint8_t newSize);
 void allocAveraging(void);
 
 void Processing_TIM_Init(void);
-int16_t lowpass(int16_t *history, uint8_t lowpassIndex, float *fir, uint8_t firSize);
+float lowpass(int16_t *history, uint8_t lowpassIndex, float *fir, uint8_t firSize);
 
 void transformGyroData(void);
 

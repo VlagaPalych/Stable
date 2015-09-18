@@ -27,9 +27,9 @@ uint32_t calibrIndex = 0;
 uint32_t calibrNumber = 0;
 float xSum = 0, ySum = 0, zSum = 0;
 
-int16_t gyro_xOffset;
-int16_t gyro_yOffset;
-int16_t gyro_zOffset;
+float gyro_xOffset;
+float gyro_yOffset;
+float gyro_zOffset;
 
 uint8_t gyroProcessCounter = 0;
 
@@ -296,7 +296,7 @@ void I2C1_EV_IRQHandler() {
 void Gyro_Calibr(void) {
     xSum = 0; ySum = 0; zSum = 0;
     calibrIndex = 0;
-    calibrNumber = (uint32_t)(8.0 / gyroCurDT);
+    calibrNumber = (uint32_t)(8.0 / 0.01);
     gyroCalibrationOn = 1;
 
     
@@ -348,23 +348,23 @@ void DMA1_Stream0_IRQHandler() {
 //        ((uint8_t *)(&gz))[1] = gyro[4];
 //        ((uint8_t *)(&gz))[0] = gyro[5];
         
-        if (gyroCalibrationOn) {
-            xSum += gx;
-//            ySum += gy;
-//            zSum += gz;
-            
-            calibrIndex++;
-            
-            if (calibrIndex == calibrNumber) {
-                gyro_xOffset = (int16_t)(xSum / calibrNumber);
-//                gyro_yOffset = (int16_t)(ySum / calibrNumber);
-//                gyro_zOffset = (int16_t)(zSum / calibrNumber);
-                
-                gyroCalibrationOn = 0;
-            }
-        }
-        
-        gx -= gyro_xOffset;
+//        if (gyroCalibrationOn) {
+//            xSum += gx;
+////            ySum += gy;
+////            zSum += gz;
+//            
+//            calibrIndex++;
+//            
+//            if (calibrIndex == calibrNumber) {
+//                gyro_xOffset = (int16_t)(xSum / calibrNumber);
+////                gyro_yOffset = (int16_t)(ySum / calibrNumber);
+////                gyro_zOffset = (int16_t)(zSum / calibrNumber);
+//                
+//                gyroCalibrationOn = 0;
+//            }
+//        }
+//        
+//        gx -= gyro_xOffset;
 //        gy -= gyro_yOffset;
 //        gz -= gyro_zOffset;
         

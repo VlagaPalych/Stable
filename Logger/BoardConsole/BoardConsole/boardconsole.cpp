@@ -34,11 +34,9 @@ BoardConsole::BoardConsole(QWidget *parent)
 	connect(ui.gyroHZ500RadioButton, SIGNAL(clicked()), SLOT(handleGyroButtons()));
 	connect(ui.gyroHZ1000RadioButton, SIGNAL(clicked()), SLOT(handleGyroButtons()));
 
-	connect(ui.noFilterCheckBox, SIGNAL(clicked()), SLOT(handleNoFilterCheckBox()));
+
 	connect(ui.lowpassFilterCheckBox, SIGNAL(clicked()), SLOT(handleLowpassFilterCheckBox()));
-	connect(ui.kalmanFilterCheckBox, SIGNAL(clicked()), SLOT(handleKalmanFilterCheckBox()));
-	connect(ui.averagingAngleCheckBox, SIGNAL(clicked()), SLOT(handleAveragingAngleCheckBox()));
-	connect(ui.averagingAngVelCheckBox, SIGNAL(clicked()), SLOT(handleAveragingAngVelCheckBox()));
+
 
 	connect(ui.saveToFileCheckBox, SIGNAL(clicked()), SLOT(handleSaveToFileCheckBox()));
 
@@ -55,8 +53,13 @@ BoardConsole::BoardConsole(QWidget *parent)
 	connect(ui.pwm1SpinBox, SIGNAL(valueChanged(int)), SLOT(handlePwm1SpinBox(int)));
 	connect(ui.pwm2SpinBox, SIGNAL(valueChanged(int)), SLOT(handlePwm2SpinBox(int)));
 
-	connect(ui.angleWindowSpinBox, SIGNAL(valueChanged(int)), SLOT(handleAngleWindowSpinBox(int)));
-	connect(ui.angVelWindowSpinBox, SIGNAL(valueChanged(int)), SLOT(handleAngVelWindowSpinBox(int)));
+	connect(ui.impulseRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
+	connect(ui.stepRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
+	connect(ui.sineRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
+	connect(ui.expRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
+	connect(ui.noResearchRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
+	connect(ui.simpleRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
+
 
 	stm = NULL;
 	stmReader = NULL;
@@ -138,6 +141,11 @@ QByteArray BoardConsole::number_command(const char c, QString number) {
 	return str.toLatin1();
 }
 
+QByteArray BoardConsole::double_number_command(const char c, QString num1, QString num2) {
+	QString str = QString(c) + num1 + QString(NUMBER_END) + num2 + QString(NUMBER_END);
+	return str.toLatin1();
+}
+
 void BoardConsole::handleProgramButton() {
 	stm->write(command(PROGRAMMING_MODE));
 }
@@ -173,9 +181,6 @@ void BoardConsole::handleStabToggleButton() {
 	if (ui.stabToggleButton->text() == "Start") {
 		ui.stabToggleButton->setText("Stop");
 		ui.saveToFileCheckBox->setChecked(true);
-		if (ui.impulseCheckBox->isChecked()) {
-			stm->write(command(IMPULSE));
-		}
 	}
 	else {
 		ui.stabToggleButton->setText("Start");
@@ -414,39 +419,11 @@ void BoardConsole::handleFreshLine(QString &line) {
 	ui.plot2->replot();
 }
 
-void BoardConsole::handleNoFilterCheckBox() {
-	if (ui.noFilterCheckBox->isChecked()) {
-		ui.kalmanFilterCheckBox->setEnabled(false);
-		ui.averagingAngleCheckBox->setEnabled(false);
-		if (ui.kalmanFilterCheckBox->isChecked()) {
-			stm->write(command(KALMAN));
-			ui.kalmanFilterCheckBox->setChecked(false);
-		}
-		if (ui.averagingAngleCheckBox->isChecked()) {
-			stm->write(command(ANGLE_MOVING_AVERAGE));
-			ui.averagingAngleCheckBox->setChecked(false);
-		}
-	} else {
-		ui.kalmanFilterCheckBox->setEnabled(true);
-		ui.averagingAngleCheckBox->setEnabled(true);
-	}
-}
 
 void BoardConsole::handleLowpassFilterCheckBox() {
 	stm->write(command(LOWPASS));
 }
 
-void BoardConsole::handleKalmanFilterCheckBox() {
-	stm->write(command(KALMAN));
-}
-
-void BoardConsole::handleAveragingAngleCheckBox() {
-	stm->write(command(ANGLE_MOVING_AVERAGE));
-}
-
-void BoardConsole::handleAveragingAngVelCheckBox() {
-	stm->write(command(ANGVEL_MOVING_AVERAGE));
-}
 
 void BoardConsole::handleSaveToFileCheckBox() {
 	QString logFileName = "";
@@ -488,7 +465,7 @@ void BoardConsole::handlePwm1SpinBox(int newval) {
 }
 
 void BoardConsole::handlePwm2SpinBox(int newval) {
-	stm->write(number_command(PWM2, QString::number(newval)));
+	stm->write(number_command(MAX_ANGLE, QString::number(newval)));
 }
 
 void BoardConsole::handleAngleWindowSpinBox(int newval) {
@@ -496,4 +473,27 @@ void BoardConsole::handleAngleWindowSpinBox(int newval) {
 }
 void BoardConsole::handleAngVelWindowSpinBox(int newval) {
 	stm->write(number_command(ANGVEL_WINDOW_SIZE, QString::number(newval)));
+}
+
+void BoardConsole::handleResearchButtons() {
+	QString ampl = ui.researchAmplLineEdit->text();
+	QString freq = ui.researchFreqLineEdit->text();
+	if (ui.impulseRadioButton->isChecked()) {
+		stm->write(command(IMPULSE));
+	}
+	else if (ui.stepRadioButton->isChecked()) {
+		stm->write(command(STEP));
+	}
+	else if (ui.sineRadioButton->isChecked()) {
+		stm->write(double_number_command(SINE, ampl, freq));
+	} 
+	else if (ui.expRadioButton->isChecked()) {
+		stm->write(double_number_command(EXP, ampl, freq));
+	}
+	else if (ui.noResearchRadioButton->isChecked()) {
+		stm->write(command(NO_RESEARCH_SYMBOL));
+	}
+	else if (ui.simpleRadioButton->isChecked()) {
+		stm->write(command(SIMPLE));
+	}
 }

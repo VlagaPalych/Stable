@@ -57,39 +57,34 @@ int main() {
     Motors_Init();
     USART_Init();
     
-//    while((USART1->SR & USART_SR_TXE)==0)__NOP(); 
-//    USART1->DR = 'A'; 
-//    
-//    while((USART1->SR & USART_SR_TXE)==0)__NOP(); 
-//    USART1->DR = 'T'; 
-    
-//    while (1) {
-//    while((USART1->SR & USART_SR_TXE)==0)__NOP(); 
-//    USART1->DR = 'k'; 
-////    send_to_uart('k');
-////        send_to_uart('b');
-////        send_to_uart('c');
-//    }
-    
-//    send_to_uart('+');
-//    send_to_uart('P');
-//    send_to_uart('E');
-    
     while(ENGRDY != 1) {};
-        
-//    Accel_EXTI_Init();
-//    EXTI->SWIER |= EXTI_SWIER_SWIER1;
-    
-    //while(1) send_to_uart('1');
-    //send_to_uart('T');    
+          
     Processing_TIM_Init();
     
     while(1) {    
         if (doGyroProcess) {
-            
-            finalGX = lowpass(gxHistory, gxCurHistoryIndex, gyro_b, GYRO_FILTER_SIZE);
             doGyroProcess = 0;
             
+            filteredGX = lowpass(gxHistory, gxCurHistoryIndex, gyro_b, GYRO_FILTER_SIZE);
+            
+            filteredGX -= gyro_xOffset;
+            
+            if (gyroCalibrationOn) {
+                xSum += filteredGX;
+//            ySum += gy;
+//            zSum += gz;
+            
+                calibrIndex++;
+            
+                if (calibrIndex == calibrNumber) {
+                    gyro_xOffset = xSum / calibrNumber;
+//                  gyro_yOffset = ySum / calibrNumber;
+//                  gyro_zOffset = zSum / calibrNumber;
+                
+                    gyroCalibrationOn = 0;
+                    gyroAngle = 0;
+                }
+            }
         } 
         // Lowpass filtering of accelerations
         if (doAccelProcess) {

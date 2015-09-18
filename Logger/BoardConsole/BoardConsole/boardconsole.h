@@ -58,6 +58,7 @@ private:
 	void STM_Init();
 	QByteArray command(const char c);
 	QByteArray number_command(const char c, QString number);
+	QByteArray double_number_command(const char c, QString num1, QString num2);
 
 private Q_SLOTS:
 void handleProgramButton();
@@ -71,11 +72,7 @@ void handleProgramButton();
 
 	void handleFreshLine(QString &line);
 
-	void handleNoFilterCheckBox();
 	void handleLowpassFilterCheckBox();
-	void handleKalmanFilterCheckBox();
-	void handleAveragingAngleCheckBox();
-	void handleAveragingAngVelCheckBox();
 
 	void handleAngleWindowSpinBox(int);
 	void handleAngVelWindowSpinBox(int);
@@ -90,6 +87,8 @@ void handleProgramButton();
 
 	void handlePwm1SpinBox(int);
 	void handlePwm2SpinBox(int);
+
+	void handleResearchButtons();
 };
 
 #endif // BOARDCONSOLE_H
