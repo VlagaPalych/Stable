@@ -63,7 +63,7 @@ private:
 private Q_SLOTS:
 void handleProgramButton();
 	void handleConnectButton();
-	void handleStabToggleButton();
+	void handleStopMotorsButton();
 	void handleCalibrButton();
 	void handleClearTelemetryButton();
 	void handleTelemetryToggleButton();
@@ -73,9 +73,6 @@ void handleProgramButton();
 	void handleFreshLine(QString &line);
 
 	void handleLowpassFilterCheckBox();
-
-	void handleAngleWindowSpinBox(int);
-	void handleAngVelWindowSpinBox(int);
 
 	void handleSaveToFileCheckBox();
 
@@ -88,7 +85,20 @@ void handleProgramButton();
 	void handlePwm1SpinBox(int);
 	void handlePwm2SpinBox(int);
 
+	void handlePwm1Slider(int);
+	void handlePwm2Slider(int);
+
 	void handleResearchButtons();
+
+	void handleMaxAngleButton();
+	void handleAccelDeviationButton();
+	void handleTurnoffAngleButton();
+	void handleMaxVelButton();
+
+	void handleTurnUselessCheckBox();
+	void handleGyroRecalibrationCheckBox();
+	void handleTranquilityButton();
+
 };
 
 #endif // BOARDCONSOLE_H

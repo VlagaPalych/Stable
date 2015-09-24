@@ -14,11 +14,11 @@ uint8_t UART1_RX = 10;    // PA
 
 typedef enum { WAITING_FOR_COMMAND, WAITING_FOR_INT, WAITING_FOR_FLOAT } waiting;
 
-typedef enum { WAITING_FOR_PWM1, WAITING_FOR_PWM2, WAITING_FOR_ANGLE_WINDOW_SIZE, WAITING_FOR_ANGVEL_WINDOW_SIZE, INT_NONE } waitingForInt;
+typedef enum { WAITING_FOR_PWM1, WAITING_FOR_PWM2, WAITING_FOR_MIN_PWM, WAITING_FOR_MAX_PWM, WAITING_FOR_TRANQUILITY_TIME, INT_NONE } waitingForInt;
 
-typedef enum { WAITING_FOR_KP, WAITING_FOR_KD, WAITING_FOR_KI, WAITING_FOR_RESEARCH_AMPL, WAITING_FOR_RESEARCH_FREQ, WAITING_FOR_MAX_ANGLE, FLOAT_NONE } waitingForFloat;
+typedef enum { WAITING_FOR_KP, WAITING_FOR_KD, WAITING_FOR_KI, WAITING_FOR_RESEARCH_AMPL, WAITING_FOR_RESEARCH_FREQ, 
+WAITING_FOR_MAX_ANGLE, WAITING_FOR_ACCEL_DEVIATION, WAITING_FOR_BOUNDARY_ANGLE, WAITING_FOR_MAX_ANGVEL, FLOAT_NONE } waitingForFloat;
 
-typedef enum { FULL } telemetryMode;
 
 uint8_t received;
 char str[100];
@@ -39,9 +39,11 @@ waitingForInt           curWaitingForInt    = INT_NONE;
 waitingForFloat         curWaitingForFloat  = FLOAT_NONE;
 
 uint8_t telemetryOn = 0;
-telemetryMode curTelemetryMode = FULL;
 
 uint8_t recalibrate = 0;
+uint8_t turnUselessOn = 0;
+uint8_t gyroRecalibrationOn = 0;
+
 
 char tele[100] = "";
 uint8_t len = 0, j;
@@ -101,17 +103,10 @@ void USART1_IRQHandler() {
                     case TURN_EVERYTHING_OFF:
                         stabilizationOn     = 0;
                         telemetryOn         = 0;
-                        kalmanOn            = 0;
-                        angleAveragingOn    = 0;                                  
+                        research = NO_RESEARCH;
                         break;
-                    case STABILIZATION:   
-                        if (stabilizationOn) {
-                            stabilizationOn = 0;
-                            Motors_Stop();
-                        } else {
-                            //Motors_InitForStab();
-                            stabilizationOn = 1; 
-                        }
+                    case STOP_MOTORS:   
+                        Motors_Stop();
                         break;
                     case CALIBRATION:
                         stabilizationOn = 0;
@@ -127,9 +122,7 @@ void USART1_IRQHandler() {
                     case TELEMETRY:
                         telemetryOn ^= 1;
                         break;
-                    case TELEMETRY_MODE_FULL:
-                        curTelemetryMode = FULL;
-                        break;
+                    
                     case PWM1:
                         initWaitingForInt();
                         curWaitingForInt = WAITING_FOR_PWM1;
@@ -137,6 +130,15 @@ void USART1_IRQHandler() {
                     case PWM2:
                         initWaitingForInt();
                         curWaitingForInt = WAITING_FOR_PWM2;
+                        break;
+                    
+                    case MIN_PWM:
+                        initWaitingForInt();
+                        curWaitingForInt = WAITING_FOR_MIN_PWM;
+                        break;
+                    case MAX_PWM:
+                        initWaitingForInt();
+                        curWaitingForInt = WAITING_FOR_MAX_PWM;
                         break;
                     
                     case KP:
@@ -152,30 +154,15 @@ void USART1_IRQHandler() {
                         curWaitingForFloat = WAITING_FOR_KD;
                         break;
                     
-                    case KALMAN:
-                        kalmanOn ^= 1;
+                    case TURN_USELESS:
+                        turnUselessOn ^= 1;
                         break;
-                    case ANGLE_MOVING_AVERAGE:
-                        angleAveragingOn ^= 1;
-                        if (angleAveragingOn) {
-                            angleSum = 0;
-                            angleIndex = 0;
-                        }
+                    case GYRO_RECALIBRATION:
+                        gyroRecalibrationOn ^= 1;
                         break;
-                    case ANGLE_WINDOW_SIZE:
+                    case TRANQUILITY_TIME:
                         initWaitingForInt();
-                        curWaitingForInt = WAITING_FOR_ANGLE_WINDOW_SIZE;
-                        break;
-                    case ANGVEL_WINDOW_SIZE:
-                        initWaitingForInt();
-                        curWaitingForInt = WAITING_FOR_ANGVEL_WINDOW_SIZE;
-                        break;
-                    case ANGVEL_MOVING_AVERAGE:
-                        angVelAveragingOn ^= 1;  
-                        if (angVelAveragingOn) {
-                            angVelSum = 0;
-                            angVelIndex = 0;
-                        }                    
+                        curWaitingForInt = WAITING_FOR_TRANQUILITY_TIME;
                         break;
                         
                     case ACCEL_FREQ_HZ25:
@@ -232,8 +219,19 @@ void USART1_IRQHandler() {
                         break;
                     
                     case MAX_ANGLE:
-                        curWaiting = WAITING_FOR_FLOAT;
                         curWaitingForFloat = WAITING_FOR_MAX_ANGLE;
+                        initWaitingForFloat();
+                        break;
+                    case ACCEL_DEVIATION:
+                        curWaitingForFloat = WAITING_FOR_ACCEL_DEVIATION;
+                        initWaitingForFloat();
+                        break;
+                    case BOUNDARY_ANGLE:
+                        curWaitingForFloat = WAITING_FOR_BOUNDARY_ANGLE;
+                        initWaitingForFloat();
+                        break;
+                    case MAX_ANGVEL:
+                        curWaitingForFloat = WAITING_FOR_MAX_ANGVEL;
                         initWaitingForFloat();
                         break;
                     
@@ -264,6 +262,13 @@ void USART1_IRQHandler() {
                         break;
                     case SIMPLE:
                         research = SIMPLE_CONTROL;
+                        Kp = (maxPwm - minPwm) / maxAngle;
+                        break;
+                    case PID:
+                        research = PID_CONTROL;
+                        break;
+                    case OPERATOR:
+                        research = OPERATOR_CONTROL;
                         break;
                     
                     case PROGRAMMING_MODE:
@@ -285,19 +290,25 @@ void USART1_IRQHandler() {
                         }         
                         switch (curWaitingForInt) {
                             case WAITING_FOR_PWM1:
-                                minPwm = intValue;
-//                                pwm1 = intValue;
-//                                TIM4->CCR1 = pwm1;
+                                if (research == OPERATOR_CONTROL) {
+                                    pwm1 = intValue;
+                                    TIM4->CCR1 = pwm1;
+                                }
                                 break;
                             case WAITING_FOR_PWM2:
-                                pwm2 = intValue;
-                                TIM4->CCR3 	= pwm2;
+                                if (research == OPERATOR_CONTROL) {
+                                    pwm2 = intValue;
+                                    TIM4->CCR3 	= pwm2;
+                                }
                                 break;
-                            case WAITING_FOR_ANGLE_WINDOW_SIZE:
-                                allocAngleAveraging(intValue);
+                            case WAITING_FOR_MIN_PWM:
+                                minPwm = intValue;
                                 break;
-                            case WAITING_FOR_ANGVEL_WINDOW_SIZE:
-                                allocAngVelAveraging(intValue);
+                            case WAITING_FOR_MAX_PWM:
+                                maxPwm = intValue;
+                                break;
+                            case WAITING_FOR_TRANQUILITY_TIME:
+                                tranquilityTime = intValue / 10;
                                 break;
                             default:
                                 break;
@@ -340,6 +351,15 @@ void USART1_IRQHandler() {
                             case WAITING_FOR_MAX_ANGLE:
                                 maxAngle = floatValue;
                                 break;
+                            case WAITING_FOR_ACCEL_DEVIATION:
+                                accelDeviation = floatValue;
+                                break;
+                            case WAITING_FOR_BOUNDARY_ANGLE:
+                                boundaryAngle = floatValue;
+                                break;
+                            case WAITING_FOR_MAX_ANGVEL:
+                                maxAngVel = floatValue;
+                                break;
                             default:
                                 break;
                         }
@@ -380,26 +400,11 @@ void SendRawAndProcessed() {
 
 void SendTelemetry() {
     if (telemetryOn) {
-        switch (curTelemetryMode) {
-            case FULL:
-                if (lowpassOn) {
-                        sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %.2f %d %d %.2f %.2f %.2f %d\n", 
-                    angle, angularVelocity, F, finalAX, ay, finalAZ, pwm1, pwm2, filteredGX, COUNT1, COUNT2, Kp, Ki, Kd, research);
-                } else {
-                    sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %hd %d %d %.2f %.2f %.2f\n", 
-                    angle, angularVelocity, F, ax, ay, az, pwm1, pwm2, gx, COUNT1, COUNT2, Kp, Ki, Kd);
-                }
-//                if (lowpassOn) {
-//                    sprintf(tele, "%hd\n", finalGX);
-//                } else {
-//                    sprintf(tele, "%hd\n", gx);
-//                }
-                break;
-        }
-        len = strlen(tele);
+        sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %d %d %.2f %.2f %.2f %d\n", 
+                    angle, angularVelocity, F, finalAX, finalAY, finalAZ, pwm1, pwm2, COUNT1, COUNT2, Kp, Ki, Kd, angleFromAccel);
 
+        len = strlen(tele);
         Telemetry_DMA_Init();
-//        send_to_uart('a');
     }
 }
 

@@ -9,11 +9,17 @@
 
 #define LOWPASS 'f'
 
+#define STOP_MOTORS 'g'
+
 #define TELEMETRY 'h'
 
-#define TELEMETRY_MODE_FULL 'i'
+#define MIN_PWM 'i'
+#define MAX_PWM 'j'
 
 #define MAX_ANGLE 'k'
+#define ACCEL_DEVIATION 'l'
+#define BOUNDARY_ANGLE 'r'
+#define MAX_ANGVEL 's'
 
 #define PWM1 'm'
 #define PWM2 'n'
@@ -22,11 +28,9 @@
 #define KI 'p'
 #define KD 'q'
 
-#define KALMAN 's'
-#define ANGLE_MOVING_AVERAGE 't'
-#define ANGVEL_MOVING_AVERAGE 'w'
-#define ANGLE_WINDOW_SIZE 'u'
-#define ANGVEL_WINDOW_SIZE 'v'
+#define TURN_USELESS 't'
+#define GYRO_RECALIBRATION 'u'
+#define TRANQUILITY_TIME 'v'
 
 #define ACCEL_FREQ_HZ25     'A'
 #define ACCEL_FREQ_HZ50     'B'
@@ -46,6 +50,8 @@
 #define EXP                 'N'
 #define NO_RESEARCH_SYMBOL  'O'
 #define SIMPLE              'P'
+#define PID					'Q'
+#define OPERATOR			'R'
 
 #define PROGRAMMING_MODE 'Z'
 

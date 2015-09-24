@@ -11,9 +11,12 @@
 #include "gyro.h"
 
 #define DT MEASUREMENT_TIME
-#define G2 75746
+#define G2 65025
 
-float maxAngle = 0.26;
+float maxAngle = 0.17;
+float accelDeviation = 0.05;
+uint8_t angleFromAccel = 0;
+float maxAngVel = 0.5;
 
 researchType research = NO_RESEARCH;
 uint32_t researchIndex = 0;
@@ -27,7 +30,8 @@ float gyro_b[GYRO_FILTER_SIZE] = {-0.000687685100567948, -0.000503796863668868, 
 int16_t gxHistory[HISTORY_SIZE];
 uint8_t gxHistoryIndex = 0;
 uint8_t gxCurHistoryIndex = 0;
-float filteredGX = 0;    
+float filteredGX = 0;   
+float finalGX = 0;    
     
 // accel FIR-filter coefficients
 float accel_b[ACCEL_FILTER_SIZE] = {-0.000971251596459908, -7.69406717604047e-05, -6.19799209654469e-05, -3.30906543649738e-05, 1.10814561797306e-05, 7.24805531343648e-05, 0.000152598071257586, 0.000253698805736882, 0.000377317468335945, 0.000525701202486072, 0.000700518195310734, 0.000903997339458505, 0.00113739692160716, 0.00140312152077752, 0.00170195103075679, 0.00203566452362004, 0.00240546060485815, 0.00281231733030840, 0.00325638090562598, 0.00373853563596467, 0.00425842477132322, 0.00481595944431221, 0.00541027647136111, 0.00604061130952030, 0.00670524975565512, 0.00740308239924367, 0.00813154544121787, 0.00888873230285860, 0.00967096533068780, 0.0104756034830591, 0.0112971993347504, 0.0121352733530491, 0.0129849453923593, 0.0138385519287171, 0.0146955841292333, 0.0155486053454725, 0.0163942550438339, 0.0172263771763229, 0.0180408483356263, 0.0188316697226914, 0.0195946307655523, 0.0203241247156848, 0.0210158009852968, 0.0216645459211678, 0.0222667388005664, 0.0228165591799628, 0.0233122609941272, 0.0237489436996918, 0.0241240737240030, 0.0244343475043236, 0.0246784705527375, 0.0248538046118870, 0.0249598963537244, 0.0249951385161779, 0.0249598963537244, 0.0248538046118870, 0.0246784705527375, 0.0244343475043236, 0.0241240737240030, 0.0237489436996918, 0.0233122609941272, 0.0228165591799628, 0.0222667388005664, 0.0216645459211678, 0.0210158009852968, 0.0203241247156848, 0.0195946307655523, 0.0188316697226914, 0.0180408483356263, 0.0172263771763229, 0.0163942550438339, 0.0155486053454725, 0.0146955841292333, 0.0138385519287171, 0.0129849453923593, 0.0121352733530491, 0.0112971993347504, 0.0104756034830591, 0.00967096533068780, 0.00888873230285860, 0.00813154544121787, 0.00740308239924367, 0.00670524975565512, 0.00604061130952030, 0.00541027647136111, 0.00481595944431221, 0.00425842477132322, 0.00373853563596467, 0.00325638090562598, 0.00281231733030840, 0.00240546060485815, 0.00203566452362004, 0.00170195103075679, 0.00140312152077752, 0.00113739692160716, 0.000903997339458505, 0.000700518195310734, 0.000525701202486072, 0.000377317468335945, 0.000253698805736882, 0.000152598071257586, 7.24805531343648e-05, 1.10814561797306e-05, -3.30906543649738e-05, -6.19799209654469e-05, -7.69406717604047e-05, -0.000971251596459908};
@@ -35,12 +39,15 @@ float accel_b[ACCEL_FILTER_SIZE] = {-0.000971251596459908, -7.69406717604047e-05
 int16_t azHistory[HISTORY_SIZE];
 uint8_t azHistoryIndex = 0;
 uint8_t azCurHistoryIndex = 0;
+int16_t filteredAZ = 0;
 int16_t finalAZ = 0;
     
 int16_t axHistory[HISTORY_SIZE];
 uint8_t axHistoryIndex = 0;
 uint8_t axCurHistoryIndex = 0;
+int16_t filteredAX = 0;
 int16_t finalAX = 0;
+int16_t finalAY = 0;
     
 uint8_t doAccelProcess = 0;
 uint8_t doGyroProcess = 0;
@@ -49,82 +56,10 @@ uint8_t lowpassOn = 1;
 uint8_t accelLowpassReady = 0;
 uint8_t gyroLowpassReady = 0;
 
-float prevAngle = 0;
 float angleIntegral = 0;
 float angleIntegralMax = 1e5;
 
 uint8_t stabilizationOn     = 0;
-uint8_t kalmanOn            = 0;
-uint8_t angleAveragingOn    = 0;
-uint8_t angVelAveragingOn   = 0;
-uint8_t impulseOn           = 0;
-
-uint8_t angleWindowSize     = 8;
-uint8_t angVelWindowSize    = 8;
-
-// A = [1 DT
-//      0 1 ]
-float A[4] = {1, DT, 0, 1};
-float At[4] = {1, 0, DT, 1};
-
-// H = [1 0]
-float H[2] = {1, 0};
-float Ht[2] = {1, 0};
-
-float Xaposteriori[2] = {0, 0};
-float Paposteriori[4] = {0, 0, 0, 1000};
-float R[1] = {0.03};
-float Q[4] = {0.1, 0, 0, 0.1};
-float I[4] = {1, 0, 0, 1};
-
-float Xapriori[2];
-float Papriori[4];
-
-void kalman() {
-    float tmp1[4]; // A * Paposteriori
-    float y[1];
-    float z[1];
-    float tmp2[1]; // H * Xapriori
-    float S[1], Sinv[1];
-    float tmp3[2]; // H * Papriori
-    float tmp4[2]; // tmp3 * Ht
-    float K[2];
-    float tmp5[4];
-    
-    z[0] = angle;
-    
-    // Xapriori calculation
-    mat_mul(A, Xaposteriori, Xapriori, 2, 1, 2);
-    
-    // Papriori calculation
-    mat_mul(A, Paposteriori, tmp1, 2, 2, 2);
-    mat_mul(tmp1, At, tmp5, 2, 2, 2);
-    mat_add(tmp5, Q, Papriori, 2, 2);
-    
-    // y calculation
-    mat_mul(H, Xapriori, tmp2, 1, 1, 2);
-    mat_sub(z, tmp2, y, 1, 1);
-    
-    // S calculation
-    mat_mul(H, Papriori, tmp3, 1, 2, 2);
-    mat_mul(tmp3, Ht, tmp4, 1, 1, 2);
-    mat_add(tmp4, R, S, 1, 1);
-    
-    mat_mul(Papriori, Ht, tmp3, 2, 1, 2);
-    Sinv[0] = 1 / S[0];
-    mat_mul(tmp3, Sinv, K, 2, 1, 1);
-    
-    mat_mul(K, y, tmp4, 2, 1, 1);
-    mat_add(Xapriori, tmp4, Xaposteriori, 2, 1);
-    
-    mat_mul(K, H, tmp1, 2, 2, 1);
-    mat_sub(I, tmp1, tmp5, 2, 2);
-    mat_mul(tmp5, Papriori, Paposteriori, 2, 2, 2);
-
-    angle           = Xaposteriori[0];
-    angularVelocity = Xaposteriori[1];
-}
-
 
 float Aappr = 5.13e-7;
 float Bappr = 0.001;
@@ -144,78 +79,9 @@ float chooseRoot() {
     return 2000;
 }
 
-uint8_t angleIndex = 0;
-float angleSum = 0;
-float *angles = NULL;
-uint8_t angVelIndex = 0;
-float angVelSum = 0;
-float *angVels = NULL;
 
 uint8_t min(uint8_t val1, uint8_t val2) {
     return val1 > val2 ? val2 : val1;
-}
-
-void allocAngleAveraging(uint8_t newSize) {
-    uint8_t shift = 0, j = 0;
-    float *newAngles = (float *)malloc(newSize * sizeof(float));
-    
-    if (newSize > angleWindowSize) {
-        memcpy(newAngles, angles, angleWindowSize * sizeof(float));
-    } else {
-        shift = angleWindowSize - newSize;
-        memcpy(newAngles, angles + shift, newSize * sizeof(float));
-        for (j = 0; j < shift; j++) {
-            angleSum -= angles[j];
-        }
-        angleIndex %= newSize;
-    }
-    free(angles);
-    angles = newAngles;
-    angleWindowSize = newSize;
-}
-
-void allocAngVelAveraging(uint8_t newSize) {
-    uint8_t shift = 0, j = 0;
-    float *newAngVels = (float *)malloc(newSize * sizeof(float));
-    
-    if (newSize > angVelWindowSize) {
-        memcpy(newAngVels, angVels, angVelWindowSize * sizeof(float));
-    } else {
-        shift = angVelWindowSize - newSize;
-        memcpy(newAngVels, angVels + shift, newSize * sizeof(float));
-        for (j = 0; j < shift; j++) {
-            angVelSum -= angVels[j];
-        }
-        angVelIndex %= newSize;
-    }
-    free(angVels);
-    angVels = newAngVels;
-    angVelWindowSize = newSize;
-}
-
-void allocAveraging() {
-    angles = (float *)malloc(angleWindowSize * sizeof(float));
-    memset(angles, 0, angleWindowSize * sizeof(float));
-    angVels = (float *)malloc(angVelWindowSize * sizeof(float));
-    memset(angVels, 0, angVelWindowSize * sizeof(float));
-}
-
-void angleAveraging() {
-    angleSum -= angles[angleIndex];
-    angles[angleIndex] = angle;
-    angleSum += angle;
-    angle = angleSum / angleWindowSize;
-    angles[angleIndex] = angle;
-    angleIndex = (angleIndex + 1) % angleWindowSize;
-}
-
-void angVelAveraging() {
-    angVelSum -= angVels[angVelIndex];
-    angVels[angVelIndex] = angularVelocity;
-    angVelSum += angularVelocity;
-    angularVelocity = angVelSum / angVelWindowSize;
-    angVels[angVelIndex] = angularVelocity;
-    angVelIndex = (angVelIndex + 1) % angVelWindowSize;
 }
 
 uint8_t identificationReady = 0;
@@ -231,13 +97,67 @@ void calcPwms() {
     }
 }
 
-void control() {
-    F = Kp*angle + Kd*angularVelocity + Ki*angleIntegral;
+#define ANGVEL_HISTORY_SIZE 10
+float boundaryAngle = 0.05;
+float angularVelocityHistory[ANGVEL_HISTORY_SIZE];
+uint8_t angularVelocityHistoryIndex = 0;
 
-    if (stabilizationOn) {
-        calcPwms();
-        Motors_Run();
-    }     
+void turnOffUselessMotor() {
+    uint8_t i = 0;
+    uint8_t angVelSign = 1;
+    float basic = angularVelocityHistory[0];
+    
+    if (turnUselessOn) { 
+        for (i = 1; i < ANGVEL_HISTORY_SIZE; i++) {
+            if (basic * angularVelocityHistory[i] < 0) {
+                angVelSign = 0;
+                break;
+            }
+        }
+        
+        if (angle > 0) {
+            if ((angle > boundaryAngle) && angVelSign) {
+                pwm1 = 1000;
+            }
+        } else {
+            for (i = 1; i < ANGVEL_HISTORY_SIZE; i++) {
+                if (basic * angularVelocityHistory[i] < 0) {
+                angVelSign = 0;
+                break;
+            }
+            }
+            if ((angle < boundaryAngle) && (!angVelSign)) {
+                pwm2 = 1000;
+            }
+        }
+    }
+}
+
+void control() {
+    int tmpPwm = ((maxPwm - minPwm) / maxAngle) * angle + ((maxPwm - minPwm) / maxAngVel) * angularVelocity;
+    if (tmpPwm > 0) {
+        pwm1 = tmpPwm + minPwm;
+        if (pwm1 > maxPwm) {
+            pwm1 = maxPwm;
+        }
+        pwm2 = minPwm;
+    } else {
+        pwm2 = -tmpPwm + minPwm;
+        if (pwm2 > maxPwm) {
+            pwm2 = maxPwm;
+        }
+        pwm1 = minPwm;
+    }
+    turnOffUselessMotor();
+    Motors_Run();
+    
+//    F = Kp*angle + Kd*angularVelocity + Ki*angleIntegral;
+
+//    //if (stabilizationOn) {
+//        calcPwms();
+//        turnOffUselessMotor();
+//        Motors_Run();
+//    //}     
 //        // Identification block
 //        if (anglesAccumulated < 2) {
 //            y[anglesAccumulated] = angle;
@@ -272,18 +192,16 @@ void control() {
     
 }
 
-float gyroX = 0;
-float gyroY = 0;
-float gyroZ = 0;
-
-void transformGyroData() {
-    if (lowpassOn) {
-        gyroX = filteredGX / 32767.0 * 2000 * 3.14159 / 180.0;
+void calcAngVel() {
+    angularVelocity = - finalGX / 32767.0 * 2000 * 3.14159 / 180.0;
+    angularVelocityHistory[angularVelocityHistoryIndex] = angularVelocity;
+    if (angularVelocityHistoryIndex == ANGVEL_HISTORY_SIZE - 1) {
+        angularVelocityHistoryIndex = 0;
     } else {
-        gyroX = gx / 32767.0 * 2000 * 3.14159 / 180.0;
+        angularVelocityHistoryIndex++;
     }
-    gyroY = gy / 32767.0 * 2000 * 3.14159 / 180.0;
-    gyroZ = gz / 32767.0 * 2000 * 3.14159 / 180.0;
+//        gyInRads = finalGY / 32767.0 * 2000 * 3.14159 / 180.0;
+//        gzInRads = finalGZ / 32767.0 * 2000 * 3.14159 / 180.0; 
 }
 
 float lowpass(int16_t *history, uint8_t lowpassIndex, float *fir, uint8_t firSize) {
@@ -308,54 +226,91 @@ void Processing_TIM_Init() {
     TIM7->CR1 |= TIM_CR1_CEN;
 }
 
+
+
 void simplestControl(){
     if (angle > 0) {
-        pwm2 = maxPwm * fabs(angle) / maxAngle + minPwm;
+        pwm2 = Kp * fabs(angle) + minPwm;
         pwm1 = minPwm;
         if (pwm2 > maxPwm) {
             pwm2 = maxPwm;
-        }
+        } 
     } else {
-        pwm1 = maxPwm * fabs(angle) / maxAngle + minPwm;
+        pwm1 = Kp * fabs(angle) + minPwm;
         pwm2 = minPwm;
         if (pwm1 > maxPwm) {
             pwm1 = maxPwm;
-        }
+        }  
     }
+    turnOffUselessMotor();
     Motors_Run();
 }
 
-float a2 = 0;
+void getFinalData() {
+    if (lowpassOn) {
+        finalGX = filteredGX;
+        finalAX = filteredAX;
+        finalAZ = filteredAZ;
+    } else {
+        finalGX = gx;
+        finalAX = ax;
+        finalAZ = az;
+    }
+    finalAY = ay;
+}
+
+uint8_t gCheck() {
+    float a2 = 0;
+    float diff = 0;
+    float threshold = 0;
+    a2          = finalAX * finalAX + finalAY * finalAY + finalAZ * finalAZ;
+    diff        = abs(a2 - G2);
+    threshold   = accelDeviation * G2;
+    return diff < threshold;
+}
+
+uint8_t tranquilityTime = 30;
+uint8_t tranquilityCount = 0;
+float angVelSmall = 0.1;
+
+void calcAngle() {
+    // where to take angle from
+    // three steps of control:
+    // 1) sum Ai^2 < deviation * G^2
+    // 2) absolute value of angular velocity must be small
+    // 3) for 300 ms 
+    
+    if (gCheck() && (angularVelocity < angVelSmall)) {   
+        tranquilityCount++; 
+    } else {
+        tranquilityCount = 0;
+    }
+    if (tranquilityCount == tranquilityTime) {
+        angle = atan((float)finalAX / (float)finalAZ);
+        angleFromAccel = 1;
+        tranquilityCount--;
+    } else {
+        angle += angularVelocity * DT;    
+        angleFromAccel = 0;
+    }
+}
+
+
+
+
 
 void TIM7_IRQHandler(void) {
     TIM7->SR &= ~TIM_SR_UIF;
+
+    getFinalData();
+    calcAngVel();      
+    calcAngle();
     
-    GPIOD->BSRRL |= 1 << 15;
-    transformGyroData();
-      
-    if (lowpassOn) {
-        a2 = finalAX * finalAX + ay * ay + finalAZ * finalAZ;
-    } else {
-        a2 = ax*ax + ay*ay + az*az;
-    }
-    //if (abs(a2 - G2) < 0.25 * G2) {
-//        if (lowpassOn) {
-//            gyroAngle = atan((float)finalAX / (float)finalAZ);
-//        } else {
-//            gyroAngle = atan((float)ax / (float)az);
-//        }
-    //} else {
-        gyroAngle += gyroX * DT;
-    //}
-    
-    angle = gyroAngle;
-    angularVelocity = gyroX;   
- 
     angleIntegral += angle;
     if (angleIntegral > angleIntegralMax) {
         angleIntegral = angleIntegralMax;
     }
-    
+  
     researchIndex++;
     switch (research) {
         case IMPULSE_RESPONSE:
@@ -364,6 +319,8 @@ void TIM7_IRQHandler(void) {
                 calcPwms();
                 Motors_Run();
             } else if (researchIndex == 50) {
+                F = 0;
+                calcPwms();
                 Motors_Stop();
                 research = NO_RESEARCH;
             }
@@ -385,16 +342,16 @@ void TIM7_IRQHandler(void) {
             calcPwms();
             Motors_Run();
             break;
-        case NO_RESEARCH:
-            researchIndex--;
-            control();
-            break;
         case SIMPLE_CONTROL:
             simplestControl();
             break;
+        case PID_CONTROL:
+            control();
+            break;
+        default:
+            researchIndex--;
+            break;
     }
-    
-    
+
     SendTelemetry();
-    GPIOD->BSRRH |= 1 << 15;
 }

@@ -17,7 +17,7 @@ BoardConsole::BoardConsole(QWidget *parent)
 
 	connect(ui.programButton, SIGNAL(clicked()), SLOT(handleProgramButton()));
 	connect(ui.connectButton, SIGNAL(clicked()), SLOT(handleConnectButton()));
-	connect(ui.stabToggleButton, SIGNAL(clicked()), SLOT(handleStabToggleButton()));
+	connect(ui.stopMotorsButton, SIGNAL(clicked()), SLOT(handleStopMotorsButton()));
 	connect(ui.calibrButton, SIGNAL(clicked()), SLOT(handleCalibrButton()));
 	connect(ui.clearTelemetryButton, SIGNAL(clicked()), SLOT(handleClearTelemetryButton()));
 
@@ -59,7 +59,22 @@ BoardConsole::BoardConsole(QWidget *parent)
 	connect(ui.expRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
 	connect(ui.noResearchRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
 	connect(ui.simpleRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
+	connect(ui.pidRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
+	connect(ui.operatorRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
 
+	connect(ui.maxAngleButton, SIGNAL(clicked()), SLOT(handleMaxAngleButton()));
+	connect(ui.accelDeviationButton, SIGNAL(clicked()), SLOT(handleAccelDeviationButton()));
+
+	connect(ui.pwm1Slider, SIGNAL(valueChanged(int)), SLOT(handlePwm1Slider(int)));
+	connect(ui.pwm2Slider, SIGNAL(valueChanged(int)), SLOT(handlePwm2Slider(int)));
+
+
+	connect(ui.turnoffAngleButton, SIGNAL(clicked()), SLOT(handleTurnoffAngleButton()));
+	connect(ui.maxVelButton, SIGNAL(clicked()), SLOT(handleMaxVelButton()));
+
+	connect(ui.turnUselessCheckBox, SIGNAL(clicked()), SLOT(handleTurnUselessCheckBox()));
+	connect(ui.gyroRecalibrationCheckBox, SIGNAL(clicked()), SLOT(handleGyroRecalibrationCheckBox()));
+	connect(ui.tranquilityButton, SIGNAL(clicked()), SLOT(handleTranquilityButton()));
 
 	stm = NULL;
 	stmReader = NULL;
@@ -116,16 +131,19 @@ QString BoardConsole::defineLogFile() {
 		QDir curDir = QDir::current();
 		int maxLogNumber = 0;
 		foreach(QString entry, curDir.entryList()) {
-			if (entry.startsWith(tr("log"))) {
+			int logIndex = entry.indexOf("log");
+			if (logIndex != -1) {
 				int txtIndex = entry.indexOf(".txt");
-				int logNumber = entry.mid(3, txtIndex - 3).toInt();
+				int logNumber = entry.mid(logIndex + 3, txtIndex - 3).toInt();
 				if (logNumber > maxLogNumber) {
 					maxLogNumber = logNumber;
 				}
 			}
 		}
 		maxLogNumber++;
-		logFileName = tr("log") + QString::number(maxLogNumber) + tr(".txt");
+		QString maxAngle = ui.maxAngleLineEdit->text();
+		QString div = ui.pwm2SpinBox->value() == 2000 ? "" : "div";
+		logFileName = "max_" + maxAngle + "_" + div + tr("log") + QString::number(maxLogNumber) + tr(".txt");
 	}
 	return logFileName;
 	
@@ -172,27 +190,18 @@ void BoardConsole::handleConnectButton() {
 
 void BoardConsole::STM_Init() {
 	stm->write(command(TURN_EVERYTHING_OFF));
-	stm->write(number_command(PWM1, "1100"));
-	stm->write(number_command(KP, "2.0"));
-	stm->write(number_command(KD, "0.01"));
+	stm->write(number_command(ACCEL_DEVIATION, "0"));
 }
 
-void BoardConsole::handleStabToggleButton() {	
-	if (ui.stabToggleButton->text() == "Start") {
-		ui.stabToggleButton->setText("Stop");
-		ui.saveToFileCheckBox->setChecked(true);
-	}
-	else {
-		ui.stabToggleButton->setText("Start");
-		ui.saveToFileCheckBox->setChecked(false);
-	}
-	handleSaveToFileCheckBox();
-	stm->write(command(STABILIZATION));
+void BoardConsole::handleStopMotorsButton() {	
+	ui.noResearchRadioButton->setChecked(true);
+	stm->write(command(STOP_MOTORS));
+	handleResearchButtons();
 }
 
 void BoardConsole::handleCalibrButton() {
 	stm->write(command(CALIBRATION));
-	ui.stabToggleButton->setText("Start");
+	ui.noResearchRadioButton->setChecked(true);
 }
 
 void BoardConsole::handleClearTelemetryButton() {
@@ -296,8 +305,8 @@ void BoardConsole::handleFreshLine(QString &line) {
 	//if (ui.fullRadioButton->isChecked()) {
 		if (numbers.size() < 11) return;
 
-		double angle = numbers[0].toDouble();
-		double angularVelocity = numbers[1].toDouble();
+		double angle = numbers[0].toDouble() * 180 / 3.14159;
+		double angularVelocity = numbers[1].toDouble() * 180 / 3.14159;
 		double F = numbers[2].toDouble();
 		double pwm1 = numbers[6].toDouble();
 		double pwm2 = numbers[7].toDouble();
@@ -385,36 +394,7 @@ void BoardConsole::handleFreshLine(QString &line) {
 			}
 		}
 
-		/*for (int i = 0; i < plot1_yData.size(); i++) {
-			plot1_xData.append(plot1_xData.size() + 1);
-			plot1_yData[i].append(numbers[i].toDouble());
-			plot1_curves[i]->setSamples(plot1_xData, plot1_yData[i]);
-		}*/
-	//}
-	/*else if (ui.axRadioButton->isChecked()) {
-		if (numbers.size() != 2) return;
-		for (int i = 0; i < plot1_yData.size(); i++) {
-			plot1_xData.append(plot1_xData.size() + 1);
-			plot1_yData[i].append(numbers[i].toDouble());
-			plot1_curves[i]->setSamples(plot1_xData, plot1_yData[i]);
-		}
-	}
-	else if (ui.ayRadioButton->isChecked()) {
-		if (numbers.size() != 2) return;
-		for (int i = 0; i < plot1_yData.size(); i++) {
-			plot1_xData.append(plot1_xData.size() + 1);
-			plot1_yData[i].append(numbers[i].toDouble());
-			plot1_curves[i]->setSamples(plot1_xData, plot1_yData[i]);
-		}
-	}
-	else if (ui.azRadioButton->isChecked()) {
-		if (numbers.size() != 2) return;
-		for (int i = 0; i < plot1_yData.size(); i++) {
-			plot1_xData.append(plot1_xData.size() + 1);
-			plot1_yData[i].append(numbers[i].toDouble());
-			plot1_curves[i]->setSamples(plot1_xData, plot1_yData[i]);
-		}
-	}*/
+
 	ui.plot1->replot();
 	ui.plot2->replot();
 }
@@ -461,18 +441,23 @@ void BoardConsole::handleTelemetryDisplayButtons() {
 }
 
 void BoardConsole::handlePwm1SpinBox(int newval) {
-	stm->write(number_command(PWM1, QString::number(newval)));
+	stm->write(number_command(MIN_PWM, QString::number(newval)));
 }
 
 void BoardConsole::handlePwm2SpinBox(int newval) {
-	stm->write(number_command(MAX_ANGLE, QString::number(newval)));
+	handleSaveToFileCheckBox();
+	handleSaveToFileCheckBox();
+	stm->write(number_command(MAX_PWM, QString::number(newval)));
 }
 
-void BoardConsole::handleAngleWindowSpinBox(int newval) {
-	stm->write(number_command(ANGLE_WINDOW_SIZE, QString::number(newval)));
+void BoardConsole::handlePwm1Slider(int newval) {
+	stm->write(number_command(PWM1, QString::number(newval)));
+	ui.pwm1Label->setText(QString::number(newval));
 }
-void BoardConsole::handleAngVelWindowSpinBox(int newval) {
-	stm->write(number_command(ANGVEL_WINDOW_SIZE, QString::number(newval)));
+
+void BoardConsole::handlePwm2Slider(int newval) {
+	stm->write(number_command(PWM2, QString::number(newval)));
+	ui.pwm2Label->setText(QString::number(newval));
 }
 
 void BoardConsole::handleResearchButtons() {
@@ -496,4 +481,49 @@ void BoardConsole::handleResearchButtons() {
 	else if (ui.simpleRadioButton->isChecked()) {
 		stm->write(command(SIMPLE));
 	}
+	else if (ui.pidRadioButton->isChecked()) {
+		stm->write(command(PID));
+	}
+	else if (ui.operatorRadioButton->isChecked()) {
+		stm->write(command(OPERATOR));
+	}
+}
+
+void BoardConsole::handleMaxAngleButton() {
+	handleSaveToFileCheckBox();
+	handleSaveToFileCheckBox();
+	QString maxAngleStr = ui.maxAngleLineEdit->text();
+	double inRadians = maxAngleStr.toDouble() * 3.14159 / 180;
+	stm->write(number_command(MAX_ANGLE, QString::number(inRadians)));
+}
+
+void BoardConsole::handleAccelDeviationButton() {
+	QString dfStr = ui.accelDeviationLineEdit->text();
+	double deviation = tan(dfStr.toDouble()) * tan(dfStr.toDouble());
+	stm->write(number_command(ACCEL_DEVIATION, QString::number(deviation)));
+}
+
+void BoardConsole::handleTurnoffAngleButton() {
+	QString boundaryAngleStr = ui.turnoffAngleLineEdit->text();
+	double inRadians = boundaryAngleStr.toDouble() * 3.14159 / 180;
+	stm->write(number_command(BOUNDARY_ANGLE, QString::number(inRadians)));
+}
+
+void BoardConsole::handleMaxVelButton(){
+	QString maxVel = ui.maxVelLineEdit->text();
+	double inRadians = maxVel.toDouble() * 3.14159 / 180;
+	stm->write(number_command(MAX_ANGVEL, QString::number(inRadians)));
+}
+
+void BoardConsole::handleTurnUselessCheckBox() {
+	stm->write(command(TURN_USELESS));
+}
+
+void BoardConsole::handleGyroRecalibrationCheckBox() {
+	stm->write(command(GYRO_RECALIBRATION));
+}
+
+void BoardConsole::handleTranquilityButton() {
+	QString time = ui.tranquilityLineEdit->text();
+	stm->write(number_command(TRANQUILITY_TIME, time));
 }

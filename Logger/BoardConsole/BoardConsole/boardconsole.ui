@@ -20,6 +20,12 @@
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
         <widget class="QGroupBox" name="connectGroupBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="title">
           <string>STM</string>
          </property>
@@ -59,6 +65,12 @@
        </item>
        <item>
         <widget class="QGroupBox" name="accelgroupBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="title">
           <string>Accel</string>
          </property>
@@ -119,6 +131,12 @@
        </item>
        <item>
         <widget class="QGroupBox" name="groupBox_4">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="title">
           <string>Gyro</string>
          </property>
@@ -169,6 +187,12 @@
       <layout class="QHBoxLayout" name="horizontalLayout_6">
        <item>
         <widget class="QGroupBox" name="researchGroupBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="title">
           <string>Research</string>
          </property>
@@ -184,9 +208,16 @@
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="simpleRadioButton">
+           <widget class="QCheckBox" name="turnUselessCheckBox">
             <property name="text">
-             <string>Simple</string>
+             <string>Turn Useless</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="gyroRecalibrationCheckBox">
+            <property name="text">
+             <string>Gyro Recalibration</string>
             </property>
            </widget>
           </item>
@@ -197,6 +228,27 @@
             </property>
             <property name="checked">
              <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="operatorRadioButton">
+            <property name="text">
+             <string>Operator</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="simpleRadioButton">
+            <property name="text">
+             <string>P</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="pidRadioButton">
+            <property name="text">
+             <string>PID</string>
             </property>
            </widget>
           </item>
@@ -280,17 +332,37 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QPushButton" name="tranquilityButton">
+            <property name="text">
+             <string>Tranquility Time (ms)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="tranquilityLineEdit">
+            <property name="text">
+             <string>300</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
        <item>
         <widget class="QGroupBox" name="stabGroupBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="title">
           <string>Stabilization</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
-           <widget class="QPushButton" name="stabToggleButton">
+           <widget class="QPushButton" name="stopMotorsButton">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -298,7 +370,7 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>Start</string>
+             <string>Stop Motors</string>
             </property>
            </widget>
           </item>
@@ -316,17 +388,17 @@
            </widget>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_10">
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
             <item>
              <widget class="QLabel" name="label">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
               <property name="text">
-               <string>PWM1</string>
+               <string>Min Pwm</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
@@ -347,6 +419,9 @@
               <property name="maximum">
                <number>2000</number>
               </property>
+              <property name="value">
+               <number>1150</number>
+              </property>
              </widget>
             </item>
            </layout>
@@ -356,13 +431,13 @@
             <item>
              <widget class="QLabel" name="label_2">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
               <property name="text">
-               <string>PWM2</string>
+               <string>MaxPwm</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
@@ -383,9 +458,154 @@
               <property name="maximum">
                <number>2000</number>
               </property>
+              <property name="value">
+               <number>2000</number>
+              </property>
              </widget>
             </item>
            </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QLabel" name="label_5">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Pwm 1</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="pwm1Label">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>1000</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QSlider" name="pwm1Slider">
+            <property name="minimum">
+             <number>1000</number>
+            </property>
+            <property name="maximum">
+             <number>2000</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_10">
+            <item>
+             <widget class="QLabel" name="label_6">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Pwm 2</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="pwm2Label">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>1000</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QSlider" name="pwm2Slider">
+            <property name="minimum">
+             <number>1000</number>
+            </property>
+            <property name="maximum">
+             <number>2000</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="maxAngleButton">
+            <property name="text">
+             <string>Max Angle</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="maxAngleLineEdit">
+            <property name="text">
+             <string>10</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="maxVelButton">
+            <property name="text">
+             <string>Max Velocity</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="maxVelLineEdit">
+            <property name="text">
+             <string>30</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="turnoffAngleButton">
+            <property name="text">
+             <string>TurnOff Angle</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="turnoffAngleLineEdit">
+            <property name="text">
+             <string>3</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="accelDeviationButton">
+            <property name="text">
+             <string>Accel Deviation</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="accelDeviationLineEdit">
+            <property name="text">
+             <string>0.05</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -394,6 +614,12 @@
      </item>
      <item>
       <widget class="QGroupBox" name="groupBox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="title">
         <string>PID Control</string>
        </property>
@@ -500,7 +726,7 @@
              <string>Save to file</string>
             </property>
             <property name="checked">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
            </widget>
           </item>

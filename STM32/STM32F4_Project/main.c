@@ -21,12 +21,12 @@ int COUNT1 = 0;
 int COUNT2 = 0;
 
 float F = 0;
-float Kp = 3;
-float Kd = 2;
-float Ki = 0.001;
+float Kp = 2;
+float Kd = 0.01;
+float Ki = 0;
 float angle = 0;
 float angularVelocity = 0;
-
+float filterScale=0.9;
 void RCC_Init() {
     RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN | RCC_APB2ENR_TIM9EN | RCC_APB2ENR_USART1EN;
     
@@ -35,6 +35,23 @@ void RCC_Init() {
     
     RCC->APB1ENR |= RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM4EN | RCC_APB1ENR_SPI2EN | RCC_APB1ENR_I2C1EN |
                     RCC_APB1ENR_TIM5EN | RCC_APB1ENR_TIM7EN;
+}
+
+float gyroRecalibrationBuffer[GYRO_RECALIBRATION_BUFFER_SIZE];
+int16_t gyroRecalibrationBufferIndex = 0;
+float gyroRecalibrationAccumulator = 0;
+
+void gyroRecalibration() {
+    // gyro recalibration system
+    // moving average
+    gyroRecalibrationAccumulator -= gyroRecalibrationBuffer[gyroRecalibrationBufferIndex];
+    gyroRecalibrationBuffer[gyroRecalibrationBufferIndex] = filteredGX;
+    gyroRecalibrationAccumulator += filteredGX;
+    if (gyroRecalibrationBufferIndex == GYRO_RECALIBRATION_BUFFER_SIZE - 1) {
+        gyroRecalibrationBufferIndex = 0;
+    } else {
+        gyroRecalibrationBufferIndex++;
+    }
 }
 
 int main() {
@@ -66,7 +83,10 @@ int main() {
             doGyroProcess = 0;
             
             filteredGX = lowpass(gxHistory, gxCurHistoryIndex, gyro_b, GYRO_FILTER_SIZE);
-            
+            gyroRecalibration();
+            if (gyroRecalibrationOn) {
+                gyro_xOffset = gyroRecalibrationAccumulator / GYRO_RECALIBRATION_BUFFER_SIZE;
+            }
             filteredGX -= gyro_xOffset;
             
             if (gyroCalibrationOn) {
@@ -82,15 +102,14 @@ int main() {
 //                  gyro_zOffset = zSum / calibrNumber;
                 
                     gyroCalibrationOn = 0;
-                    gyroAngle = 0;
+                    angle = 0;
                 }
             }
         } 
         // Lowpass filtering of accelerations
-        if (doAccelProcess) {
-            
-            finalAX = lowpass(axHistory, axCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE);
-            finalAZ = lowpass(azHistory, azCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE); 
+        if (doAccelProcess) {    
+            filteredAX = filterScale * lowpass(axHistory, axCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE);
+            filteredAZ = filterScale * lowpass(azHistory, azCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE); 
             doAccelProcess = 0;
         } 
         

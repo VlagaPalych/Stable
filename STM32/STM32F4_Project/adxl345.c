@@ -81,7 +81,6 @@ void ADXL345_Init() {
     ADXL345_AccelVCCInit();
     SPI2_Init();  
     
-    allocAveraging(); 
     NSS_Low();
     //while(test!=0xE5) {
     //    NSS_Low();
@@ -154,23 +153,6 @@ void ADXL345_Calibr() {
     accelCalibrIndex = 0;
     accelCalibrNumber = (int)(8.0 / curDT);
     accelCalibrationOn = 1;
-    
-//    while (!(GPIOA->IDR & (1 << ACCEL_INT1))) {}
-//    ADXL345_GetAccel(&ax, &ay, &az); 
-//    xSum += ax;
-//    ySum += ay;
-//    zSum += az;
-//        
-//    for (i = 0; i < calibrNumber; i++) {
-//        while (!(GPIOA->IDR & (1 << ACCEL_INT1))) {}
-//        ADXL345_GetAccel(&ax, &ay, &az); 
-//        xSum += ax;
-//        ySum += ay;
-//        zSum += az;  
-//    }         
-//    xOffset = (int16_t)(xSum / calibrNumber);
-//    yOffset = (int16_t)(ySum / calibrNumber);
-//    zOffset = (int16_t)(zSum / calibrNumber) - 0xFF;
 }
 
 void Accel_EXTI_Init() {    

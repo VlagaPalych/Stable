@@ -7,6 +7,9 @@ extern uint8_t curFreq;
 extern uint8_t freshFreq;
 extern uint8_t recalibrate;
 
+extern uint8_t turnUselessOn;
+extern uint8_t gyroRecalibrationOn;
+
 void USART_Init(void);
 void Telemetry_TIM_Init(void);
 void SendTelemetry(void);
