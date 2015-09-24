@@ -97,7 +97,7 @@ void calcPwms() {
     }
 }
 
-#define ANGVEL_HISTORY_SIZE 10
+#define ANGVEL_HISTORY_SIZE 5
 float boundaryAngle = 0.05;
 float angularVelocityHistory[ANGVEL_HISTORY_SIZE];
 uint8_t angularVelocityHistoryIndex = 0;
@@ -116,17 +116,11 @@ void turnOffUselessMotor() {
         }
         
         if (angle > 0) {
-            if ((angle > boundaryAngle) && angVelSign) {
+            if ((angle > boundaryAngle) && angVelSign && basic > 0) {
                 pwm1 = 1000;
             }
         } else {
-            for (i = 1; i < ANGVEL_HISTORY_SIZE; i++) {
-                if (basic * angularVelocityHistory[i] < 0) {
-                angVelSign = 0;
-                break;
-            }
-            }
-            if ((angle < boundaryAngle) && (!angVelSign)) {
+            if ((angle < -boundaryAngle) && angVelSign && basic < 0) {
                 pwm2 = 1000;
             }
         }
