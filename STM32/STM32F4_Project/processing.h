@@ -25,8 +25,15 @@ extern uint8_t stabilizationOn;
 
 
 #define HISTORY_SIZE 256
+#define ADXRS_FILTER_SIZE 90
 #define ACCEL_FILTER_SIZE 107
 #define GYRO_FILTER_SIZE 84
+
+extern float adxrs_b[ADXRS_FILTER_SIZE];
+extern int16_t adxrsHistory[HISTORY_SIZE];
+extern uint8_t adxrsHistoryIndex;
+extern uint8_t adxrsCurHistoryIndex;
+extern float filteredVel;
 
 extern float accel_b[ACCEL_FILTER_SIZE];
 extern float gyro_b[GYRO_FILTER_SIZE];
@@ -53,6 +60,8 @@ extern float finalGX;
 
 extern uint8_t doAccelProcess;
 extern uint8_t doGyroProcess;
+extern uint8_t doAdxrsProcess;
+
 extern uint8_t lowpassOn;
 extern uint8_t accelLowpassReady;
 extern uint8_t gyroLowpassReady;

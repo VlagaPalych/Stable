@@ -141,9 +141,9 @@ QString BoardConsole::defineLogFile() {
 			}
 		}
 		maxLogNumber++;
-		QString maxAngle = ui.maxAngleLineEdit->text();
-		QString div = ui.pwm2SpinBox->value() == 2000 ? "" : "div";
-		logFileName = "max_" + maxAngle + "_" + div + tr("log") + QString::number(maxLogNumber) + tr(".txt");
+		//QString maxAngle = ui.maxAngleLineEdit->text();
+		//QString div = ui.pwm2SpinBox->value() == 2000 ? "" : "div";
+		logFileName = tr("log") + QString::number(maxLogNumber) + tr(".txt");
 	}
 	return logFileName;
 	
@@ -445,8 +445,8 @@ void BoardConsole::handlePwm1SpinBox(int newval) {
 }
 
 void BoardConsole::handlePwm2SpinBox(int newval) {
-	handleSaveToFileCheckBox();
-	handleSaveToFileCheckBox();
+	//handleSaveToFileCheckBox();
+	//handleSaveToFileCheckBox();
 	stm->write(number_command(MAX_PWM, QString::number(newval)));
 }
 
@@ -490,8 +490,8 @@ void BoardConsole::handleResearchButtons() {
 }
 
 void BoardConsole::handleMaxAngleButton() {
-	handleSaveToFileCheckBox();
-	handleSaveToFileCheckBox();
+	//handleSaveToFileCheckBox();
+	//handleSaveToFileCheckBox();
 	QString maxAngleStr = ui.maxAngleLineEdit->text();
 	double inRadians = maxAngleStr.toDouble() * 3.14159 / 180;
 	stm->write(number_command(MAX_ANGLE, QString::number(inRadians)));

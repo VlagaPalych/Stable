@@ -8,6 +8,7 @@
 #include "motors.h"
 #include "processing.h"
 #include "commands.h"
+#include "adxrs453.h"
 
 uint8_t UART1_TX = 9;    // PA
 uint8_t UART1_RX = 10;    // PA
@@ -113,7 +114,8 @@ void USART1_IRQHandler() {
                         Motors_Stop();
                         
                         ADXL345_Calibr();
-                        Gyro_Calibr();
+                    ADXRS_Calibr();
+                        //Gyro_Calibr();
                         
                         break;
                     case LOWPASS:
@@ -272,6 +274,7 @@ void USART1_IRQHandler() {
                         break;
                     
                     case PROGRAMMING_MODE:
+                        GPIOB->MODER |= 1 << 8*2;
                         GPIOB->BSRRL |= 1 << 8;
                         for (rst = 0; rst < 100000; rst++) {
                             __nop();
@@ -359,6 +362,7 @@ void USART1_IRQHandler() {
                                 break;
                             case WAITING_FOR_MAX_ANGVEL:
                                 maxAngVel = floatValue;
+                                Kd = (maxPwm - minPwm) / maxAngVel;
                                 break;
                             default:
                                 break;

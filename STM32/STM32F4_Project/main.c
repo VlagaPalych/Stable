@@ -4,6 +4,7 @@
 #include "motors.h"
 #include "processing.h"
 #include "gyro.h"
+#include "adxrs453.h"
 
 int16_t ax = 0;
 int16_t ay = 0;
@@ -33,7 +34,7 @@ void RCC_Init() {
     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN | RCC_AHB1ENR_GPIOBEN | RCC_AHB1ENR_GPIOCEN | 
                     RCC_AHB1ENR_GPIODEN | RCC_AHB1ENR_GPIOEEN | RCC_AHB1ENR_DMA1EN | RCC_AHB1ENR_DMA2EN;
     
-    RCC->APB1ENR |= RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM4EN | RCC_APB1ENR_SPI2EN | RCC_APB1ENR_I2C1EN |
+    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM4EN | RCC_APB1ENR_SPI2EN | RCC_APB1ENR_I2C1EN |
                     RCC_APB1ENR_TIM5EN | RCC_APB1ENR_TIM7EN | RCC_APB1ENR_SPI3EN;
 }
 
@@ -54,10 +55,11 @@ void gyroRecalibration() {
     }
 }
 
+
 int main() {
     RCC_Init();   
     
-    GPIOB->MODER |= 1 << 8*2;
+    GPIOB->MODER |= 0 << 8*2;
     GPIOC->MODER |= 1;
     GPIOC->BSRRL |= 1;
     GPIOD->MODER = 1 << 15*2;
@@ -67,9 +69,13 @@ int main() {
     ADXL345_Calibr();
     EXTI->SWIER |= EXTI_SWIER_SWIER1;
     
-    Gyro_Init();
-    Gyro_EXTI_Init();
-    Gyro_Calibr();
+    SPI3_Init();
+    ADXRS_TIM_Init();
+    ADXRS_Calibr();
+    
+//    Gyro_Init();
+//    Gyro_EXTI_Init();
+//    Gyro_Calibr();
 
     Motors_Init();
     USART_Init();
@@ -77,35 +83,58 @@ int main() {
     while(ENGRDY != 1) {};
           
     Processing_TIM_Init();
+
+    
     
     while(1) {    
-        if (doGyroProcess) {
-            doGyroProcess = 0;
+        if (doAdxrsProcess) {
+            doAdxrsProcess = 0;
+            filteredVel = lowpass(adxrsHistory, adxrsCurHistoryIndex, adxrs_b, ADXRS_FILTER_SIZE);
             
-            filteredGX = lowpass(gxHistory, gxCurHistoryIndex, gyro_b, GYRO_FILTER_SIZE);
-            gyroRecalibration();
-            if (gyroRecalibrationOn) {
-                gyro_xOffset = gyroRecalibrationAccumulator / GYRO_RECALIBRATION_BUFFER_SIZE;
-            }
-            filteredGX -= gyro_xOffset;
             
-            if (gyroCalibrationOn) {
-                xSum += filteredGX;
-//            ySum += gy;
-//            zSum += gz;
+            if (adxrs_CalibrationOn) {
+                adxrs_Sum += filteredVel;
             
-                calibrIndex++;
-            
-                if (calibrIndex == calibrNumber) {
-                    gyro_xOffset = xSum / calibrNumber;
-//                  gyro_yOffset = ySum / calibrNumber;
-//                  gyro_zOffset = zSum / calibrNumber;
+                if (adxrs_CalibrIndex == 0) {
+                    adxrs_Sum = 0;
+                }
+                adxrs_CalibrIndex++;
                 
-                    gyroCalibrationOn = 0;
-                    angle = 0;
+                if (adxrs_CalibrIndex == adxrs_CalibrNumber) {
+                    adxrs_Offset = adxrs_Sum / adxrs_CalibrNumber;
+                    adxrs_CalibrationOn = 0;
                 }
             }
-        } 
+            filteredVel -= adxrs_Offset;
+            
+        }
+//        if (doGyroProcess) {
+//            doGyroProcess = 0;
+//            
+//            filteredGX = lowpass(gxHistory, gxCurHistoryIndex, gyro_b, GYRO_FILTER_SIZE);
+//            gyroRecalibration();
+//            if (gyroRecalibrationOn) {
+//                gyro_xOffset = gyroRecalibrationAccumulator / GYRO_RECALIBRATION_BUFFER_SIZE;
+//            }
+//            filteredGX -= gyro_xOffset;
+//            
+//            if (gyroCalibrationOn) {
+//                xSum += filteredGX;
+////            ySum += gy;
+////            zSum += gz;
+//            
+//                calibrIndex++;
+//            
+//                if (calibrIndex == calibrNumber) {
+//                    gyro_xOffset = xSum / calibrNumber;
+////                  gyro_yOffset = ySum / calibrNumber;
+////                  gyro_zOffset = zSum / calibrNumber;
+//                
+//                    gyroCalibrationOn = 0;
+//                    angle = 0;
+//                }
+//            }
+//        } 
         // Lowpass filtering of accelerations
         if (doAccelProcess) {    
             filteredAX = filterScale * lowpass(axHistory, axCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE);

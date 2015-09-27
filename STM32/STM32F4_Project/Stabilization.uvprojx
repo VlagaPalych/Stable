@@ -443,6 +443,11 @@
               <FileType>1</FileType>
               <FilePath>.\gyro.c</FilePath>
             </File>
+            <File>
+              <FileName>adxrs453.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\adxrs453.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -482,6 +487,11 @@
               <FileName>commands.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\commands.h</FilePath>
+            </File>
+            <File>
+              <FileName>adxrs453.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\adxrs453.h</FilePath>
             </File>
           </Files>
         </Group>

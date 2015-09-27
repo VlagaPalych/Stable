@@ -142,7 +142,7 @@ public:
     {
         if (BoardConsoleClass->objectName().isEmpty())
             BoardConsoleClass->setObjectName(QStringLiteral("BoardConsoleClass"));
-        BoardConsoleClass->resize(774, 1019);
+        BoardConsoleClass->resize(785, 1019);
         horizontalLayout_12 = new QHBoxLayout(BoardConsoleClass);
         horizontalLayout_12->setSpacing(6);
         horizontalLayout_12->setContentsMargins(11, 11, 11, 11);
@@ -415,7 +415,7 @@ public:
         pwm1SpinBox->setSizePolicy(sizePolicy);
         pwm1SpinBox->setMinimum(1000);
         pwm1SpinBox->setMaximum(2000);
-        pwm1SpinBox->setValue(1150);
+        pwm1SpinBox->setValue(1070);
 
         horizontalLayout_4->addWidget(pwm1SpinBox);
 
@@ -694,19 +694,19 @@ public:
 
         fCheckBox = new QCheckBox(groupBox_3);
         fCheckBox->setObjectName(QStringLiteral("fCheckBox"));
-        fCheckBox->setChecked(true);
+        fCheckBox->setChecked(false);
 
         verticalLayout_3->addWidget(fCheckBox);
 
         pwm1CheckBox = new QCheckBox(groupBox_3);
         pwm1CheckBox->setObjectName(QStringLiteral("pwm1CheckBox"));
-        pwm1CheckBox->setChecked(false);
+        pwm1CheckBox->setChecked(true);
 
         verticalLayout_3->addWidget(pwm1CheckBox);
 
         pwm2CheckBox = new QCheckBox(groupBox_3);
         pwm2CheckBox->setObjectName(QStringLiteral("pwm2CheckBox"));
-        pwm2CheckBox->setChecked(false);
+        pwm2CheckBox->setChecked(true);
 
         verticalLayout_3->addWidget(pwm2CheckBox);
 

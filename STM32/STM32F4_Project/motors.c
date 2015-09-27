@@ -80,11 +80,17 @@ void Motors_TIM_Init() {
 	NVIC_EnableIRQ(TIM3_IRQn);      
     TIM3->CR1 = TIM_CR1_CEN;
 
-   // TIM5->DIER |= 1;					// timer for frequency calculation
-//	  NVIC_EnableIRQ(TIM5_IRQn);
+    
+    TIM5->PSC = 3;
+    TIM5->ARR = 50000;
+    TIM5->DIER |= 1;					// timer for frequency calculation
+    NVIC_EnableIRQ(TIM5_IRQn);
     TIM5->CR1 = TIM_CR1_CEN;
     
-    //TIM9->DIER |= 1;					// timer for frequency calculation
+    TIM9->PSC = 3;
+    TIM9->ARR = 50000;
+    TIM9->DIER |= 1;					// timer for frequency calculation
+    NVIC_EnableIRQ(TIM1_BRK_TIM9_IRQn);
     TIM9->CR1 = TIM_CR1_CEN;
 }
 
@@ -146,21 +152,50 @@ void Motors_Stop() {
     Motors_Run();
 }
 
+uint8_t Motor1Off = 0;
+uint8_t Motor2Off = 0;
+#define MOTOR_START_DELAY   10
 void EXTI2_IRQHandler() { //this used to calculate the frequency of motor
     //GPIOD->ODR |= 1 << 15;
     if (EXTI->PR & EXTI_PR_PR2) {
         EXTI->PR = EXTI_PR_PR2;
         if (TIM5->CR1 && 1) {
-            COUNT1 = TIM5->CNT;
-            TIM5->CR1 &= ~1;
+            COUNT1 = TIM5->CNT; 
+//            if (COUNT1 < 40000 && Motor1Off ) {
+//                Motor1Off--;
+//            //    if(!Motor1Off) TIM4->CCR1 = pwm1;
+//            }
+//            if ((COUNT1 < 10000) && Motor1Off==MOTOR_START_DELAY-1) {
+//                COUNT1 = 50000;
+//                Motor1Off=MOTOR_START_DELAY;
+//            }
+            //TIM5->CR1 &= ~1;
             TIM5->CNT = 0;
+            
+           
         }
-        else {
-            TIM5->CNT = 0;
-            TIM5->CR1 |= 1;
-        }
+//        else {
+//            TIM5->CNT = 0;
+//            TIM5->CR1 |= 1;
+//        }
     }
      //GPIOD->ODR &= ~(1 << 15);
+}
+
+void TIM5_IRQHandler() {
+    if (TIM5->SR & TIM_SR_UIF) {
+        TIM5->SR &= ~TIM_SR_UIF;
+        Motor1Off = MOTOR_START_DELAY;
+        COUNT1 = 50000;
+    }
+}
+
+void TIM1_BRK_TIM9_IRQHandler() {
+    if (TIM9->SR & TIM_SR_UIF) {
+        TIM9->SR &= ~TIM_SR_UIF;
+        Motor2Off = MOTOR_START_DELAY;
+        COUNT2 = 50000;
+    }
 }
 
 void EXTI4_IRQHandler() { //this used to calculate the frequency of motor
@@ -168,17 +203,35 @@ void EXTI4_IRQHandler() { //this used to calculate the frequency of motor
         EXTI->PR = EXTI_PR_PR4;
         if (TIM9->CR1 && 1) {
             COUNT2 = TIM9->CNT;
-            TIM9->CR1 &= ~1;
+//             if (COUNT2 < 40000 && Motor2Off) {
+//                Motor2Off --;
+//              // if(!Motor2Off) TIM4->CCR3 = pwm2;
+//            }
+//            if ((COUNT2 < 10000) && Motor2Off==MOTOR_START_DELAY-1) {
+//                COUNT2 = 50000;
+//                Motor2Off=MOTOR_START_DELAY;
+//            }
+            //TIM9->CR1 &= ~1;
             TIM9->CNT = 0;
+            
+           
         }
-        else {
-            TIM9->CNT = 0;
-            TIM9->CR1 |= 1;
-        }
+//        else {
+//            TIM9->CNT = 0;
+//            TIM9->CR1 |= 1;
+//        }
     }
 }
 
 void Motors_Run(void) {
-    TIM4->CCR1 = pwm1;
-    TIM4->CCR3 = pwm2;
+//    if (Motor1Off && pwm1 != 1000) { // motor is off
+//        TIM4->CCR1 = 1900;
+//    } else {
+        TIM4->CCR1 = pwm1;
+//    }
+//    if (Motor2Off && pwm2 != 1000) {
+//        TIM4->CCR3= 1900;
+//    } else {
+        TIM4->CCR3 = pwm2;
+    //}
 }

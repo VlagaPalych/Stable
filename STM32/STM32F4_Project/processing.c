@@ -10,6 +10,7 @@
 #include "string.h"
 #include "gyro.h"
 
+
 #define DT MEASUREMENT_TIME
 #define G2 65025
 
@@ -25,6 +26,13 @@ float researchFrequency = 0;
 
 uint8_t processCounter = 0;
 
+float adxrs_b[ADXRS_FILTER_SIZE] = {0.000765996615305244, 0.000660820151020175, 0.000904398442903659, 0.00116993648900164, 0.00144225289999618, 0.00170146983193675, 0.00192506416920931, 0.00208637960406920, 0.00215549334724139, 0.00210628189455340, 0.00190929130872978, 0.00154175764366672, 0.000985379572064331, 0.000231037660150656, -0.000720975242728358, -0.00185800385190914, -0.00315400290658119, -0.00456986885279512, -0.00605129658439567, -0.00753137446367871, -0.00893102356144855, -0.0101624543586776, -0.0111314200131555, -0.0117417714988076, -0.0118994911274908, -0.0115170351071913, -0.0105188708579065, -0.00884554022866118, -0.00645838490726134, -0.00334261386423469, 0.000489473606544453, 0.00499731904300335, 0.0101115226151986, 0.0157346375919648, 0.0217436975271735, 0.0279935671243145, 0.0343218642376052, 0.0405544117337099, 0.0465120006171619, 0.0520171194154150, 0.0569010809190037, 0.0610109684009580, 0.0642158515277905, 0.0664123296154894, 0.0675288324909505, 0.0675288324909505, 0.0664123296154894, 0.0642158515277905, 0.0610109684009580, 0.0569010809190037, 0.0520171194154150, 0.0465120006171619, 0.0405544117337099, 0.0343218642376052, 0.0279935671243145, 0.0217436975271735, 0.0157346375919648, 0.0101115226151986, 0.00499731904300335, 0.000489473606544453, -0.00334261386423469, -0.00645838490726134, -0.00884554022866118, -0.0105188708579065, -0.0115170351071913, -0.0118994911274908, -0.0117417714988076, -0.0111314200131555, -0.0101624543586776, -0.00893102356144855, -0.00753137446367871, -0.00605129658439567, -0.00456986885279512, -0.00315400290658119, -0.00185800385190914, -0.000720975242728358, 0.000231037660150656, 0.000985379572064331, 0.00154175764366672, 0.00190929130872978, 0.00210628189455340, 0.00215549334724139, 0.00208637960406920, 0.00192506416920931, 0.00170146983193675, 0.00144225289999618, 0.00116993648900164, 0.000904398442903659, 0.000660820151020175, 0.000765996615305244};
+int16_t adxrsHistory[HISTORY_SIZE];
+uint8_t adxrsHistoryIndex = 0;
+uint8_t adxrsCurHistoryIndex = 0;
+float filteredVel = 0;
+    
+    
 float gyro_b[GYRO_FILTER_SIZE] = {-0.000687685100567948, -0.000503796863668868, -0.000669665666328788, -0.000855276751476558, -0.00105554993475612, -0.00126508273334009, -0.00147593999534209, -0.00167849138703039, -0.00185916913593240, -0.00200684865461460, -0.00210530759211669, -0.00213822286546893, -0.00208958424584653, -0.00194067647281183, -0.00167455480891157, -0.00127360844400499, -0.000722641774982278, -6.87927808112551e-06, 0.000885291093669463, 0.00196280139735759, 0.00323181070591218, 0.00469392489725397, 0.00634689783560797, 0.00818380308704172, 0.0101930785397887, 0.0123584580913614, 0.0146590118621400, 0.0170698639054851, 0.0195615456872260, 0.0221015359753715, 0.0246541129281018, 0.0271813574961538, 0.0296440798312156, 0.0320025708463445, 0.0342176988964603, 0.0362515564208577, 0.0380687255412841, 0.0396368301799685, 0.0409274060866639, 0.0419169338508330, 0.0425870017582913, 0.0429251965156089, 0.0429251965156089, 0.0425870017582913, 0.0419169338508330, 0.0409274060866639, 0.0396368301799685, 0.0380687255412841, 0.0362515564208577, 0.0342176988964603, 0.0320025708463445, 0.0296440798312156, 0.0271813574961538, 0.0246541129281018, 0.0221015359753715, 0.0195615456872260, 0.0170698639054851, 0.0146590118621400, 0.0123584580913614, 0.0101930785397887, 0.00818380308704172, 0.00634689783560797, 0.00469392489725397, 0.00323181070591218, 0.00196280139735759, 0.000885291093669463, -6.87927808112551e-06, -0.000722641774982278, -0.00127360844400499, -0.00167455480891157, -0.00194067647281183, -0.00208958424584653, -0.00213822286546893, -0.00210530759211669, -0.00200684865461460, -0.00185916913593240, -0.00167849138703039, -0.00147593999534209, -0.00126508273334009, -0.00105554993475612, -0.000855276751476558, -0.000669665666328788, -0.000503796863668868, -0.000687685100567948};
 
 int16_t gxHistory[HISTORY_SIZE];
@@ -51,6 +59,7 @@ int16_t finalAY = 0;
     
 uint8_t doAccelProcess = 0;
 uint8_t doGyroProcess = 0;
+uint8_t doAdxrsProcess = 0;
     
 uint8_t lowpassOn = 1;
 uint8_t accelLowpassReady = 0;
@@ -59,7 +68,8 @@ uint8_t gyroLowpassReady = 0;
 float angleIntegral = 0;
 float angleIntegralMax = 1e5;
 
-uint8_t stabilizationOn     = 0;
+float angleAcceleration = 0;
+float prevAngularVelocity = 0;
 
 float Aappr = 5.13e-7;
 float Bappr = 0.001;
@@ -128,19 +138,18 @@ void turnOffUselessMotor() {
 }
 
 void control() {
-    int tmpPwm = ((maxPwm - minPwm) / maxAngle) * angle + ((maxPwm - minPwm) / maxAngVel) * angularVelocity;
-    if (tmpPwm > 0) {
-        pwm1 = tmpPwm + minPwm;
-        if (pwm1 > maxPwm) {
-            pwm1 = maxPwm;
-        }
-        pwm2 = minPwm;
-    } else {
-        pwm2 = -tmpPwm + minPwm;
+    if (angle > 0) {
+        pwm2 = Kp * fabs(angle) + Kd * angularVelocity + minPwm;
         if (pwm2 > maxPwm) {
             pwm2 = maxPwm;
         }
         pwm1 = minPwm;
+    } else {
+        pwm1 = Kp * fabs(angle) - Kd * angularVelocity + minPwm;
+        if (pwm1 > maxPwm) {
+            pwm1 = maxPwm;
+        }
+        pwm2 = minPwm;
     }
     turnOffUselessMotor();
     Motors_Run();
@@ -187,7 +196,8 @@ void control() {
 }
 
 void calcAngVel() {
-    angularVelocity = - finalGX / 32767.0 * 2000 * 3.14159 / 180.0;
+    angularVelocity = filteredVel / 80 * 3.14159 / 180.0;
+    //angularVelocity = - finalGX / 32767.0 * 2000 * 3.14159 / 180.0;
     angularVelocityHistory[angularVelocityHistoryIndex] = angularVelocity;
     if (angularVelocityHistoryIndex == ANGVEL_HISTORY_SIZE - 1) {
         angularVelocityHistoryIndex = 0;
@@ -219,8 +229,6 @@ void Processing_TIM_Init() {
     
     TIM7->CR1 |= TIM_CR1_CEN;
 }
-
-
 
 void simplestControl(){
     if (angle > 0) {
@@ -266,8 +274,11 @@ uint8_t gCheck() {
 uint8_t tranquilityTime = 30;
 uint8_t tranquilityCount = 0;
 float angVelSmall = 0.1;
+#define ANGLE_STEP 0.03
 
 void calcAngle() {
+    float accelAngle = 0;
+    float angleDiff = 0;
     // where to take angle from
     // three steps of control:
     // 1) sum Ai^2 < deviation * G^2
@@ -281,6 +292,13 @@ void calcAngle() {
     }
     if (tranquilityCount == tranquilityTime) {
         angle = atan((float)finalAX / (float)finalAZ);
+//        accelAngle = atan((float)finalAX / (float)finalAZ);
+//        angleDiff = angle - accelAngle;
+//        if (angleDiff > 0) {
+//            angle -= ANGLE_STEP;
+//        } else {
+//            angle += ANGLE_STEP;
+//        }
         angleFromAccel = 1;
         tranquilityCount--;
     } else {
@@ -289,21 +307,22 @@ void calcAngle() {
     }
 }
 
-
-
-
+void calcAngAccel() {
+    angleAcceleration = (angularVelocity - prevAngularVelocity) / DT;
+}
 
 void TIM7_IRQHandler(void) {
     TIM7->SR &= ~TIM_SR_UIF;
 
     getFinalData();
-    calcAngVel();      
+    calcAngVel();  
+    calcAngAccel();
     calcAngle();
     
-    angleIntegral += angle;
-    if (angleIntegral > angleIntegralMax) {
-        angleIntegral = angleIntegralMax;
-    }
+//    angleIntegral += angle;
+//    if (angleIntegral > angleIntegralMax) {
+//        angleIntegral = angleIntegralMax;
+//    }
   
     researchIndex++;
     switch (research) {
@@ -341,6 +360,8 @@ void TIM7_IRQHandler(void) {
             break;
         case PID_CONTROL:
             control();
+            break;
+        case ADJUST_CONTROL:
             break;
         default:
             researchIndex--;
