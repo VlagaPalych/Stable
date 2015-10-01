@@ -1,49 +1,60 @@
-a0 = pi/18; 
-w0 = pi/18;
+a0 = pi/36; 
+w0 = pi/6;
 TAU = 1;
+noise = 0.5;
 
-w1 = 1.5 * pi / TAU;
-phi = pi / 4;
-
-len = 2*TAU / 0.01;
+len = 10*TAU / 0.01;
 angles = zeros(1, len);
 angvels = zeros(1, len);
+angaccels = zeros(1, len);
+pwms = zeros(1, len)
 
 angles(1) = a0;
 angvels(1) = w0;
+angaccels(1) = 0;
+pwms(1) = 0;
 
-for i = 2:1:len;
-    k = (-a0 - w0*TAU/2 + w0/w1) / (TAU^2/2 - (TAU/2/w1)*(cos(w1*TAU/2 + phi) - cos(phi)));
-    e = 0;
+pwm = 1;
 
-    if (a0 > 0) && (w0 > 0)
-        e = k;
+delay = 20;
+
+for i = 2:1:len;    
+%     if i < delay
+%         e_real = 0;
+%     else 
+%         e_real = angaccels(i - delay+1);
+%     end
+    if -w0 * TAU/2/a0 < 1
+        e = - w0/TAU - a0/TAU/TAU;
+    else
+        t1 = - 2*a0/w0;
+        e = -w0 / t1;
     end
+    
+%     e_real = e_real * sign(e);
+%     spwm=sign(pwm);
+%     if spwm==0
+%         spwm=1;
+%     end;
+%     if (abs(e) > e_real) 
+%         pwm = pwm + sign(pwm)*30;
+%     else 
+%         pwm = pwm - sign(pwm)*30;
+%     end
 
-    if (a0 > 0) && (w0 < 0)
-        sin_int = (w0/w1) * (cos(phi) - cos(w1*TAU/2 + phi));
 
-        if -sin_int < a0
-            e = k;
-        else 
-            da = - sin_int - a0;
-            par = 8 * da / TAU / TAU;
-%             a = 1 - cos(w1*TAU/2);
-%             b = sin(w1*TAU/2);
-%             c = (w1/w0) * a;
-%             phi = 2 * atan((sqrt(a^2 + b^2 - c^2) + b)/(a + c));
-            e = w0*w1*cos(phi) - par;
-        end
-    end
-
+%     w = w0 + e_real * 0.01;
+%     a0 = a0 + w0 * 0.01 + e_real * 5e-5;
     w = w0 + e * 0.01;
     a0 = a0 + w0 * 0.01 + e * 5e-5;
     w0 = w;
     
     angles(i) = a0;
     angvels(i) = w0;
+    angaccels(i) = e;
+    pwms(i) = pwm;
 end
 
 t = 1:1:length(angles);
-plot(t, angles, t, angvels);
+plot(t, angles, t, angvels, t, angaccels, t, pwms/10000);
 

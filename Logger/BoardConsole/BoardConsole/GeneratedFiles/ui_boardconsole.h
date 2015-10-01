@@ -33,6 +33,7 @@ QT_BEGIN_NAMESPACE
 class Ui_BoardConsoleClass
 {
 public:
+    QWidget *layoutWidget;
     QHBoxLayout *horizontalLayout_12;
     QVBoxLayout *verticalLayout_12;
     QHBoxLayout *horizontalLayout_2;
@@ -63,6 +64,7 @@ public:
     QCheckBox *gyroRecalibrationCheckBox;
     QRadioButton *noResearchRadioButton;
     QRadioButton *operatorRadioButton;
+    QRadioButton *adjustRadioButton;
     QRadioButton *simpleRadioButton;
     QRadioButton *pidRadioButton;
     QRadioButton *impulseRadioButton;
@@ -75,6 +77,10 @@ public:
     QLineEdit *researchFreqLineEdit;
     QPushButton *tranquilityButton;
     QLineEdit *tranquilityLineEdit;
+    QPushButton *pwmStepButton;
+    QLineEdit *pwmStepLineEdit;
+    QPushButton *everyNButton;
+    QLineEdit *everyNLineEdit;
     QGroupBox *stabGroupBox;
     QVBoxLayout *verticalLayout_2;
     QPushButton *stopMotorsButton;
@@ -143,17 +149,21 @@ public:
         if (BoardConsoleClass->objectName().isEmpty())
             BoardConsoleClass->setObjectName(QStringLiteral("BoardConsoleClass"));
         BoardConsoleClass->resize(785, 1019);
-        horizontalLayout_12 = new QHBoxLayout(BoardConsoleClass);
+        layoutWidget = new QWidget(BoardConsoleClass);
+        layoutWidget->setObjectName(QStringLiteral("layoutWidget"));
+        layoutWidget->setGeometry(QRect(11, 10, 769, 1003));
+        horizontalLayout_12 = new QHBoxLayout(layoutWidget);
         horizontalLayout_12->setSpacing(6);
         horizontalLayout_12->setContentsMargins(11, 11, 11, 11);
         horizontalLayout_12->setObjectName(QStringLiteral("horizontalLayout_12"));
+        horizontalLayout_12->setContentsMargins(0, 0, 0, 0);
         verticalLayout_12 = new QVBoxLayout();
         verticalLayout_12->setSpacing(6);
         verticalLayout_12->setObjectName(QStringLiteral("verticalLayout_12"));
         horizontalLayout_2 = new QHBoxLayout();
         horizontalLayout_2->setSpacing(6);
         horizontalLayout_2->setObjectName(QStringLiteral("horizontalLayout_2"));
-        connectGroupBox = new QGroupBox(BoardConsoleClass);
+        connectGroupBox = new QGroupBox(layoutWidget);
         connectGroupBox->setObjectName(QStringLiteral("connectGroupBox"));
         QSizePolicy sizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
         sizePolicy.setHorizontalStretch(0);
@@ -186,7 +196,7 @@ public:
 
         horizontalLayout_2->addWidget(connectGroupBox);
 
-        accelgroupBox = new QGroupBox(BoardConsoleClass);
+        accelgroupBox = new QGroupBox(layoutWidget);
         accelgroupBox->setObjectName(QStringLiteral("accelgroupBox"));
         sizePolicy.setHeightForWidth(accelgroupBox->sizePolicy().hasHeightForWidth());
         accelgroupBox->setSizePolicy(sizePolicy);
@@ -230,7 +240,7 @@ public:
 
         horizontalLayout_2->addWidget(accelgroupBox);
 
-        groupBox_4 = new QGroupBox(BoardConsoleClass);
+        groupBox_4 = new QGroupBox(layoutWidget);
         groupBox_4->setObjectName(QStringLiteral("groupBox_4"));
         sizePolicy.setHeightForWidth(groupBox_4->sizePolicy().hasHeightForWidth());
         groupBox_4->setSizePolicy(sizePolicy);
@@ -270,7 +280,7 @@ public:
         horizontalLayout_6 = new QHBoxLayout();
         horizontalLayout_6->setSpacing(6);
         horizontalLayout_6->setObjectName(QStringLiteral("horizontalLayout_6"));
-        researchGroupBox = new QGroupBox(BoardConsoleClass);
+        researchGroupBox = new QGroupBox(layoutWidget);
         researchGroupBox->setObjectName(QStringLiteral("researchGroupBox"));
         sizePolicy.setHeightForWidth(researchGroupBox->sizePolicy().hasHeightForWidth());
         researchGroupBox->setSizePolicy(sizePolicy);
@@ -304,6 +314,11 @@ public:
         operatorRadioButton->setObjectName(QStringLiteral("operatorRadioButton"));
 
         verticalLayout_4->addWidget(operatorRadioButton);
+
+        adjustRadioButton = new QRadioButton(researchGroupBox);
+        adjustRadioButton->setObjectName(QStringLiteral("adjustRadioButton"));
+
+        verticalLayout_4->addWidget(adjustRadioButton);
 
         simpleRadioButton = new QRadioButton(researchGroupBox);
         simpleRadioButton->setObjectName(QStringLiteral("simpleRadioButton"));
@@ -373,10 +388,30 @@ public:
 
         verticalLayout_4->addWidget(tranquilityLineEdit);
 
+        pwmStepButton = new QPushButton(researchGroupBox);
+        pwmStepButton->setObjectName(QStringLiteral("pwmStepButton"));
+
+        verticalLayout_4->addWidget(pwmStepButton);
+
+        pwmStepLineEdit = new QLineEdit(researchGroupBox);
+        pwmStepLineEdit->setObjectName(QStringLiteral("pwmStepLineEdit"));
+
+        verticalLayout_4->addWidget(pwmStepLineEdit);
+
+        everyNButton = new QPushButton(researchGroupBox);
+        everyNButton->setObjectName(QStringLiteral("everyNButton"));
+
+        verticalLayout_4->addWidget(everyNButton);
+
+        everyNLineEdit = new QLineEdit(researchGroupBox);
+        everyNLineEdit->setObjectName(QStringLiteral("everyNLineEdit"));
+
+        verticalLayout_4->addWidget(everyNLineEdit);
+
 
         horizontalLayout_6->addWidget(researchGroupBox);
 
-        stabGroupBox = new QGroupBox(BoardConsoleClass);
+        stabGroupBox = new QGroupBox(layoutWidget);
         stabGroupBox->setObjectName(QStringLiteral("stabGroupBox"));
         sizePolicy.setHeightForWidth(stabGroupBox->sizePolicy().hasHeightForWidth());
         stabGroupBox->setSizePolicy(sizePolicy);
@@ -548,7 +583,7 @@ public:
 
         verticalLayout_12->addLayout(horizontalLayout_6);
 
-        groupBox = new QGroupBox(BoardConsoleClass);
+        groupBox = new QGroupBox(layoutWidget);
         groupBox->setObjectName(QStringLiteral("groupBox"));
         QSizePolicy sizePolicy1(QSizePolicy::Preferred, QSizePolicy::Fixed);
         sizePolicy1.setHorizontalStretch(0);
@@ -631,7 +666,7 @@ public:
         horizontalLayout_3 = new QHBoxLayout();
         horizontalLayout_3->setSpacing(6);
         horizontalLayout_3->setObjectName(QStringLiteral("horizontalLayout_3"));
-        telemetryGroupBox = new QGroupBox(BoardConsoleClass);
+        telemetryGroupBox = new QGroupBox(layoutWidget);
         telemetryGroupBox->setObjectName(QStringLiteral("telemetryGroupBox"));
         verticalLayout_11 = new QVBoxLayout(telemetryGroupBox);
         verticalLayout_11->setSpacing(6);
@@ -656,7 +691,7 @@ public:
 
         horizontalLayout_3->addWidget(telemetryGroupBox);
 
-        groupBox_2 = new QGroupBox(BoardConsoleClass);
+        groupBox_2 = new QGroupBox(layoutWidget);
         groupBox_2->setObjectName(QStringLiteral("groupBox_2"));
         verticalLayout_7 = new QVBoxLayout(groupBox_2);
         verticalLayout_7->setSpacing(6);
@@ -677,7 +712,7 @@ public:
 
         horizontalLayout_3->addWidget(groupBox_2);
 
-        groupBox_3 = new QGroupBox(BoardConsoleClass);
+        groupBox_3 = new QGroupBox(layoutWidget);
         groupBox_3->setObjectName(QStringLiteral("groupBox_3"));
         horizontalLayout = new QHBoxLayout(groupBox_3);
         horizontalLayout->setSpacing(6);
@@ -747,12 +782,12 @@ public:
 
         verticalLayout_9->addLayout(horizontalLayout_3);
 
-        plot1 = new QwtPlot(BoardConsoleClass);
+        plot1 = new QwtPlot(layoutWidget);
         plot1->setObjectName(QStringLiteral("plot1"));
 
         verticalLayout_9->addWidget(plot1);
 
-        plot2 = new QwtPlot(BoardConsoleClass);
+        plot2 = new QwtPlot(layoutWidget);
         plot2->setObjectName(QStringLiteral("plot2"));
 
         verticalLayout_9->addWidget(plot2);
@@ -790,6 +825,7 @@ public:
         gyroRecalibrationCheckBox->setText(QApplication::translate("BoardConsoleClass", "Gyro Recalibration", 0));
         noResearchRadioButton->setText(QApplication::translate("BoardConsoleClass", "No Research", 0));
         operatorRadioButton->setText(QApplication::translate("BoardConsoleClass", "Operator", 0));
+        adjustRadioButton->setText(QApplication::translate("BoardConsoleClass", "Adjust", 0));
         simpleRadioButton->setText(QApplication::translate("BoardConsoleClass", "P", 0));
         pidRadioButton->setText(QApplication::translate("BoardConsoleClass", "PID", 0));
         impulseRadioButton->setText(QApplication::translate("BoardConsoleClass", "Impulse", 0));
@@ -802,6 +838,10 @@ public:
         researchFreqLineEdit->setText(QApplication::translate("BoardConsoleClass", "0.01", 0));
         tranquilityButton->setText(QApplication::translate("BoardConsoleClass", "Tranquility Time (ms)", 0));
         tranquilityLineEdit->setText(QApplication::translate("BoardConsoleClass", "300", 0));
+        pwmStepButton->setText(QApplication::translate("BoardConsoleClass", "PWM Step", 0));
+        pwmStepLineEdit->setText(QApplication::translate("BoardConsoleClass", "10", 0));
+        everyNButton->setText(QApplication::translate("BoardConsoleClass", "Every N", 0));
+        everyNLineEdit->setText(QApplication::translate("BoardConsoleClass", "2", 0));
         stabGroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Stabilization", 0));
         stopMotorsButton->setText(QApplication::translate("BoardConsoleClass", "Stop Motors", 0));
         calibrButton->setText(QApplication::translate("BoardConsoleClass", "Calibrate", 0));

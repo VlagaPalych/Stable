@@ -1,11 +1,11 @@
-logName = 'D:\Vlad\Projects\Stable\Logger\BoardConsole\BoardConsole\log245.txt';
+logName = 'D:\Vlad\Projects\Stable\Logger\BoardConsole\BoardConsole\log273_koleb2.txt';
 
 logFile = fopen(logName, 'r');
 A = fscanf(logFile, '%f %f %f %d %d %d %d %d %d %d %f %f %f %d\n', [14 Inf]);
 
 angle   = A(1,:);
 angVel  = A(2,:);
-F       = A(3,:);
+angAcc  = A(3,:);
 ax      = A(4,:);
 ay      = A(5,:);
 az      = A(6,:);
@@ -18,10 +18,43 @@ count2  = A(10,:);
 % Kd      = A(14,:);
 fclose(logFile);
 
+count1 = 14e6./count1;
+count2 = 14e6./count2;
+
+TAU = 1.0;
+prevAngVel = 0;
+angAccels = zeros(1, length(angle));
+desAccels = zeros(1, length(angle));
+
+for i = 1:1:length(angle)
+    if count1(i) > 10000
+        count1(i) = 5000;
+    end
+    if count2(i) > 10000
+        count2(i) = 5000;
+    end
+    angAccels(i) = (angVel(i) - prevAngVel) / 0.01;
+    prevAngVel = angVel(i);
+    
+    if -angVel(i) * TAU / angle(i) / 2.0 < 1.0
+        desAccels(i) = - angVel(i) / TAU - angle(i) / TAU / TAU;
+    else
+        t1 = - 2*angle(i)/angVel(i);
+        desAccels(i) = - angVel(i) / t1;
+    end
+end
+
 angle = angle * 180 / 3.14159;
 angVel = angVel * 180 / 3.14159;
-t = 1:1:length(angVel);
-plot(t, pwm2, t, 14e6./count2 );
+
+angAccels = angAccels * 180 / 3.14159;
+desAccels = desAccels * 180 / 3.14159;
+
+t = 1:1:223;
+plot(t, angle(68:290), t, angVel(68:290));
+%plot(t, angle, t, angVel, t, desAccels, t, angAccels);
+%plot(t, angAccels, t, desAccels, t, pwm1 , t, pwm2);
+%plot(t, pwm2, t, count2, t, angle);
 % count1 = 24e6./count1;
 % count2 = 24e6./count2;
 % 

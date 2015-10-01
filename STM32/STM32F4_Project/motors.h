@@ -21,5 +21,6 @@ void Motors_InitForStab(void);
 
 // with current pwms
 void Motors_Run(void);
+void Motors_SetPwm(void);
 
 #endif

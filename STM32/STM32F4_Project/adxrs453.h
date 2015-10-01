@@ -13,7 +13,7 @@ extern int16_t adxrs_data;
 
 extern uint16_t adxrsResponses[2];
 
-void SPI3_Init();
+void SPI3_Init(void);
 
 uint16_t SPI3_Transfer(uint16_t data);
 uint16_t ADXRS453_Read(uint8_t address);

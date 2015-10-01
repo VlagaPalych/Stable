@@ -448,6 +448,11 @@
               <FileType>1</FileType>
               <FilePath>.\adxrs453.c</FilePath>
             </File>
+            <File>
+              <FileName>adxrs290.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\adxrs290.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -492,6 +497,11 @@
               <FileName>adxrs453.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\adxrs453.h</FilePath>
+            </File>
+            <File>
+              <FileName>adxrs290.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\adxrs290.h</FilePath>
             </File>
           </Files>
         </Group>

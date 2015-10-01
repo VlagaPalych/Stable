@@ -89,6 +89,10 @@ float chooseRoot() {
     return 2000;
 }
 
+int8_t sign(int val) {
+    if (val >= 0) return 1;
+    if (val < 0) return -1;
+}
 
 uint8_t min(uint8_t val1, uint8_t val2) {
     return val1 > val2 ? val2 : val1;
@@ -196,7 +200,7 @@ void control() {
 }
 
 void calcAngVel() {
-    angularVelocity = filteredVel / 80 * 3.14159 / 180.0;
+    angularVelocity = -filteredVel / 80 * 3.14159 / 180.0;
     //angularVelocity = - finalGX / 32767.0 * 2000 * 3.14159 / 180.0;
     angularVelocityHistory[angularVelocityHistoryIndex] = angularVelocity;
     if (angularVelocityHistoryIndex == ANGVEL_HISTORY_SIZE - 1) {
@@ -261,21 +265,26 @@ void getFinalData() {
     finalAY = ay;
 }
 
-uint8_t gCheck() {
-    float a2 = 0;
-    float diff = 0;
-    float threshold = 0;
-    a2          = finalAX * finalAX + finalAY * finalAY + finalAZ * finalAZ;
-    diff        = abs(a2 - G2);
-    threshold   = accelDeviation * G2;
-    return diff < threshold;
-}
 
 uint8_t tranquilityTime = 30;
 uint8_t tranquilityCount = 0;
 float angVelSmall = 0.1;
-#define ANGLE_STEP 0.03
+#define ANGLE_STEP 0.02
 
+uint8_t gCheck() {
+    float a2 = 0;
+    float diff = 0;
+    float threshold = 0;
+    int i;
+     threshold   = accelDeviation * G2;
+    for(i=tranquilityTime;i<tranquilityCount;i++){
+        threshold*=0.7;
+    }
+    a2          = finalAX * finalAX + finalAY * finalAY + finalAZ * finalAZ;
+    diff        = abs(a2 - G2);
+   
+    return diff < threshold;
+}
 void calcAngle() {
     float accelAngle = 0;
     float angleDiff = 0;
@@ -290,17 +299,17 @@ void calcAngle() {
     } else {
         tranquilityCount = 0;
     }
-    if (tranquilityCount == tranquilityTime) {
-        angle = atan((float)finalAX / (float)finalAZ);
-//        accelAngle = atan((float)finalAX / (float)finalAZ);
-//        angleDiff = angle - accelAngle;
-//        if (angleDiff > 0) {
-//            angle -= ANGLE_STEP;
-//        } else {
-//            angle += ANGLE_STEP;
-//        }
+    if (tranquilityCount >= tranquilityTime) {
+        //angle = atan((float)finalAX / (float)finalAZ);
+        accelAngle = atan((float)finalAX / (float)finalAZ);
+        angleDiff = angle - accelAngle;
+        if (angleDiff > 0) {
+            angle -= ANGLE_STEP;
+        } else {
+            angle += ANGLE_STEP;
+        }
         angleFromAccel = 1;
-        tranquilityCount--;
+       // tranquilityCount--;
     } else {
         angle += angularVelocity * DT;    
         angleFromAccel = 0;
@@ -309,6 +318,53 @@ void calcAngle() {
 
 void calcAngAccel() {
     angleAcceleration = (angularVelocity - prevAngularVelocity) / DT;
+    prevAngularVelocity=angularVelocity;
+}
+
+float Edes = 0;
+int pwmStep = 10;
+
+#define CONTROL_TIME_STEP 0.5
+uint8_t everyN = 2;
+#define TAU 1.0
+
+void adjustControl() {
+    //int8_t pwms = sign(pwm);
+  //  int8_t edesS;
+//    float absEdes = 0;
+    float t1 = 0;
+    if (- angularVelocity * TAU / angle / 2.0 < 1.0) {
+        Edes = - angularVelocity / TAU - angle / TAU / TAU;
+    } else {
+        t1 = - 2 * angle / angularVelocity;
+        Edes = - angularVelocity / t1;
+    }
+//    edesS=sign(Edes);
+//    absEdes=fabs(Edes);
+//    angleAcceleration*=edesS;
+//    if(absEdes>angleAcceleration)
+//        pwm+=pwms*pwmStep;
+//    else pwm-=pwms*pwmStep;
+//    pwm = fabs(pwm);
+    if (Edes > 0) {
+        if (Edes > angleAcceleration) {
+            pwm += pwmStep;
+        } else {
+            pwm -= pwmStep;
+        }
+    } else {
+        if (Edes > angleAcceleration) {
+            pwm += pwmStep;
+        } else {
+            pwm -= pwmStep;
+        }
+    }
+//    pwm *= pwms;
+    // pwm = fabs(pwm);
+    // pwm *= pwms;
+    
+    Motors_SetPwm();
+    Motors_Run();
 }
 
 void TIM7_IRQHandler(void) {
@@ -362,6 +418,9 @@ void TIM7_IRQHandler(void) {
             control();
             break;
         case ADJUST_CONTROL:
+            if (researchIndex % everyN == 0) {
+                adjustControl();
+            }
             break;
         default:
             researchIndex--;

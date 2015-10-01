@@ -61,6 +61,7 @@ BoardConsole::BoardConsole(QWidget *parent)
 	connect(ui.simpleRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
 	connect(ui.pidRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
 	connect(ui.operatorRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
+	connect(ui.adjustRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
 
 	connect(ui.maxAngleButton, SIGNAL(clicked()), SLOT(handleMaxAngleButton()));
 	connect(ui.accelDeviationButton, SIGNAL(clicked()), SLOT(handleAccelDeviationButton()));
@@ -75,6 +76,8 @@ BoardConsole::BoardConsole(QWidget *parent)
 	connect(ui.turnUselessCheckBox, SIGNAL(clicked()), SLOT(handleTurnUselessCheckBox()));
 	connect(ui.gyroRecalibrationCheckBox, SIGNAL(clicked()), SLOT(handleGyroRecalibrationCheckBox()));
 	connect(ui.tranquilityButton, SIGNAL(clicked()), SLOT(handleTranquilityButton()));
+	connect(ui.pwmStepButton, SIGNAL(clicked()), SLOT(handlePwmStepButton()));
+	connect(ui.everyNButton, SIGNAL(clicked()), SLOT(handleEveryNButton()));
 
 	stm = NULL;
 	stmReader = NULL;
@@ -487,6 +490,9 @@ void BoardConsole::handleResearchButtons() {
 	else if (ui.operatorRadioButton->isChecked()) {
 		stm->write(command(OPERATOR));
 	}
+	else if (ui.adjustRadioButton->isChecked()) {
+		stm->write(command(ADJUST));
+	}
 }
 
 void BoardConsole::handleMaxAngleButton() {
@@ -526,4 +532,14 @@ void BoardConsole::handleGyroRecalibrationCheckBox() {
 void BoardConsole::handleTranquilityButton() {
 	QString time = ui.tranquilityLineEdit->text();
 	stm->write(number_command(TRANQUILITY_TIME, time));
+}
+
+void BoardConsole::handlePwmStepButton() {
+	QString step = ui.pwmStepLineEdit->text();
+	stm->write(number_command(PWM_STEP, step));
+}
+
+void BoardConsole::handleEveryNButton() {
+	QString n = ui.everyNLineEdit->text();
+	stm->write(number_command(EVERY_N, n));
 }

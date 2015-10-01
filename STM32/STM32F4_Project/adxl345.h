@@ -31,6 +31,11 @@
 
 #define CALIBR_NUMBER               800
 
+extern uint8_t SPI2_SCK;   // PB
+extern uint8_t SPI2_MISO;   // PB
+extern uint8_t SPI2_MOSI;   // PB
+extern uint8_t ACCEL_INT1;    // PA
+
 extern uint8_t freshFreq;
 extern uint8_t curFreq;
 extern float curDT;
@@ -42,9 +47,9 @@ void Delay(void);
 void NSS_Low(void);
 void NSS_High(void);
 
-uint16_t SPI1_Transfer(uint16_t byte);
-uint8_t ADXL345_Read(uint8_t address);
-void ADXL345_Write(uint8_t address, uint8_t data);
+uint16_t SPI2_Transfer(uint16_t byte);
+uint8_t SPI2_Read(uint8_t address);
+void SPI2_Write(uint8_t address, uint8_t data);
 
 void ADXL345_Init(void);
 void SPI2_Init(void);
@@ -54,6 +59,7 @@ void ADXL345_Calibr(void);
 void ADXL345_GetAccel(int16_t *x, int16_t *y, int16_t *z);
 
 void Accel_EXTI_Init(void);
+void Accel_GetData(void);
 
 void ADXL345_DMA_Init(void);
 

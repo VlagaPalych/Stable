@@ -5,6 +5,7 @@
 #include "processing.h"
 #include "gyro.h"
 #include "adxrs453.h"
+#include "adxrs290.h"
 
 int16_t ax = 0;
 int16_t ay = 0;
@@ -15,7 +16,8 @@ int16_t gy = 0;
 int16_t gz = 0;
 
 uint8_t ENGRDY = 0;
-uint8_t STABRDY = 0;
+
+int pwm = 0;
 int pwm1 = 0;
 int pwm2 = 0;
 int COUNT1 = 0;
@@ -28,6 +30,7 @@ float Ki = 0;
 float angle = 0;
 float angularVelocity = 0;
 float filterScale=0.9;
+
 void RCC_Init() {
     RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN | RCC_APB2ENR_TIM9EN | RCC_APB2ENR_USART1EN;
     
@@ -55,7 +58,6 @@ void gyroRecalibration() {
     }
 }
 
-
 int main() {
     RCC_Init();   
     
@@ -73,6 +75,10 @@ int main() {
     ADXRS_TIM_Init();
     ADXRS_Calibr();
     
+    //SPI2_Init();   
+//    ARS2_Init();
+//    ARS2_EXTI_Init();
+//    EXTI->SWIER |= EXTI_SWIER_SWIER5;
 //    Gyro_Init();
 //    Gyro_EXTI_Init();
 //    Gyro_Calibr();
@@ -83,10 +89,12 @@ int main() {
     while(ENGRDY != 1) {};
           
     Processing_TIM_Init();
-
+        
+    
+ //   ARS1_Init();
     
     
-    while(1) {    
+    while(1) { 
         if (doAdxrsProcess) {
             doAdxrsProcess = 0;
             filteredVel = lowpass(adxrsHistory, adxrsCurHistoryIndex, adxrs_b, ADXRS_FILTER_SIZE);
@@ -108,33 +116,33 @@ int main() {
             filteredVel -= adxrs_Offset;
             
         }
-//        if (doGyroProcess) {
-//            doGyroProcess = 0;
-//            
-//            filteredGX = lowpass(gxHistory, gxCurHistoryIndex, gyro_b, GYRO_FILTER_SIZE);
-//            gyroRecalibration();
-//            if (gyroRecalibrationOn) {
-//                gyro_xOffset = gyroRecalibrationAccumulator / GYRO_RECALIBRATION_BUFFER_SIZE;
-//            }
-//            filteredGX -= gyro_xOffset;
-//            
-//            if (gyroCalibrationOn) {
-//                xSum += filteredGX;
-////            ySum += gy;
-////            zSum += gz;
-//            
-//                calibrIndex++;
-//            
-//                if (calibrIndex == calibrNumber) {
-//                    gyro_xOffset = xSum / calibrNumber;
-////                  gyro_yOffset = ySum / calibrNumber;
-////                  gyro_zOffset = zSum / calibrNumber;
-//                
-//                    gyroCalibrationOn = 0;
-//                    angle = 0;
-//                }
-//            }
-//        } 
+////        if (doGyroProcess) {
+////            doGyroProcess = 0;
+////            
+////            filteredGX = lowpass(gxHistory, gxCurHistoryIndex, gyro_b, GYRO_FILTER_SIZE);
+////            gyroRecalibration();
+////            if (gyroRecalibrationOn) {
+////                gyro_xOffset = gyroRecalibrationAccumulator / GYRO_RECALIBRATION_BUFFER_SIZE;
+////            }
+////            filteredGX -= gyro_xOffset;
+////            
+////            if (gyroCalibrationOn) {
+////                xSum += filteredGX;
+//////            ySum += gy;
+//////            zSum += gz;
+////            
+////                calibrIndex++;
+////            
+////                if (calibrIndex == calibrNumber) {
+////                    gyro_xOffset = xSum / calibrNumber;
+//////                  gyro_yOffset = ySum / calibrNumber;
+//////                  gyro_zOffset = zSum / calibrNumber;
+////                
+////                    gyroCalibrationOn = 0;
+////                    angle = 0;
+////                }
+////            }
+////        } 
         // Lowpass filtering of accelerations
         if (doAccelProcess) {    
             filteredAX = filterScale * lowpass(axHistory, axCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE);

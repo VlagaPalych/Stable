@@ -1,4 +1,5 @@
 #include "motors.h"
+#include "processing.h"
 #include "stm32f4xx.h"
 
 // Motors control and frequency measurement pins
@@ -52,7 +53,7 @@ void Motors_Init() {
 }
 
 uint8_t tim3_status = 0;
-int pwm         = 1000;
+int start_pwm         = 1000;
 int timer       = 0;
 int timer_1000  = 300; //2000;
 int timer_2000  = 600;//2000;
@@ -63,11 +64,11 @@ void Motors_TIM_Init() {
     // TIM4 - PWM timer for motors
 	TIM4->PSC 		= 7;	
 	TIM4->ARR 		= 10000;
-	TIM4->CCR1 	    = pwm;//2000;
+	TIM4->CCR1 	    = start_pwm;//2000;
 	TIM4->CCMR1 	|= TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1PE; 
 	TIM4->CCER 	    |= TIM_CCER_CC1E; 
     
-    TIM4->CCR3 	    = pwm;//2000;		
+    TIM4->CCR3 	    = start_pwm;//2000;		
 	TIM4->CCMR2 	|= TIM_CCMR2_OC3M_2 | TIM_CCMR2_OC3M_1 | TIM_CCMR2_OC3PE; 
 	TIM4->CCER 	    |= TIM_CCER_CC3E; 
 	TIM4->CR1       = TIM_CR1_CEN;
@@ -100,28 +101,28 @@ void TIM3_IRQHandler() { //moving pwm from 2 to 1ms in the start
 
     if (tim3_status == 0) {
         timer++;
-        if (pwm == 1000 && timer == timer_1000) {
+        if (start_pwm == 1000 && timer == timer_1000) {
             tim3_status = 3;
             TIM3->CR1 &= ~TIM_CR1_CEN;
             ENGRDY = 1;
             timer = 0;
-        } else if (pwm == pwmstartmax && timer == timer_2000) {
+        } else if (start_pwm == pwmstartmax && timer == timer_2000) {
             tim3_status = 2;
             timer = 0;
         }
     } else if (tim3_status == 1) {
-        pwm += pwm_step;
-        TIM4->CCR1 = pwm;
-        TIM4->CCR3 = pwm;
-        if (pwm == pwmstartmax) {
+        start_pwm += pwm_step;
+        TIM4->CCR1 = start_pwm;
+        TIM4->CCR3 = start_pwm;
+        if (start_pwm == pwmstartmax) {
             tim3_status = 0;
             timer = 0;
         }
     } else if (tim3_status == 2) {
-        pwm -= pwm_step;
-        TIM4->CCR1 = pwm;
-        TIM4->CCR3 = pwm;
-        if (pwm == 1000) {
+        start_pwm -= pwm_step;
+        TIM4->CCR1 = start_pwm;
+        TIM4->CCR3 = start_pwm;
+        if (start_pwm == 1000) {
 //            pwm = minPwm;
 //            TIM4->CCR1 = pwm;
 //            TIM4->CCR3 = pwm;
@@ -132,21 +133,14 @@ void TIM3_IRQHandler() { //moving pwm from 2 to 1ms in the start
     }  else if (tim3_status == 4) {
         timer++;
         if (timer == 1000) {
-            STABRDY = 1;
             tim3_status = 5;
             timer = 0;
         }
     }        
 }
 
-void Motors_InitForStab() {
-    STABRDY = 0;
-    timer = 0;
-    tim3_status = 4;
-    while (!STABRDY) {}
-}
-
 void Motors_Stop() {
+    pwm = 0;
     pwm1 = 1000;
     pwm2 = 1000;
     Motors_Run();
@@ -234,4 +228,22 @@ void Motors_Run(void) {
 //    } else {
         TIM4->CCR3 = pwm2;
     //}
+}
+
+void Motors_SetPwm() {
+    if (pwm > 0) {
+        pwm1 = pwm + minPwm;
+        if (pwm1 > maxPwm) {
+            pwm1 = maxPwm;
+            pwm = maxPwm - minPwm;
+        }
+        pwm2 = minPwm;
+    } else {
+        pwm2 = -pwm + minPwm;
+        if (pwm2 > maxPwm) {
+            pwm2 = maxPwm;
+            pwm = minPwm - maxPwm;
+        }
+        pwm1 = minPwm;
+    }
 }

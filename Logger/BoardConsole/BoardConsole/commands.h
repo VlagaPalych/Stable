@@ -31,6 +31,8 @@
 #define TURN_USELESS 't'
 #define GYRO_RECALIBRATION 'u'
 #define TRANQUILITY_TIME 'v'
+#define PWM_STEP 'w'
+#define EVERY_N 'x'
 
 #define ACCEL_FREQ_HZ25     'A'
 #define ACCEL_FREQ_HZ50     'B'
@@ -52,6 +54,7 @@
 #define SIMPLE              'P'
 #define PID					'Q'
 #define OPERATOR			'R'
+#define ADJUST				'S'
 
 #define PROGRAMMING_MODE 'Z'
 

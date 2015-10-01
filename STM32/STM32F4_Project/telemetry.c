@@ -15,7 +15,8 @@ uint8_t UART1_RX = 10;    // PA
 
 typedef enum { WAITING_FOR_COMMAND, WAITING_FOR_INT, WAITING_FOR_FLOAT } waiting;
 
-typedef enum { WAITING_FOR_PWM1, WAITING_FOR_PWM2, WAITING_FOR_MIN_PWM, WAITING_FOR_MAX_PWM, WAITING_FOR_TRANQUILITY_TIME, INT_NONE } waitingForInt;
+typedef enum { WAITING_FOR_PWM1, WAITING_FOR_PWM2, WAITING_FOR_MIN_PWM, WAITING_FOR_MAX_PWM, 
+                WAITING_FOR_TRANQUILITY_TIME, WAITING_FOR_PWM_STEP, WAITING_FOR_EVERY_N, INT_NONE } waitingForInt;
 
 typedef enum { WAITING_FOR_KP, WAITING_FOR_KD, WAITING_FOR_KI, WAITING_FOR_RESEARCH_AMPL, WAITING_FOR_RESEARCH_FREQ, 
 WAITING_FOR_MAX_ANGLE, WAITING_FOR_ACCEL_DEVIATION, WAITING_FOR_BOUNDARY_ANGLE, WAITING_FOR_MAX_ANGVEL, FLOAT_NONE } waitingForFloat;
@@ -102,7 +103,6 @@ void USART1_IRQHandler() {
             case WAITING_FOR_COMMAND:
                 switch (received) {
                     case TURN_EVERYTHING_OFF:
-                        stabilizationOn     = 0;
                         telemetryOn         = 0;
                         research = NO_RESEARCH;
                         break;
@@ -110,11 +110,11 @@ void USART1_IRQHandler() {
                         Motors_Stop();
                         break;
                     case CALIBRATION:
-                        stabilizationOn = 0;
+                        research = NO_RESEARCH;
                         Motors_Stop();
                         
                         ADXL345_Calibr();
-                    ADXRS_Calibr();
+                        ADXRS_Calibr();
                         //Gyro_Calibr();
                         
                         break;
@@ -165,6 +165,14 @@ void USART1_IRQHandler() {
                     case TRANQUILITY_TIME:
                         initWaitingForInt();
                         curWaitingForInt = WAITING_FOR_TRANQUILITY_TIME;
+                        break;
+                    case PWM_STEP:
+                        initWaitingForInt();
+                        curWaitingForInt = WAITING_FOR_PWM_STEP;
+                        break;
+                    case EVERY_N:
+                        initWaitingForInt();
+                        curWaitingForInt = WAITING_FOR_EVERY_N;
                         break;
                         
                     case ACCEL_FREQ_HZ25:
@@ -272,6 +280,11 @@ void USART1_IRQHandler() {
                     case OPERATOR:
                         research = OPERATOR_CONTROL;
                         break;
+                    case ADJUST:
+                        research = ADJUST_CONTROL;
+                        pwm1 = minPwm;
+                        pwm2 = minPwm;
+                        break;
                     
                     case PROGRAMMING_MODE:
                         GPIOB->MODER |= 1 << 8*2;
@@ -312,6 +325,12 @@ void USART1_IRQHandler() {
                                 break;
                             case WAITING_FOR_TRANQUILITY_TIME:
                                 tranquilityTime = intValue / 10;
+                                break;
+                            case WAITING_FOR_PWM_STEP:
+                                pwmStep = intValue;
+                                break;
+                            case WAITING_FOR_EVERY_N:
+                                everyN = intValue;
                                 break;
                             default:
                                 break;
@@ -405,7 +424,7 @@ void SendRawAndProcessed() {
 void SendTelemetry() {
     if (telemetryOn) {
         sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %d %d %.2f %.2f %.2f %d\n", 
-                    angle, angularVelocity, F, finalAX, finalAY, finalAZ, pwm1, pwm2, COUNT1, COUNT2, Kp, Ki, Kd, angleFromAccel);
+                    angle, angularVelocity, angleAcceleration, finalAX, finalAY, finalAZ, pwm1, pwm2, COUNT1, COUNT2, Kp, Ki, Kd, angleFromAccel, Edes);
 
         len = strlen(tele);
         Telemetry_DMA_Init();

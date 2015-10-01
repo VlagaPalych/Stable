@@ -19,8 +19,8 @@
 
 QT_BEGIN_MOC_NAMESPACE
 struct qt_meta_stringdata_BoardConsole_t {
-    QByteArrayData data[31];
-    char stringdata0[609];
+    QByteArrayData data[33];
+    char stringdata0[648];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -59,7 +59,9 @@ QT_MOC_LITERAL(26, 483, 24), // "handleTurnoffAngleButton"
 QT_MOC_LITERAL(27, 508, 18), // "handleMaxVelButton"
 QT_MOC_LITERAL(28, 527, 25), // "handleTurnUselessCheckBox"
 QT_MOC_LITERAL(29, 553, 31), // "handleGyroRecalibrationCheckBox"
-QT_MOC_LITERAL(30, 585, 23) // "handleTranquilityButton"
+QT_MOC_LITERAL(30, 585, 23), // "handleTranquilityButton"
+QT_MOC_LITERAL(31, 609, 19), // "handlePwmStepButton"
+QT_MOC_LITERAL(32, 629, 18) // "handleEveryNButton"
 
     },
     "BoardConsole\0handleProgramButton\0\0"
@@ -79,7 +81,8 @@ QT_MOC_LITERAL(30, 585, 23) // "handleTranquilityButton"
     "handleTurnoffAngleButton\0handleMaxVelButton\0"
     "handleTurnUselessCheckBox\0"
     "handleGyroRecalibrationCheckBox\0"
-    "handleTranquilityButton"
+    "handleTranquilityButton\0handlePwmStepButton\0"
+    "handleEveryNButton"
 };
 #undef QT_MOC_LITERAL
 
@@ -89,7 +92,7 @@ static const uint qt_meta_data_BoardConsole[] = {
        7,       // revision
        0,       // classname
        0,    0, // classinfo
-      27,   14, // methods
+      29,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -97,33 +100,35 @@ static const uint qt_meta_data_BoardConsole[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags
-       1,    0,  149,    2, 0x08 /* Private */,
-       3,    0,  150,    2, 0x08 /* Private */,
-       4,    0,  151,    2, 0x08 /* Private */,
-       5,    0,  152,    2, 0x08 /* Private */,
-       6,    0,  153,    2, 0x08 /* Private */,
-       7,    0,  154,    2, 0x08 /* Private */,
-       8,    0,  155,    2, 0x08 /* Private */,
-       9,    0,  156,    2, 0x08 /* Private */,
-      10,    1,  157,    2, 0x08 /* Private */,
-      13,    0,  160,    2, 0x08 /* Private */,
-      14,    0,  161,    2, 0x08 /* Private */,
-      15,    0,  162,    2, 0x08 /* Private */,
-      16,    0,  163,    2, 0x08 /* Private */,
-      17,    0,  164,    2, 0x08 /* Private */,
-      18,    0,  165,    2, 0x08 /* Private */,
-      19,    1,  166,    2, 0x08 /* Private */,
-      20,    1,  169,    2, 0x08 /* Private */,
-      21,    1,  172,    2, 0x08 /* Private */,
-      22,    1,  175,    2, 0x08 /* Private */,
-      23,    0,  178,    2, 0x08 /* Private */,
-      24,    0,  179,    2, 0x08 /* Private */,
-      25,    0,  180,    2, 0x08 /* Private */,
-      26,    0,  181,    2, 0x08 /* Private */,
-      27,    0,  182,    2, 0x08 /* Private */,
-      28,    0,  183,    2, 0x08 /* Private */,
-      29,    0,  184,    2, 0x08 /* Private */,
-      30,    0,  185,    2, 0x08 /* Private */,
+       1,    0,  159,    2, 0x08 /* Private */,
+       3,    0,  160,    2, 0x08 /* Private */,
+       4,    0,  161,    2, 0x08 /* Private */,
+       5,    0,  162,    2, 0x08 /* Private */,
+       6,    0,  163,    2, 0x08 /* Private */,
+       7,    0,  164,    2, 0x08 /* Private */,
+       8,    0,  165,    2, 0x08 /* Private */,
+       9,    0,  166,    2, 0x08 /* Private */,
+      10,    1,  167,    2, 0x08 /* Private */,
+      13,    0,  170,    2, 0x08 /* Private */,
+      14,    0,  171,    2, 0x08 /* Private */,
+      15,    0,  172,    2, 0x08 /* Private */,
+      16,    0,  173,    2, 0x08 /* Private */,
+      17,    0,  174,    2, 0x08 /* Private */,
+      18,    0,  175,    2, 0x08 /* Private */,
+      19,    1,  176,    2, 0x08 /* Private */,
+      20,    1,  179,    2, 0x08 /* Private */,
+      21,    1,  182,    2, 0x08 /* Private */,
+      22,    1,  185,    2, 0x08 /* Private */,
+      23,    0,  188,    2, 0x08 /* Private */,
+      24,    0,  189,    2, 0x08 /* Private */,
+      25,    0,  190,    2, 0x08 /* Private */,
+      26,    0,  191,    2, 0x08 /* Private */,
+      27,    0,  192,    2, 0x08 /* Private */,
+      28,    0,  193,    2, 0x08 /* Private */,
+      29,    0,  194,    2, 0x08 /* Private */,
+      30,    0,  195,    2, 0x08 /* Private */,
+      31,    0,  196,    2, 0x08 /* Private */,
+      32,    0,  197,    2, 0x08 /* Private */,
 
  // slots: parameters
     QMetaType::Void,
@@ -145,6 +150,8 @@ static const uint qt_meta_data_BoardConsole[] = {
     QMetaType::Void, QMetaType::Int,    2,
     QMetaType::Void, QMetaType::Int,    2,
     QMetaType::Void, QMetaType::Int,    2,
+    QMetaType::Void,
+    QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
@@ -190,6 +197,8 @@ void BoardConsole::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id
         case 24: _t->handleTurnUselessCheckBox(); break;
         case 25: _t->handleGyroRecalibrationCheckBox(); break;
         case 26: _t->handleTranquilityButton(); break;
+        case 27: _t->handlePwmStepButton(); break;
+        case 28: _t->handleEveryNButton(); break;
         default: ;
         }
     }
@@ -220,13 +229,13 @@ int BoardConsole::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 27)
+        if (_id < 29)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 27;
+        _id -= 29;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 27)
+        if (_id < 29)
             *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 27;
+        _id -= 29;
     }
     return _id;
 }

@@ -99,6 +99,9 @@ void handleProgramButton();
 	void handleGyroRecalibrationCheckBox();
 	void handleTranquilityButton();
 
+	void handlePwmStepButton();
+	void handleEveryNButton();
+
 };
 
 #endif // BOARDCONSOLE_H

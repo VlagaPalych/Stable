@@ -3,6 +3,11 @@
 
 #include "stdint.h"
 
+extern int pwm;
+extern uint8_t everyN;
+extern float angleAcceleration;
+extern float Edes;
+
 #define GYRO_RECALIBRATION_BUFFER_SIZE 1500
 extern float gyroRecalibrationAccumulator;
 
@@ -68,7 +73,10 @@ extern uint8_t gyroLowpassReady;
 
 extern uint8_t processCounter;
 
-typedef enum {IMPULSE_RESPONSE, STEP_RESPONSE, SINE_RESPONSE, EXP_RESPONSE, NO_RESEARCH, SIMPLE_CONTROL, PID_CONTROL, OPERATOR_CONTROL} researchType;
+extern int pwmStep;
+
+typedef enum {IMPULSE_RESPONSE, STEP_RESPONSE, SINE_RESPONSE, EXP_RESPONSE, NO_RESEARCH, 
+                SIMPLE_CONTROL, PID_CONTROL, OPERATOR_CONTROL, ADJUST_CONTROL} researchType;
 extern researchType research;
 extern float researchAmplitude;
 extern float researchFrequency;
