@@ -59,7 +59,7 @@ void USART_Init(void) {
 
     USART1->BRR     = 0x45;//0x341; 
     USART1->CR3     |= USART_CR3_DMAT;
-    USART1->CR1     |= USART_CR1_UE | USART_CR1_M | USART_CR1_PCE | USART_CR1_RE | USART_CR1_TE | USART_CR1_RXNEIE; 
+    USART1->CR1     |= USART_CR1_UE /*| USART_CR1_M | USART_CR1_PCE*/ | USART_CR1_RE | USART_CR1_TE | USART_CR1_RXNEIE; 
     NVIC_SetPriority(USART1_IRQn, 0x02);
     NVIC_EnableIRQ(USART1_IRQn);
     
@@ -424,7 +424,7 @@ void SendRawAndProcessed() {
 void SendTelemetry() {
     if (telemetryOn) {
         sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %d %d %.2f %.2f %.2f %d\n", 
-                    angle, angularVelocity, angleAcceleration, finalAX, finalAY, finalAZ, pwm1, pwm2, COUNT1, COUNT2, Kp, Ki, Kd, angleFromAccel, Edes);
+                    angle, angularVelocity, F, finalAX, finalAY, finalAZ, pwm1, pwm2, COUNT1, COUNT2, Kp, Ki, Kd, angleFromAccel);
 
         len = strlen(tele);
         Telemetry_DMA_Init();

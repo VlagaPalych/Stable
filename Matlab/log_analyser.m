@@ -1,4 +1,4 @@
-logName = 'D:\Vlad\Projects\Stable\Logger\BoardConsole\BoardConsole\log277.txt';
+logName = 'D:\Vlad\Projects\Stable\Logger\BoardConsole\BoardConsole\log291.txt';
 
 logFile = fopen(logName, 'r');
 A = fscanf(logFile, '%f %f %f %d %d %d %d %d %d %d %f %f %f %d %f \n', [15 Inf]);
@@ -58,8 +58,8 @@ desAccels = desAccels * 180 / 3.14159;
 % t = 1:1:223;
 % plot(t, angle(68:290), t, angVel(68:290));
 t = 1:1:length(angle);
-plot(t, angAcc, t, angAccels);
-% plot(t, angle, t, angVel, t, desAccels, t, angAcc);
+% plot(t, angAcc, t, angAccels);
+plot(t, angle, t, angVel);
 % plot(t, angAccels, t, desAccels, t, pwm1 , t, pwm2);
 % subplot(2,1,1); plot(t(28300:28800), angAccels(28300:28800), t(28300:28800), desAccels(28300:28800));
 % subplot(2,1,2); plot(t(28300:28800), pwm1(28300:28800), t(28300:28800), pwm2(28300:28800));

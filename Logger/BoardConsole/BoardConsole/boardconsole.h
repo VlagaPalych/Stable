@@ -24,6 +24,7 @@ private:
 
 	QVector<QwtPlotCurve *> plot1_curves;
 	QVector<QwtPlotCurve *> plot2_curves;
+	QVector<QwtPlotCurve *> plot3_curves;
 
 	QVector<double> angleX;
 	QVector<double> angleY;
@@ -40,14 +41,11 @@ private:
 	QVector<double> pwm2X;
 	QVector<double> pwm2Y;
 
-	QVector<double> gyroXX;
-	QVector<double> gyroXY;
+	QVector<double> count1X;
+	QVector<double> count1Y;
 
-	QVector<double> gyroYX;
-	QVector<double> gyroYY;
-
-	QVector<double> gyroZX;
-	QVector<double> gyroZY;
+	QVector<double> count2X;
+	QVector<double> count2Y;
 
 	QString defineLogFile();
 

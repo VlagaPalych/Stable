@@ -41,53 +41,39 @@ void RCC_Init() {
                     RCC_APB1ENR_TIM5EN | RCC_APB1ENR_TIM7EN | RCC_APB1ENR_SPI3EN;
 }
 
-float gyroRecalibrationBuffer[GYRO_RECALIBRATION_BUFFER_SIZE];
-int16_t gyroRecalibrationBufferIndex = 0;
-float gyroRecalibrationAccumulator = 0;
-
-void gyroRecalibration() {
-    // gyro recalibration system
-    // moving average
-    gyroRecalibrationAccumulator -= gyroRecalibrationBuffer[gyroRecalibrationBufferIndex];
-    gyroRecalibrationBuffer[gyroRecalibrationBufferIndex] = filteredGX;
-    gyroRecalibrationAccumulator += filteredGX;
-    if (gyroRecalibrationBufferIndex == GYRO_RECALIBRATION_BUFFER_SIZE - 1) {
-        gyroRecalibrationBufferIndex = 0;
-    } else {
-        gyroRecalibrationBufferIndex++;
-    }
-}
-
 int main() {
     RCC_Init();   
     
     GPIOB->MODER |= 0 << 8*2;
     GPIOC->MODER |= 1;
     GPIOC->BSRRL |= 1;
-    GPIOD->MODER = 1 << 15*2;
+    
+    ARS1_VDD_Init();
+    ARS2_VDD_Init();
+    ARS1_NSS_Init();
+    ARS2_NSS_Init();
+    ARS1_NSS_High();
+    ARS2_NSS_High();
     
     ADXL345_Init();
-    Accel_EXTI_Init();
-    ADXL345_Calibr();
-    EXTI->SWIER |= EXTI_SWIER_SWIER1;
+//    Accel_EXTI_Init();
+//    ADXL345_Calibr();
+//    EXTI->SWIER |= EXTI_SWIER_SWIER1;
     
     SPI3_Init();
     ADXRS_TIM_Init();
     ADXRS_Calibr();
-    
-    //SPI2_Init();   
-//    ARS2_Init();
-//    ARS2_EXTI_Init();
-//    EXTI->SWIER |= EXTI_SWIER_SWIER5;
-//    Gyro_Init();
-//    Gyro_EXTI_Init();
-//    Gyro_Calibr();
+     
+    ARS2_Init();
+    ARS2_EXTI_Init();
+    EXTI->SWIER |= EXTI_SWIER_SWIER15;
 
-    Motors_Init();
+
+//    Motors_Init();
     USART_Init();
-    
-    while(ENGRDY != 1) {};
-          
+////    
+//    while(ENGRDY != 1) {};
+////          
     Processing_TIM_Init();
         
     
@@ -95,60 +81,37 @@ int main() {
     
     
     while(1) { 
-        if (doAdxrsProcess) {
-            doAdxrsProcess = 0;
-            filteredVel = lowpass(adxrsHistory, adxrsCurHistoryIndex, adxrs_b, ADXRS_FILTER_SIZE);
-            
-            
-            if (adxrs_CalibrationOn) {
-                adxrs_Sum += filteredVel;
-            
-                if (adxrs_CalibrIndex == 0) {
-                    adxrs_Sum = 0;
-                }
-                adxrs_CalibrIndex++;
-                
-                if (adxrs_CalibrIndex == adxrs_CalibrNumber) {
-                    adxrs_Offset = adxrs_Sum / adxrs_CalibrNumber;
-                    adxrs_CalibrationOn = 0;
-                }
-            }
-            filteredVel -= adxrs_Offset;
-            
-        }
-////        if (doGyroProcess) {
-////            doGyroProcess = 0;
-////            
-////            filteredGX = lowpass(gxHistory, gxCurHistoryIndex, gyro_b, GYRO_FILTER_SIZE);
-////            gyroRecalibration();
-////            if (gyroRecalibrationOn) {
-////                gyro_xOffset = gyroRecalibrationAccumulator / GYRO_RECALIBRATION_BUFFER_SIZE;
-////            }
-////            filteredGX -= gyro_xOffset;
-////            
-////            if (gyroCalibrationOn) {
-////                xSum += filteredGX;
-//////            ySum += gy;
-//////            zSum += gz;
-////            
-////                calibrIndex++;
-////            
-////                if (calibrIndex == calibrNumber) {
-////                    gyro_xOffset = xSum / calibrNumber;
-//////                  gyro_yOffset = ySum / calibrNumber;
-//////                  gyro_zOffset = zSum / calibrNumber;
-////                
-////                    gyroCalibrationOn = 0;
-////                    angle = 0;
-////                }
-////            }
-////        } 
-        // Lowpass filtering of accelerations
-        if (doAccelProcess) {    
-            filteredAX = filterScale * lowpass(axHistory, axCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE);
-            filteredAZ = filterScale * lowpass(azHistory, azCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE); 
-            doAccelProcess = 0;
-        } 
+//        ARS1_NSS_Low();
+//        SPI2_Read(0x10);
+//        ARS1_NSS_High();
+//        if (doAdxrsProcess) {
+//            doAdxrsProcess = 0;
+//            filteredVel = lowpass(adxrsHistory, adxrsCurHistoryIndex, adxrs_b, ADXRS_FILTER_SIZE);
+//            
+//            
+//            if (adxrs_CalibrationOn) {
+//                adxrs_Sum += filteredVel;
+//            
+//                if (adxrs_CalibrIndex == 0) {
+//                    adxrs_Sum = 0;
+//                }
+//                adxrs_CalibrIndex++;
+//                
+//                if (adxrs_CalibrIndex == adxrs_CalibrNumber) {
+//                    adxrs_Offset = adxrs_Sum / adxrs_CalibrNumber;
+//                    adxrs_CalibrationOn = 0;
+//                    angle = 0;
+//                }
+//            }
+//            filteredVel -= adxrs_Offset;
+//            
+//        }
+//        // Lowpass filtering of accelerations
+//        if (doAccelProcess) {    
+//            filteredAX = filterScale * lowpass(axHistory, axCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE);
+//            filteredAZ = filterScale * lowpass(azHistory, azCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE); 
+//            doAccelProcess = 0;
+//        } 
         
         
     }

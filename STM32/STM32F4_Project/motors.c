@@ -8,7 +8,7 @@ uint8_t MOT_PWM2    = 14;   // PD14
 uint8_t MOT_FREQ1   = 2;    // PE2
 uint8_t MOT_FREQ2   = 4;    // PE4
 
-int minPwm = 1150;
+int minPwm = 1200;
 int maxPwm = 2000;
 
 extern uint8_t ENGRDY;

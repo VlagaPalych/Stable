@@ -13,7 +13,7 @@ BoardConsole::BoardConsole(QWidget *parent)
 	foreach(QSerialPortInfo port, availablePorts) {
 		ui.serialComboBox->addItem(port.portName());
 	}
-	ui.serialComboBox->setCurrentText("COM18");
+	ui.serialComboBox->setCurrentText("COM22");
 
 	connect(ui.programButton, SIGNAL(clicked()), SLOT(handleProgramButton()));
 	connect(ui.connectButton, SIGNAL(clicked()), SLOT(handleConnectButton()));
@@ -99,6 +99,14 @@ BoardConsole::BoardConsole(QWidget *parent)
 	plot2_curves[1]->setPen(Qt::blue);
 	plot2_curves[2]->setPen(Qt::green);
 
+	plot3_curves = QVector<QwtPlotCurve *>(2);
+	for (int i = 0; i < plot3_curves.size(); i++) {
+		plot3_curves[i] = new QwtPlotCurve;
+		plot3_curves[i]->attach(ui.plot3);
+	}
+	plot3_curves[0]->setPen(Qt::red);
+	plot3_curves[1]->setPen(Qt::blue);
+
 	angleX = QVector<double>();
 	angleY = QVector<double>();
 
@@ -113,6 +121,12 @@ BoardConsole::BoardConsole(QWidget *parent)
 
 	pwm2X = QVector<double>();
 	pwm2Y = QVector<double>();
+
+	count1X = QVector<double>();
+	count1Y = QVector<double>();
+
+	count2X = QVector<double>();
+	count2Y = QVector<double>();
 
 
 	firstMeasurement = true;
@@ -175,8 +189,9 @@ void BoardConsole::handleProgramButton() {
 void BoardConsole::handleConnectButton() {
 	stm = new QSerialPort(ui.serialComboBox->currentText());
 	stm->setBaudRate(QSerialPort::Baud115200);
-	stm->setParity(QSerialPort::EvenParity);
+	//stm->setParity(QSerialPort::EvenParity);
 	stm->setStopBits(QSerialPort::OneStop);
+	stm->setFlowControl(QSerialPort::NoFlowControl);
 	if (!stm->open(QIODevice::ReadWrite)) {
 		qDebug() << QObject::tr("Failed to open port %1, error: %2").arg(stm->portName()).arg(stm->errorString()) << endl;
 	}
@@ -188,7 +203,7 @@ void BoardConsole::handleConnectButton() {
 	stmReader = new SerialPortReader(stm, logFileName);
 	connect(stmReader, SIGNAL(freshLine(QString &)), SLOT(handleFreshLine(QString &)));
 
-	STM_Init();
+	//STM_Init();
 }
 
 void BoardConsole::STM_Init() {
@@ -225,29 +240,25 @@ void BoardConsole::handleClearTelemetryButton() {
 	pwm2X.clear();
 	pwm2Y.clear();
 
-	gyroXX.clear();
-	gyroXY.clear();
-	gyroYX.clear();
-	gyroYY.clear();
-	gyroZX.clear();
-	gyroZY.clear();
+	count1X.clear();
+	count1Y.clear();
+
+	count2X.clear();
+	count2Y.clear();
 
 	plot1_curves[0]->setSamples(angleX, angleY);
 	plot1_curves[1]->setSamples(angVelX, angVelY);
 
-	if (ui.fRadioButton->isChecked()) {
-		plot2_curves[0]->setSamples(fX, fY);
-		plot2_curves[1]->setSamples(pwm1X, pwm1Y);
-		plot2_curves[2]->setSamples(pwm2X, pwm2Y);
-	}
-	else if (ui.gyroRadioButton->isChecked()) {
-		plot2_curves[0]->setSamples(gyroXX, gyroXY);
-		plot2_curves[1]->setSamples(gyroYX, gyroYY);
-		plot2_curves[2]->setSamples(gyroZX, gyroZY);
-	}
+	plot2_curves[0]->setSamples(fX, fY);
+	plot2_curves[1]->setSamples(pwm1X, pwm1Y);
+	plot2_curves[2]->setSamples(pwm2X, pwm2Y);
+
+	plot3_curves[0]->setSamples(count1X, count1Y);
+	plot3_curves[1]->setSamples(count2X, count2Y);
 
 	ui.plot1->replot();
 	ui.plot2->replot();
+	ui.plot3->replot();
 }	
 
 void BoardConsole::handleTelemetryToggleButton() {
@@ -304,102 +315,96 @@ void BoardConsole::handleFreshLine(QString &line) {
 	}
 
 	QStringList numbers = line.split(' ');
-	qDebug() << numbers;
-	//if (ui.fullRadioButton->isChecked()) {
-		if (numbers.size() < 11) return;
+	//qDebug() << numbers;
 
-		double angle = numbers[0].toDouble() * 180 / 3.14159;
-		double angularVelocity = numbers[1].toDouble() * 180 / 3.14159;
-		double F = numbers[2].toDouble();
-		double pwm1 = numbers[6].toDouble();
-		double pwm2 = numbers[7].toDouble();
-		double gx = numbers[8].toDouble();
-		double gy = numbers[9].toDouble();
-		double gz = numbers[10].toDouble();
+	if (numbers.size() < 11) return;
 
-		qint64 time = QDateTime::currentMSecsSinceEpoch() - startTime;
+	double angle = numbers[0].toDouble() * 180 / 3.14159;
+	double angularVelocity = numbers[1].toDouble() * 180 / 3.14159;
+	double F = numbers[2].toDouble();
+	double pwm1 = numbers[6].toDouble();
+	double pwm2 = numbers[7].toDouble();
+	double count1 = 0; 
+	double count2 = 0;
+	if (numbers[8].toDouble() != 0) {
+		count1 = 14e6 / numbers[8].toDouble();
+	}
+	if (numbers[9].toDouble()) {
+		count2 = 14e6 / numbers[9].toDouble();
+	}
 
-		if (ui.angleCheckBox->isChecked()) {
-			if (angleX.size() == maxSize) {
-				angleX.pop_front();
-				angleY.pop_front();
-			}
-			angleX.append(time);
-			angleY.append(angle);
-			plot1_curves[0]->setSamples(angleX, angleY);
-		} 
-		if (ui.angVelCheckBox->isChecked()) {
-			if (angVelX.size() == maxSize) {
-				angVelX.pop_front();
-				angVelY.pop_front();
-			}
-			angVelX.append(time);
-			angVelY.append(angularVelocity);
-			plot1_curves[1]->setSamples(angVelX, angVelY);
+	qint64 time = QDateTime::currentMSecsSinceEpoch() - startTime;
+
+	if (ui.angleCheckBox->isChecked()) {
+		if (angleX.size() == maxSize) {
+			angleX.pop_front();
+			angleY.pop_front();
 		}
+		angleX.append(time);
+		angleY.append(angle);
+		plot1_curves[0]->setSamples(angleX, angleY);
+	} 
+	if (ui.angVelCheckBox->isChecked()) {
+		if (angVelX.size() == maxSize) {
+			angVelX.pop_front();
+			angVelY.pop_front();
+		}
+		angVelX.append(time);
+		angVelY.append(angularVelocity);
+		plot1_curves[1]->setSamples(angVelX, angVelY);
+	}
 
-		if (ui.fRadioButton->isChecked()) {
-			if (ui.fCheckBox->isChecked()) {
-				if (fX.size() == maxSize) {
-					fX.pop_front();
-					fY.pop_front();
-				}
-				fX.append(time);
-				fY.append(F);
-				plot2_curves[0]->setSamples(fX, fY);
-			}
-			if (ui.pwm1CheckBox->isChecked()) {
-				if (pwm1X.size() == maxSize) {
-					pwm1X.pop_front();
-					pwm1Y.pop_front();
-				}
-				pwm1X.append(time);
-				pwm1Y.append(pwm1);
-				plot2_curves[1]->setSamples(pwm1X, pwm1Y);
-			}
-			if (ui.pwm2CheckBox->isChecked()) {
-				if (pwm2X.size() == maxSize) {
-					pwm2X.pop_front();
-					pwm2Y.pop_front();
-				}
-				pwm2X.append(time);
-				pwm2Y.append(pwm2);
-				plot2_curves[2]->setSamples(pwm2X, pwm2Y);
-			}
+	if (ui.fCheckBox->isChecked()) {
+		if (fX.size() == maxSize) {
+			fX.pop_front();
+			fY.pop_front();
 		}
-		else if (ui.gyroRadioButton->isChecked()) {
-			if (ui.gxCheckBox->isChecked()) {
-				if (gyroXX.size() == maxSize) {
-					gyroXX.pop_front();
-					gyroXY.pop_front();
-				}
-				gyroXX.append(time);
-				gyroXY.append(gx);
-				plot2_curves[0]->setSamples(gyroXX, gyroXY);
-			}
-			if (ui.gyCheckBox->isChecked()) {
-				if (gyroYX.size() == maxSize) {
-					gyroYX.pop_front();
-					gyroYY.pop_front();
-				}
-				gyroYX.append(time);
-				gyroYY.append(gy);
-				plot2_curves[1]->setSamples(gyroYX, gyroYY);
-			}
-			if (ui.gzCheckBox->isChecked()) {
-				if (gyroZX.size() == maxSize) {
-					gyroZX.pop_front();
-					gyroZY.pop_front();
-				}
-				gyroZX.append(time);
-				gyroZY.append(gz);
-				plot2_curves[2]->setSamples(gyroZX, gyroZY);
-			}
+		fX.append(time);
+		fY.append(F);
+		plot2_curves[0]->setSamples(fX, fY);
+	}
+	if (ui.pwm1CheckBox->isChecked()) {
+		if (pwm1X.size() == maxSize) {
+			pwm1X.pop_front();
+			pwm1Y.pop_front();
 		}
+		pwm1X.append(time);
+		pwm1Y.append(pwm1);
+		plot2_curves[1]->setSamples(pwm1X, pwm1Y);
+	}
+	if (ui.pwm2CheckBox->isChecked()) {
+		if (pwm2X.size() == maxSize) {
+			pwm2X.pop_front();
+			pwm2Y.pop_front();
+		}
+		pwm2X.append(time);
+		pwm2Y.append(pwm2);
+		plot2_curves[2]->setSamples(pwm2X, pwm2Y);
+	}
+
+	if (ui.count1CheckBox->isChecked()) {
+		if (count1X.size() == maxSize) {
+			count1X.pop_front();
+			count1Y.pop_front();
+		}
+		count1X.append(time);
+		count1Y.append(count1);
+		plot3_curves[0]->setSamples(count1X, count1Y);
+	}
+	if (ui.count2CheckBox->isChecked()) {
+		if (count2X.size() == maxSize) {
+			count2X.pop_front();
+			count2Y.pop_front();
+		}
+		count2X.append(time);
+		count2Y.append(count2);
+		plot3_curves[1]->setSamples(count2X, count2Y);
+	}
 
 
 	ui.plot1->replot();
 	ui.plot2->replot();
+	ui.plot3->replot();
 }
 
 

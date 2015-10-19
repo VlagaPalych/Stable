@@ -77,6 +77,7 @@ float Cappr = -1.81;
 float D = 0;
 float x1 = 0;
 float x2 = 0;
+float minF = 0.075;
 
 float chooseRoot() {
     if (D < 0) return 2000;
@@ -100,15 +101,38 @@ uint8_t min(uint8_t val1, uint8_t val2) {
 
 uint8_t identificationReady = 0;
 
+
 void calcPwms() {
-    D = Bappr*Bappr - 4*Aappr*(Cappr - fabs(F));
+    float absF = fabs(F);
+    float absPwm = 0;
+    // tilt of the line is changed
+    if (absF < 0.8) {
+        pwm = (absF + 3.299) / 0.0028;       
+    } else {
+        pwm = (absF + 1.1542) / 0.0013;
+    }
+    if (pwm > maxPwm) {
+        pwm = maxPwm;
+    }
+    if (pwm < minPwm) {
+        pwm = minPwm;
+    }
+
     if (F > 0) {
         pwm1 = minPwm;
-        pwm2 = (int)chooseRoot();
+        pwm2 = pwm;
     } else {
         pwm2 = minPwm;
-        pwm1 = (int)chooseRoot();
+        pwm1 = pwm;
     }
+//    D = Bappr*Bappr - 4*Aappr*(Cappr - fabs(F));
+//    if (F > 0) {
+//        pwm1 = minPwm;
+//        pwm2 = (int)chooseRoot();
+//    } else {
+//        pwm2 = minPwm;
+//        pwm1 = (int)chooseRoot();
+//    }
 }
 
 #define ANGVEL_HISTORY_SIZE 5
@@ -142,29 +166,29 @@ void turnOffUselessMotor() {
 }
 
 void control() {
-    if (angle > 0) {
-        pwm2 = Kp * fabs(angle) + Kd * angularVelocity + minPwm;
-        if (pwm2 > maxPwm) {
-            pwm2 = maxPwm;
-        }
-        pwm1 = minPwm;
-    } else {
-        pwm1 = Kp * fabs(angle) - Kd * angularVelocity + minPwm;
-        if (pwm1 > maxPwm) {
-            pwm1 = maxPwm;
-        }
-        pwm2 = minPwm;
-    }
-    turnOffUselessMotor();
-    Motors_Run();
+//    if (angle > 0) {
+//        pwm2 = Kp * fabs(angle) + Kd * angularVelocity + minPwm;
+//        if (pwm2 > maxPwm) {
+//            pwm2 = maxPwm;
+//        }
+//        pwm1 = minPwm;
+//    } else {
+//        pwm1 = Kp * fabs(angle) - Kd * angularVelocity + minPwm;
+//        if (pwm1 > maxPwm) {
+//            pwm1 = maxPwm;
+//        }
+//        pwm2 = minPwm;
+//    }
+//    turnOffUselessMotor();
+//    Motors_Run();
     
-//    F = Kp*angle + Kd*angularVelocity + Ki*angleIntegral;
+    F = Kp*angle + Kd*angularVelocity + minF;
 
-//    //if (stabilizationOn) {
-//        calcPwms();
-//        turnOffUselessMotor();
-//        Motors_Run();
-//    //}     
+    //if (stabilizationOn) {
+        calcPwms();
+        turnOffUselessMotor();
+        Motors_Run();
+    //}     
 //        // Identification block
 //        if (anglesAccumulated < 2) {
 //            y[anglesAccumulated] = angle;
@@ -300,16 +324,16 @@ void calcAngle() {
         tranquilityCount = 0;
     }
     if (tranquilityCount >= tranquilityTime) {
-        //angle = atan((float)finalAX / (float)finalAZ);
+        angle = atan((float)finalAX / (float)finalAZ);
         accelAngle = atan((float)finalAX / (float)finalAZ);
-        angleDiff = angle - accelAngle;
-        if (angleDiff > 0) {
-            angle -= ANGLE_STEP;
-        } else {
-            angle += ANGLE_STEP;
-        }
+//        angleDiff = angle - accelAngle;
+//        if (angleDiff > 0) {
+//            angle -= ANGLE_STEP;
+//        } else {
+//            angle += ANGLE_STEP;
+//        }
         angleFromAccel = 1;
-       // tranquilityCount--;
+        tranquilityCount--;
     } else {
         angle += angularVelocity * DT;    
         angleFromAccel = 0;
