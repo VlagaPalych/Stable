@@ -171,6 +171,11 @@ void SystemInit(void)
   #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
     SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));  /* set CP10 and CP11 Full Access */
   #endif
+    
+    FLASH->ACR |= FLASH_ACR_PRFTEN;
+    FLASH->ACR &= (uint32_t)((uint32_t)~FLASH_ACR_LATENCY);
+    FLASH->ACR |= (uint32_t)FLASH_ACR_LATENCY_2WS;  
+    
   /* Reset the RCC clock configuration to the default reset state ------------*/
   /* Set HSION bit */
   RCC->CR |= (uint32_t)0x00000001;
@@ -193,8 +198,17 @@ void SystemInit(void)
   RCC->CR |= RCC_CR_HSEON;
   while (!(RCC->CR & RCC_CR_HSERDY)) {}
       
-  RCC->CFGR |= RCC_CFGR_SW_0;
-  while (!(RCC->CFGR & RCC_CFGR_SWS_0)) {}
+//  RCC->CFGR |= RCC_CFGR_SW_HSE;
+//  while (!(RCC->CFGR & RCC_CFGR_SWS_HSE)) {}
+      
+  RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSE | RCC_PLLCFGR_PLLN_8 /*| RCC_PLLCFGR_PLLN_5*/ | RCC_PLLCFGR_PLLM_1;
+  RCC->CR |= RCC_CR_PLLON;
+  while (!(RCC->CR & RCC_CR_PLLRDY)) {}
+      
+  RCC->CFGR = RCC_CFGR_PPRE1_DIV2 | RCC_CFGR_SW_PLL;
+  while (!(RCC->CFGR & RCC_CFGR_SWS_PLL)) {}
+      
+  //RCC->CR &= ~RCC_CR_HSION;
 
 #if defined (DATA_IN_ExtSRAM) || defined (DATA_IN_ExtSDRAM)
   SystemInit_ExtMemCtl(); 

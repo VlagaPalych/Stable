@@ -44,6 +44,8 @@ extern int16_t ax, ay, az;
 
 void Delay(void);
 
+void Accel_VDD_Init(void);
+void Accel_NSS_Init();
 void Accel_NSS_Low(void);
 void Accel_NSS_High(void);
 

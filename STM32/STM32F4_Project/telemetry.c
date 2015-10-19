@@ -207,7 +207,7 @@ void USART1_IRQHandler() {
                         break;
                     
                     
-                    case GYRO_FREQ_HZ100:
+                   /* case GYRO_FREQ_HZ100:
                         gyroFreshFreq = 1;
                         gyroCurFreq = GYRO_HZ100;
                         gyroCurDT = 0.01;
@@ -226,7 +226,7 @@ void USART1_IRQHandler() {
                         gyroFreshFreq = 1;
                         gyroCurFreq = GYRO_HZ1000;
                         gyroCurDT = 0.001;
-                        break;
+                        break;*/
                     
                     case MAX_ANGLE:
                         curWaitingForFloat = WAITING_FOR_MAX_ANGLE;

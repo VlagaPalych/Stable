@@ -48,42 +48,48 @@ int main() {
     GPIOC->MODER |= 1;
     GPIOC->BSRRL |= 1;
     
+    Accel_VDD_Init();
+    Accel_NSS_Init();
+    Accel_NSS_High();
+    
     ARS1_VDD_Init();
-    ARS2_VDD_Init();
     ARS1_NSS_Init();
-    ARS2_NSS_Init();
     ARS1_NSS_High();
+    
+    ARS2_VDD_Init();
+    ARS2_NSS_Init(); 
     ARS2_NSS_High();
     
-    ADXL345_Init();
+    SPI2_Init();
+//    ADXL345_Init();
 //    Accel_EXTI_Init();
 //    ADXL345_Calibr();
 //    EXTI->SWIER |= EXTI_SWIER_SWIER1;
     
-    SPI3_Init();
-    ADXRS_TIM_Init();
-    ADXRS_Calibr();
-     
-    ARS2_Init();
-    ARS2_EXTI_Init();
-    EXTI->SWIER |= EXTI_SWIER_SWIER15;
+//    SPI3_Init();
+//    ADXRS_TIM_Init();
+//    ADXRS_Calibr();
+//     
+    ARS1_Init();
+//    ARS1_EXTI_Init();
+//    EXTI->SWIER |= EXTI_SWIER_SWIER10;
+    
+//    ARS2_Init();
+//    ARS2_EXTI_Init();
+//    EXTI->SWIER |= EXTI_SWIER_SWIER15;
 
 
 //    Motors_Init();
-    USART_Init();
+//    USART_Init();
 ////    
 //    while(ENGRDY != 1) {};
 ////          
-    Processing_TIM_Init();
-        
-    
- //   ARS1_Init();
-    
+//    Processing_TIM_Init();
     
     while(1) { 
-//        ARS1_NSS_Low();
-//        SPI2_Read(0x10);
-//        ARS1_NSS_High();
+        ARS1_NSS_Low();
+        SPI2_Read(0x10);
+        ARS1_NSS_High();
 //        if (doAdxrsProcess) {
 //            doAdxrsProcess = 0;
 //            filteredVel = lowpass(adxrsHistory, adxrsCurHistoryIndex, adxrs_b, ADXRS_FILTER_SIZE);
