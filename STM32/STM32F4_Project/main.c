@@ -7,13 +7,35 @@
 #include "adxrs453.h"
 #include "adxrs290.h"
 
+/*
+
+Several interrupts and their priorities used in the program.
+
+EXTI1           - DRDY interrupt from Accel                     0x06
+EXTI15_10       - DRDY interrupt from ARS1 and ARS2             0x06
+
+DMA1_Stream3    - reading from Accel finished                   0x05
+
+EXTI2           - impulse interrupt from Motor1 (COUNT1)        0x01
+EXTI4           - impulse interrupt from Motor2 (COUNT2)        0x01
+
+USART1          - command received                              0x02
+
+TIM3            - timer for turning motors on                   0x01
+
+TIM2            - timer providing equidistance of samples       0x04
+DMA1_Stream2    - reading from ARS3 finished                    0x03
+
+*/
+
+float ars1_angleRate[ADXRS290_DATA_SIZE-1];
+float ars2_angleRate[ADXRS290_DATA_SIZE-1];
+
+float angleRate[3];
+
 int16_t ax = 0;
 int16_t ay = 0;
 int16_t az = 0;
-
-int16_t gx = 0;
-int16_t gy = 0;
-int16_t gz = 0;
 
 uint8_t ENGRDY = 0;
 
@@ -49,75 +71,77 @@ int main() {
     GPIOC->BSRRL |= 1;
     
     Accel_VDD_Init();
+    ARS1_VDD_Init();
+    ARS2_VDD_Init();
+    
     Accel_NSS_Init();
     Accel_NSS_High();
     
-    ARS1_VDD_Init();
     ARS1_NSS_Init();
     ARS1_NSS_High();
     
-    ARS2_VDD_Init();
     ARS2_NSS_Init(); 
     ARS2_NSS_High();
     
     SPI2_Init();
-//    ADXL345_Init();
-//    Accel_EXTI_Init();
-//    ADXL345_Calibr();
-//    EXTI->SWIER |= EXTI_SWIER_SWIER1;
     
-//    SPI3_Init();
-//    ADXRS_TIM_Init();
-//    ADXRS_Calibr();
-//     
+    ADXL345_Init();
+    Accel_EXTI_Init();
+    ADXL345_Calibr();
+    
+    
+    SPI3_Init();
+    ADXRS_TIM_Init();
+    ADXRS_Calibr();
+   
     ARS1_Init();
-//    ARS1_EXTI_Init();
-//    EXTI->SWIER |= EXTI_SWIER_SWIER10;
+    ARS1_EXTI_Init();
+    ARS1_Calibr();
     
-//    ARS2_Init();
-//    ARS2_EXTI_Init();
-//    EXTI->SWIER |= EXTI_SWIER_SWIER15;
+    ARS2_Init();
+    ARS2_EXTI_Init();
+    ARS2_Calibr();
 
+    EXTI->SWIER |= EXTI_SWIER_SWIER1;
 
-//    Motors_Init();
-//    USART_Init();
-////    
-//    while(ENGRDY != 1) {};
-////          
-//    Processing_TIM_Init();
+    Motors_Init();
+    USART_Init();
     
-    while(1) { 
-        ARS1_NSS_Low();
-        SPI2_Read(0x10);
-        ARS1_NSS_High();
-//        if (doAdxrsProcess) {
-//            doAdxrsProcess = 0;
-//            filteredVel = lowpass(adxrsHistory, adxrsCurHistoryIndex, adxrs_b, ADXRS_FILTER_SIZE);
-//            
-//            
-//            if (adxrs_CalibrationOn) {
-//                adxrs_Sum += filteredVel;
-//            
-//                if (adxrs_CalibrIndex == 0) {
-//                    adxrs_Sum = 0;
-//                }
-//                adxrs_CalibrIndex++;
-//                
-//                if (adxrs_CalibrIndex == adxrs_CalibrNumber) {
-//                    adxrs_Offset = adxrs_Sum / adxrs_CalibrNumber;
-//                    adxrs_CalibrationOn = 0;
-//                    angle = 0;
-//                }
-//            }
-//            filteredVel -= adxrs_Offset;
-//            
-//        }
-//        // Lowpass filtering of accelerations
-//        if (doAccelProcess) {    
-//            filteredAX = filterScale * lowpass(axHistory, axCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE);
-//            filteredAZ = filterScale * lowpass(azHistory, azCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE); 
-//            doAccelProcess = 0;
-//        } 
+    while(ENGRDY != 1) {};
+          
+    Processing_TIM_Init();
+    
+
+while(1) { 
+
+        if (doAdxrsProcess) {
+            doAdxrsProcess = 0;
+            filteredVel = lowpass(adxrsHistory, adxrsCurHistoryIndex, adxrs_b, ADXRS_FILTER_SIZE);
+            
+            
+            if (adxrs_CalibrationOn) {
+                adxrs_Sum += filteredVel;
+            
+                if (adxrs_CalibrIndex == 0) {
+                    adxrs_Sum = 0;
+                }
+                adxrs_CalibrIndex++;
+                
+                if (adxrs_CalibrIndex == adxrs_CalibrNumber) {
+                    adxrs_Offset = adxrs_Sum / adxrs_CalibrNumber;
+                    adxrs_CalibrationOn = 0;
+                    angle = 0;
+                }
+            }
+            filteredVel -= adxrs_Offset;
+            
+        }
+        // Lowpass filtering of accelerations
+        if (doAccelProcess) {    
+            filteredAX = filterScale * lowpass(axHistory, axCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE);
+            filteredAZ = filterScale * lowpass(azHistory, azCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE); 
+            doAccelProcess = 0;
+        } 
         
         
     }

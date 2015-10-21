@@ -9,6 +9,7 @@
 #include "processing.h"
 #include "commands.h"
 #include "adxrs453.h"
+#include "adxrs290.h"
 
 uint8_t UART1_TX = 9;    // PA
 uint8_t UART1_RX = 10;    // PA
@@ -423,8 +424,9 @@ void SendRawAndProcessed() {
 
 void SendTelemetry() {
     if (telemetryOn) {
-        sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %d %d %.2f %.2f %.2f %d\n", 
-                    angle, angularVelocity, F, finalAX, finalAY, finalAZ, pwm1, pwm2, COUNT1, COUNT2, Kp, Ki, Kd, angleFromAccel);
+        /*sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %d %d %.2f %.2f %.2f %d\n", 
+                    angle, angularVelocity, F, finalAX, finalAY, finalAZ, pwm1, pwm2, COUNT1, COUNT2, Kp, Ki, Kd, angleFromAccel);*/
+        sprintf(tele, "%hd %hd %hd %hd %hd %hd\n", ars1_data[0], ars1_data[1], ars1_data[2], ars2_data[0], ars2_data[1], ars2_data[2]);
 
         len = strlen(tele);
         Telemetry_DMA_Init();

@@ -7,6 +7,8 @@
 // COMMON
 //-------------------------------------------------------------------
 
+#define ADXRS290_DATA_SIZE 3
+
 extern uint8_t SPI2_Busy;
 
 typedef enum { NOBODY, ACCEL, ARS1, ARS2 } usingSPI2;
@@ -31,13 +33,15 @@ void ARS1_Init(void);
 void ARS1_EXTI_Init(void);
 //void ARS1_DMA_Init(void);
 void ARS1_GetData(void);
+void ARS1_Calibr(void);
+
+extern int16_t ars1_data[ADXRS290_DATA_SIZE];
 
 //-------------------------------------------------------------------
 // ARS2
 //-------------------------------------------------------------------
 
 extern uint8_t ARS2_EXTI; // PE;
-extern uint8_t ars2_dma_status;
 
 void ARS2_VDD_Init(void); 
 void ARS2_NSS_Init(void);
@@ -49,6 +53,8 @@ void ARS2_Init(void);
 void ARS2_EXTI_Init(void);
 void ARS2_DMA_Init(void);
 void ARS2_GetData(void);
+void ARS1_Calibr(void);
 
+extern int16_t ars2_data[ADXRS290_DATA_SIZE];
 
 #endif

@@ -71,7 +71,7 @@ void SPI2_Init() {
 	SPI2->CR1 = 0;
 	SPI2->CR1 |= SPI_CR1_DFF;                                                   // 16 bits
 	SPI2->CR2 |= SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN;
-	SPI2->CR1 |= SPI_CR1_BR_1; 							                        // baudrate = Fpclk / 8
+	//SPI2->CR1 |= SPI_CR1_BR_1; 							                        // baudrate = Fpclk / 8
 	SPI2->CR1 |= SPI_CR1_CPOL;													// polarity
 	SPI2->CR1 |= SPI_CR1_CPHA;													// phase	
 	SPI2->CR1 &= ~(SPI_CR1_LSBFIRST);										    // MSBFIRST		
@@ -156,7 +156,8 @@ void ADXL345_Calibr() {
     accelCalibrationOn = 1;
 }
 
-void Accel_EXTI_Init() {    
+void Accel_EXTI_Init() {   
+    GPIOA->MODER |= 1 << 2*2;;    
     GPIOA->OSPEEDR |= 3 << 1*2;
     
     SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI1_PA;
@@ -184,7 +185,8 @@ void EXTI1_IRQHandler() {  //what to do when accelerometer is ready
 #else
 
 void Accel_GetData() {
-    if (/*SPI2_Busy == 0*/(SPI2->SR & SPI_SR_BSY) == 0) {
+    if (SPI2_Busy == 0/*(SPI2->SR & SPI_SR_BSY) == 0*/) {
+        GPIOA->BSRRL |= 1 << 2;
         SPI2_Busy = 1;
         ADXL345_DMA_Init();
     } 
@@ -313,6 +315,7 @@ void DMA1_Stream3_IRQHandler() {
             default:
                 break;
         }
+        GPIOA->BSRRH |= 1 << 2;
         SPI2_SensorsPoll();
     }
 }

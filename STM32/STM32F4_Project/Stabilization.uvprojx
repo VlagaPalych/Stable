@@ -439,11 +439,6 @@
               <FilePath>.\motors.c</FilePath>
             </File>
             <File>
-              <FileName>gyro.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\gyro.c</FilePath>
-            </File>
-            <File>
               <FileName>adxrs453.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\adxrs453.c</FilePath>
@@ -482,11 +477,6 @@
               <FileName>telemetry.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\telemetry.h</FilePath>
-            </File>
-            <File>
-              <FileName>gyro.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\gyro.h</FilePath>
             </File>
             <File>
               <FileName>commands.h</FileName>

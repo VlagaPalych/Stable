@@ -57,12 +57,6 @@ extern uint8_t azCurHistoryIndex;
 extern int16_t finalAZ;
 extern int16_t filteredAZ;
 
-extern int16_t gxHistory[HISTORY_SIZE];
-extern uint8_t gxHistoryIndex;
-extern uint8_t gxCurHistoryIndex;
-extern float filteredGX;  
-extern float finalGX; 
-
 extern uint8_t doAccelProcess;
 extern uint8_t doGyroProcess;
 extern uint8_t doAdxrsProcess;

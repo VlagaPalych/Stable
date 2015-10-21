@@ -31,7 +31,7 @@ void SPI3_Init() {
 	SPI3->CR1 = 0;
 	SPI3->CR1 |= SPI_CR1_DFF;                                                   // 16 bits
 	SPI3->CR2 |= SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN;
-	//SPI2->CR1 |= SPI_CR1_BR; 							                        // baudrate = Fpclk / 256
+	//SPI2->CR1 |= SPI_CR1_BR_1; 							                        // baudrate = Fpclk / 256
 	//SPI3->CR1 |= SPI_CR1_CPOL;													// polarity
 	//SPI3->CR1 |= SPI_CR1_CPHA;													// phase	
 	SPI3->CR1 &= ~(SPI_CR1_LSBFIRST);										    // MSBFIRST		
@@ -52,11 +52,9 @@ void SPI3_NSS_High() {
 uint16_t SPI3_Transfer(uint16_t data) { 
     
 	while ((SPI3->SR & SPI_SR_TXE)==0);
-    //SPI3_NSS_Low();
 	SPI3->DR = data;
 	
 	while ((SPI3->SR & SPI_SR_RXNE)==0);
-    //SPI3_NSS_High();
 	return (SPI3->DR);
 }
 
@@ -76,27 +74,10 @@ uint16_t ADXRS453_Read(uint8_t address) {
     
     SPI3_NSS_Low();
     recv = SPI3_Transfer(send);
-    //    for (i = 0; i < 16; i++) {
-//        p0 ^= recv & (1 << i);
-//    }
-//    if (p0 != (recv & (1 << 12))) {
-//    }
     d15_d11 = recv & 0x001f;  
     recv = SPI3_Transfer(p);
-    //    for (i = 0; i < 16; i++) {
-//        p1 ^= recv & (1 << i);
-//    }
-//    if ((p0 ^ p1) != (recv & 1)) {
-//    }
     d10_d0 = recv & 0xffe0;
     SPI3_NSS_High();
-
-//    SPI3_NSS_Low();
-//    recv = SPI3_Transfer(send);
-//  
-//    
-//    recv = SPI3_Transfer(p);
-//    SPI3_NSS_High();
 
     return d10_d0 | (d15_d11 << 11);
 }
@@ -110,8 +91,8 @@ uint8_t transferFinished = 1;
 void ADXRS_DMA_Read() {
     if (transferFinished) {
         transferFinished = 0;
+        NVIC_SetPriority(DMA1_Stream2_IRQn, 0x03);
         NVIC_EnableIRQ(DMA1_Stream2_IRQn);
-        //NVIC_EnableIRQ(DMA1_Stream5_IRQn);
         
         SPI3_NSS_Low();
         
@@ -181,7 +162,7 @@ void ADXRS_TIM_Init() {
     TIM2->PSC = 7;
     TIM2->ARR = 2500;
     TIM2->DIER |= 1;
-    NVIC_SetPriority(TIM2_IRQn, 0xFF);
+    NVIC_SetPriority(TIM2_IRQn, 0x04);
     NVIC_EnableIRQ(TIM2_IRQn);
     
     TIM2->CR1 |= TIM_CR1_CEN;

@@ -73,7 +73,7 @@ void Motors_TIM_Init() {
 	TIM4->CCER 	    |= TIM_CCER_CC3E; 
 	TIM4->CR1       = TIM_CR1_CEN;
     
-    // TIM3 - turning on timer for motors
+    // TIM3 - timer for turning motors on
     TIM3->PSC = 7;
     TIM3->ARR = 5000;
     TIM3->DIER |= 1;			
