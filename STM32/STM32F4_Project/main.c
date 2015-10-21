@@ -28,9 +28,6 @@ DMA1_Stream2    - reading from ARS3 finished                    0x03
 
 */
 
-float ars1_angleRate[ADXRS290_DATA_SIZE-1];
-float ars2_angleRate[ADXRS290_DATA_SIZE-1];
-
 float angleRate[3];
 
 int16_t ax = 0;
@@ -64,6 +61,8 @@ void RCC_Init() {
 }
 
 int main() {
+    uint8_t i = 0;
+    
     RCC_Init();   
     
     GPIOB->MODER |= 0 << 8*2;
@@ -85,64 +84,109 @@ int main() {
     
     SPI2_Init();
     
-    ADXL345_Init();
-    Accel_EXTI_Init();
-    ADXL345_Calibr();
-    
-    
-    SPI3_Init();
-    ADXRS_TIM_Init();
-    ADXRS_Calibr();
-   
+//    ADXL345_Init();
+//    Accel_EXTI_Init();
+//    ADXL345_Calibr();
+
     ARS1_Init();
     ARS1_EXTI_Init();
-    ARS1_Calibr();
+    //ARS1_Calibr();
     
-    ARS2_Init();
-    ARS2_EXTI_Init();
-    ARS2_Calibr();
+//    ARS2_Init();
+//    ARS2_EXTI_Init();
+//    ARS2_Calibr();
+//    
+//    SPI3_Init();
+//    ADXRS_TIM_Init();
+//    ADXRS_Calibr();
+//  
+    EXTI->SWIER |= EXTI_SWIER_SWIER10;
 
-    EXTI->SWIER |= EXTI_SWIER_SWIER1;
+//    Motors_Init();
+//    USART_Init();
+//    
+//    while(ENGRDY != 1) {};
+//          
+//    Processing_TIM_Init();    
 
-    Motors_Init();
-    USART_Init();
-    
-    while(ENGRDY != 1) {};
-          
-    Processing_TIM_Init();
-    
+    while(1) { 
 
-while(1) { 
+//        if (doAdxrsProcess) {
+//            doAdxrsProcess = 0;
+//            filteredVel = lowpass(adxrsHistory, adxrsCurHistoryIndex, adxrs_b, ADXRS_FILTER_SIZE);
+//                     
+//            if (adxrs_CalibrationOn) {
+//                adxrs_Sum += filteredVel;
+//            
+//                if (adxrs_CalibrIndex == 0) {
+//                    adxrs_Sum = 0;
+//                }
+//                adxrs_CalibrIndex++;
+//                
+//                if (adxrs_CalibrIndex == adxrs_CalibrNumber) {
+//                    adxrs_Offset = adxrs_Sum / adxrs_CalibrNumber;
+//                    adxrs_CalibrationOn = 0;
+//                    angle = 0;
+//                }
+//            }
+//            filteredVel -= adxrs_Offset;
+//            
+//        }
+//        // Lowpass filtering of accelerations
+//        if (doAccelProcess) {    
+//            filteredAX = filterScale * lowpass(axHistory, axCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE);
+//            filteredAZ = filterScale * lowpass(azHistory, azCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE); 
+//            doAccelProcess = 0;
+//        } 
+//        
+//        if (ars1_doProcess) {
+//            ars1_doProcess = 0;
 
-        if (doAdxrsProcess) {
-            doAdxrsProcess = 0;
-            filteredVel = lowpass(adxrsHistory, adxrsCurHistoryIndex, adxrs_b, ADXRS_FILTER_SIZE);
-            
-            
-            if (adxrs_CalibrationOn) {
-                adxrs_Sum += filteredVel;
-            
-                if (adxrs_CalibrIndex == 0) {
-                    adxrs_Sum = 0;
-                }
-                adxrs_CalibrIndex++;
-                
-                if (adxrs_CalibrIndex == adxrs_CalibrNumber) {
-                    adxrs_Offset = adxrs_Sum / adxrs_CalibrNumber;
-                    adxrs_CalibrationOn = 0;
-                    angle = 0;
-                }
-            }
-            filteredVel -= adxrs_Offset;
-            
-        }
-        // Lowpass filtering of accelerations
-        if (doAccelProcess) {    
-            filteredAX = filterScale * lowpass(axHistory, axCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE);
-            filteredAZ = filterScale * lowpass(azHistory, azCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE); 
-            doAccelProcess = 0;
-        } 
-        
-        
+//            for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
+//                ars1_filteredData[i] = lowpass(ars1_history[i], ars1_curHistoryIndex, adxrs290_filterCfs, ADXRS290_FILTER_SIZE);
+//            }
+//            
+//            if (ars1_calibrationOn) {
+//                for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
+//                    ars1_sum[i] += ars1_filteredData[i];
+//                }
+//                ars1_calibrIndex++;          
+//                if (ars1_calibrIndex == ars1_calibrNumber) {
+//                    for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
+//                        ars1_offset[i] = ars1_sum[i] / ars1_calibrNumber;
+//                    }
+//                    ars1_calibrationOn = 0;
+//                }
+//            }
+//            
+//            for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
+//                ars1_filteredData[i] -= ars1_offset[i];
+//            }
+//        }
+//        
+//        if (ars2_doProcess) {
+//            ars2_doProcess = 0;
+
+//            for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
+//                ars2_filteredData[i] = lowpass(ars2_history[i], ars2_curHistoryIndex, adxrs290_filterCfs, ADXRS290_FILTER_SIZE);
+//            }
+//            
+//            if (ars2_calibrationOn) {
+//                for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
+//                    ars2_sum[i] += ars2_filteredData[i];
+//                }
+//                ars2_calibrIndex++;          
+//                if (ars2_calibrIndex == ars2_calibrNumber) {
+//                    for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
+//                        ars2_offset[i] = ars2_sum[i] / ars2_calibrNumber;
+//                    }
+//                    ars2_calibrationOn = 0;
+//                }
+//            }
+//            
+//            for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
+//                ars2_filteredData[i] -= ars2_offset[i];
+//            }
+//        }
     }
 }

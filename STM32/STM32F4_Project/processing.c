@@ -227,7 +227,7 @@ void calcAngVel() {
 //        gzInRads = finalGZ / 32767.0 * 2000 * 3.14159 / 180.0; 
 }
 
-float lowpass(int16_t *history, uint8_t lowpassIndex, float *fir, uint8_t firSize) {
+float lowpass(int16_t *history, uint8_t lowpassIndex, float *fir, int firSize) {
     uint8_t i = 0, tmpIndex = 0;
     float output = 0;
     float tmp = 0;

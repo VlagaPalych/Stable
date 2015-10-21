@@ -41,7 +41,6 @@ extern uint8_t adxrsCurHistoryIndex;
 extern float filteredVel;
 
 extern float accel_b[ACCEL_FILTER_SIZE];
-extern float gyro_b[GYRO_FILTER_SIZE];
 
 extern int16_t axHistory[HISTORY_SIZE];
 extern uint8_t axHistoryIndex;
@@ -80,7 +79,7 @@ void control(void);
 void process(void);
 
 void Processing_TIM_Init(void);
-float lowpass(int16_t *history, uint8_t lowpassIndex, float *fir, uint8_t firSize);
+float lowpass(int16_t *history, uint8_t lowpassIndex, float *fir, int firSize);
 
 void transformGyroData(void);
 

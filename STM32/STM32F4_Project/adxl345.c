@@ -237,84 +237,57 @@ void DMA1_Stream3_IRQHandler() {
     if (DMA1->LISR & DMA_LISR_TCIF3) {
         DMA1->LIFCR = DMA_LIFCR_CTCIF3 | DMA_LIFCR_CHTIF3;
         All_NSS_High();
-        switch (curUsingSPI2) {
-            case ACCEL:         
-                Accel_UpdateFreq();
-                
-                ((uint8_t *)(&ax))[0] = (uint8_t)(accel[0] & 0xFF);
-                ((uint8_t *)(&ax))[1] = (uint8_t)(accel[1] & 0xFF);
-                ((uint8_t *)(&ay))[0] = (uint8_t)(accel[2] & 0xFF);
-                ((uint8_t *)(&ay))[1] = (uint8_t)(accel[3] & 0xFF);
-                ((uint8_t *)(&az))[0] = (uint8_t)(accel[4] & 0xFF);
-                ((uint8_t *)(&az))[1] = (uint8_t)(accel[5] & 0xFF);
+        
+        Accel_UpdateFreq();
+        
+        ((uint8_t *)(&ax))[0] = (uint8_t)(accel[0] & 0xFF);
+        ((uint8_t *)(&ax))[1] = (uint8_t)(accel[1] & 0xFF);
+        ((uint8_t *)(&ay))[0] = (uint8_t)(accel[2] & 0xFF);
+        ((uint8_t *)(&ay))[1] = (uint8_t)(accel[3] & 0xFF);
+        ((uint8_t *)(&az))[0] = (uint8_t)(accel[4] & 0xFF);
+        ((uint8_t *)(&az))[1] = (uint8_t)(accel[5] & 0xFF);
+    
+        
+        if (accelCalibrationOn) {
+            accel_xSum += ax;
+            accel_ySum += ay;
+            accel_zSum += az;  
             
-                
-                if (accelCalibrationOn) {
-                    accel_xSum += ax;
-                    accel_ySum += ay;
-                    accel_zSum += az;  
-                    
-                    accelCalibrIndex++;
-                    
-                    if (accelCalibrIndex == accelCalibrNumber) {
-                        xOffset = (int16_t)(accel_xSum / accelCalibrNumber);
-                        yOffset = (int16_t)(accel_ySum / accelCalibrNumber);
-                        zOffset = (int16_t)(accel_zSum / accelCalibrNumber) - 0xFF;
-                        accelCalibrationOn = 0;
-                    }
-                }
-                
-                ax -= xOffset;
-                ay -= yOffset;
-                az -= zOffset;
-                
-                if ((ax > 100) || (ax < -100)) {
-                    ax++;
-                    ax--;
-                }
-                
-                axHistory[axHistoryIndex] = ax;
-                axHistoryIndex++;
-                
-                azHistory[azHistoryIndex] = az;
-                azHistoryIndex++;
-                
-                if (azHistoryIndex >= ACCEL_FILTER_SIZE) {
-                    accelLowpassReady = 1;
-                }
-                
-                processCounter++;
-                if (processCounter == 16) {
-                    processCounter = 0;
-                    
-                    axCurHistoryIndex = axHistoryIndex - 1;
-                    azCurHistoryIndex = azHistoryIndex - 1;
-                    if (lowpassOn && accelLowpassReady) {
-                        doAccelProcess = 1;
-                    }
-                } 
-                
-                
-                break;
-            case ARS1:
-                break;
-            case ARS2:
-//                if(GPIOA->IDR & GPIO_IDR_IDR_5) {  
-//                    ARS2_DMA_Init();
-//                } else ARS2_NSS_High();
+            accelCalibrIndex++;
             
-              //  ARS2_NSS_High();
-//                ars2_dma_status++;
-//                if (ars2_dma_status == 2) {
-//                    // data from ars2 received
-//                } else {
-//                    ARS2_NSS_Low();
-//                    ARS2_DMA_Init();
-//                }
-                break;
-            default:
-                break;
+            if (accelCalibrIndex == accelCalibrNumber) {
+                xOffset = (int16_t)(accel_xSum / accelCalibrNumber);
+                yOffset = (int16_t)(accel_ySum / accelCalibrNumber);
+                zOffset = (int16_t)(accel_zSum / accelCalibrNumber) - 0xFF;
+                accelCalibrationOn = 0;
+            }
         }
+        
+        ax -= xOffset;
+        ay -= yOffset;
+        az -= zOffset;     
+        
+        axHistory[axHistoryIndex] = ax;
+        axHistoryIndex++;
+        
+        azHistory[azHistoryIndex] = az;
+        azHistoryIndex++;
+        
+        if (azHistoryIndex >= ACCEL_FILTER_SIZE) {
+            accelLowpassReady = 1;
+        }
+        
+        processCounter++;
+        if (processCounter == 16) {
+            processCounter = 0;
+            
+            axCurHistoryIndex = axHistoryIndex - 1;
+            azCurHistoryIndex = azHistoryIndex - 1;
+            if (lowpassOn && accelLowpassReady) {
+                doAccelProcess = 1;
+            }
+        } 
+
         GPIOA->BSRRH |= 1 << 2;
         SPI2_SensorsPoll();
     }
