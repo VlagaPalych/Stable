@@ -7,6 +7,7 @@
 //-------------------------------------------------------------------
 
 uint8_t SPI2_Busy = 0;
+SPI2_Using SPI2_curUsing = NONE;
 
 uint8_t adxrs290_regs[ADXRS290_DATA_SIZE*2] = {0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d};
 
@@ -19,17 +20,17 @@ void All_NSS_High() {
 }
 
 void SPI2_SensorsPoll(void) { 
-    SPI2_Busy = 0;
-//    //if (GPIOD->IDR & (1 << ARS1_EXTI)) {
-//        // ARS1 DATA_READY
-//    //    EXTI->SWIER |= EXTI_SWIER_SWIER10;
-//    /*} /*else if (GPIOE->IDR & (1 << ARS2_EXTI)) {
-//        // ARS2 DATA_READY
-//        EXTI->SWIER |= EXTI_SWIER_SWIER15;
-//    } else if (GPIOA->IDR & (1 << ACCEL_INT1)) {
-//        // Accel DATA_READY
-//        EXTI->SWIER |= EXTI_SWIER_SWIER1;
-//    }/
+    SPI2_curUsing = NONE;
+    if (GPIOA->IDR & (1 << ACCEL_INT1)) {
+        // Accel DATA_READY
+        EXTI->SWIER |= EXTI_SWIER_SWIER1;
+    } else if (GPIOD->IDR & (1 << ARS1_EXTI)) {
+        // ARS1 DATA_READY
+        EXTI->SWIER |= EXTI_SWIER_SWIER10;
+    } else if (GPIOE->IDR & (1 << ARS2_EXTI)) {
+        // ARS2 DATA_READY
+        EXTI->SWIER |= EXTI_SWIER_SWIER15;
+    }
 }
 
 void EXTI15_10_IRQHandler() {
@@ -44,44 +45,91 @@ void EXTI15_10_IRQHandler() {
     }
 }
 
-uint8_t spiReceived = 0;
-
 void SPI2_IRQHandler() {
+    uint8_t i = 0;
     uint16_t tmp = 0;
     
-//    if (SPI2->SR & SPI_SR_TXE) {
-//        if (ars1_spiIndex == 0) {
-//            tmp = (adxrs290_regs[ars1_spiIndex+1] | 0x80) << 8;
-//                SPI2->DR = tmp;
-//        } else
-//            if (ars1_spiIndex < 5) {
-//                ARS1_NSS_Low();
-//                tmp = (adxrs290_regs[ars1_spiIndex+1] | 0x80) << 8;
-//                SPI2->DR = tmp;
-//            } else if ((ars1_spiIndex > 5) && ((SPI2->SR & SPI_SR_BSY) == 0)) {
-//                SPI2->CR2 &= ~(SPI_CR2_TXEIE | SPI_CR2_RXNEIE);
-//                SPI2->CR1 &= ~SPI_CR1_SPE;
-//                SPI2_Busy = 0;
-//            }
-//    } 
     if (SPI2->SR & SPI_SR_RXNE) { 
-        ARS1_NSS_High();        
-        tmp = SPI2->DR;
-        ars1_rawData[ars1_spiIndex] = (uint8_t)(tmp & 0xff);
-        ars1_spiIndex++;
-        
-        if (ars1_spiIndex < ADXRS290_DATA_SIZE*2) {
-            ARS1_NSS_Low();
-            tmp = (adxrs290_regs[ars1_spiIndex] | 0x80) << 8;
-            SPI2->DR = tmp;
-        } else {
-            SPI2->CR2 &= ~SPI_CR2_RXNEIE;
-            SPI2->CR1 &= ~SPI_CR1_SPE;
-            SPI2_Busy = 0;
+        if (SPI2_curUsing == ARS1_USING) {
+            ARS1_NSS_High();        
+            tmp = SPI2->DR;
+            ars1_rawData[ars1_spiIndex] = (uint8_t)(tmp & 0xff);
+            ars1_spiIndex++;
             
-            ars1_data[0] = (ars1_rawData[1] << 8) | ars1_rawData[0];
-            ars1_data[1] = (ars1_rawData[3] << 8) | ars1_rawData[2];
-            ars1_data[2] = ((ars1_rawData[5] & 0x0f) << 8) | ars1_rawData[4];
+            if (ars1_spiIndex < ADXRS290_DATA_SIZE*2) {
+                ARS1_NSS_Low();
+                tmp = (adxrs290_regs[ars1_spiIndex] | 0x80) << 8;
+                SPI2->DR = tmp;
+            } else {
+                SPI2->CR2 &= ~SPI_CR2_RXNEIE;
+                //SPI2->CR1 &= ~SPI_CR1_SPE;
+                
+                ars1_data[0] = (ars1_rawData[1] << 8) | ars1_rawData[0];
+                ars1_data[1] = (ars1_rawData[3] << 8) | ars1_rawData[2];
+                ars1_data[2] = ((ars1_rawData[5] & 0x0f) << 8) | ars1_rawData[4];
+                
+                for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
+                    //ars1_data[i] -= ars1_offset[i];                     // subract pre-calibrated offset
+                    ars1_history[i][ars1_historyIndex] = ars1_data[i];  // recording history for future filtration
+                }
+                
+                ars1_historyIndex++;
+                if (ars1_historyIndex >= ADXRS290_FILTER_SIZE) {
+                    ars1_lowpassReady = 1;
+                    ars1_historyIndex = 0;
+                }    
+
+                ars1_processIndex++;
+                if (ars1_processIndex == ars1_processNumber) {
+                    ars1_processIndex = 0;
+                    ars1_curHistoryIndex = ars1_historyIndex - 1;
+                    if (lowpassOn && ars1_lowpassReady) {
+                        ars1_doProcess = 1;
+                    }
+                }
+                
+                SPI2_SensorsPoll();
+            }
+        } else if (SPI2_curUsing == ARS2_USING) {
+            ARS2_NSS_High();        
+            tmp = SPI2->DR;
+            ars2_rawData[ars2_spiIndex] = (uint8_t)(tmp & 0xff);
+            ars2_spiIndex++;
+            
+            if (ars2_spiIndex < ADXRS290_DATA_SIZE*2) {
+                ARS2_NSS_Low();
+                tmp = (adxrs290_regs[ars2_spiIndex] | 0x80) << 8;
+                SPI2->DR = tmp;
+            } else {
+                SPI2->CR2 &= ~SPI_CR2_RXNEIE;
+                //SPI2->CR1 &= ~SPI_CR1_SPE;
+                
+                ars2_data[0] = (ars2_rawData[1] << 8) | ars2_rawData[0];
+                ars2_data[1] = (ars2_rawData[3] << 8) | ars2_rawData[2];
+                ars2_data[2] = ((ars2_rawData[5] & 0x0f) << 8) | ars2_rawData[4];
+                
+                for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
+                    //ars2_data[i] -= ars2_offset[i];                     // subract pre-calibrated offset
+                    ars2_history[i][ars2_historyIndex] = ars2_data[i];  // recording history for future filtration
+                }
+                
+                ars2_historyIndex++;
+                if (ars2_historyIndex >= ADXRS290_FILTER_SIZE) {
+                    ars2_lowpassReady = 1;
+                    ars2_historyIndex = 0;
+                }    
+
+                ars2_processIndex++;
+                if (ars2_processIndex == ars2_processNumber) {
+                    ars2_processIndex = 0;
+                    ars2_curHistoryIndex = ars2_historyIndex - 1;
+                    if (lowpassOn && ars2_lowpassReady) {
+                        ars2_doProcess = 1;
+                    }
+                }
+                
+                SPI2_SensorsPoll();
+            }
         }
     }
 }
@@ -103,14 +151,14 @@ float ars1_angleRate[ADXRS290_DATA_SIZE-1];
 uint8_t ars1_calibrationOn  = 0;
 uint32_t ars1_calibrIndex   = 0;
 uint32_t ars1_calibrNumber  = 0;
-float ars1_offset[ADXRS290_DATA_SIZE];
-float ars1_sum[ADXRS290_DATA_SIZE];
+float ars1_offset[ADXRS290_DATA_SIZE-1];
+float ars1_sum[ADXRS290_DATA_SIZE-1];
 
 int16_t ars1_history[ADXRS290_DATA_SIZE-1][HISTORY_SIZE];
 uint16_t ars1_historyIndex       = 0;
 uint16_t ars1_curHistoryIndex    = 0;
 uint8_t ars1_processIndex       = 0;
-uint8_t ars1_processNumber      = 0;
+uint8_t ars1_processNumber      = 42;
 uint8_t ars1_lowpassReady       = 0;
 uint8_t ars1_doProcess          = 0;
 
@@ -174,20 +222,20 @@ void ARS1_Calibr() {
         ars1_sum[i] = 0;
     }
     ars1_calibrIndex = 0;
-    ars1_calibrNumber = 4200; // TODO: make number of calibration samples clear
+    ars1_calibrNumber = 100; // TODO: make number of calibration samples clear
     ars1_calibrationOn = 1;
 }
 
 void ARS1_GetData() {
     uint8_t i = 0;
     
-    if (SPI2_Busy == 0/*(SPI2->SR & SPI_SR_BSY) == 0*/) {
-        SPI2_Busy = 1;
+    if (SPI2_curUsing == NONE) {
+        SPI2_curUsing = ARS1_USING;
         
         ars1_spiIndex = 0;
         ARS1_NSS_Low();
         SPI2->CR2 |= SPI_CR2_RXNEIE;
-        SPI2->CR1 |= SPI_CR1_SPE;
+        //SPI2->CR1 |= SPI_CR1_SPE;
         
         SPI2->DR = (adxrs290_regs[0] | 0x80) << 8;
         
@@ -250,10 +298,11 @@ uint8_t ars2_rawData[ADXRS290_DATA_SIZE*2];
 int16_t ars2_data[ADXRS290_DATA_SIZE];     
 float ars2_filteredData[ADXRS290_DATA_SIZE-1];
 float ars2_angleRate[ADXRS290_DATA_SIZE-1];
+uint8_t ars2_spiIndex = 0;
 
 uint8_t ars2_calibrationOn = 0;
-float ars2_offset[ADXRS290_DATA_SIZE];
-float ars2_sum[ADXRS290_DATA_SIZE];
+float ars2_offset[ADXRS290_DATA_SIZE-1];
+float ars2_sum[ADXRS290_DATA_SIZE-1];
 uint32_t ars2_calibrIndex = 0;
 uint32_t ars2_calibrNumber = 0;
 
@@ -261,7 +310,7 @@ int16_t ars2_history[ADXRS290_DATA_SIZE-1][HISTORY_SIZE];
 uint16_t ars2_historyIndex       = 0;
 uint16_t ars2_curHistoryIndex    = 0;
 uint8_t ars2_processIndex       = 0;
-uint8_t ars2_processNumber      = 0;
+uint8_t ars2_processNumber      = 42;
 uint8_t ars2_lowpassReady       = 0;
 uint8_t ars2_doProcess          = 0;
 
@@ -324,27 +373,38 @@ void ARS2_Calibr() {
         ars2_sum[i] = 0;
     }
     ars2_calibrIndex = 0;
-    ars2_calibrNumber = 4200; // TODO: make number of calibration samples clear
+    ars2_calibrNumber = 100; // TODO: make number of calibration samples clear
     ars2_calibrationOn = 1;
 }
 
 void ARS2_GetData() {
     uint8_t i = 0;
     
-    if (SPI2_Busy == 0/*(SPI2->SR & SPI_SR_BSY) == 0*/) {
-        SPI2_Busy = 1;
+    if (SPI2_curUsing == NONE) {
+        SPI2_curUsing = ARS2_USING;
         
-        for (i = 0; i < ADXRS290_DATA_SIZE*2; i++) {
-            ARS2_NSS_Low();
-            ars2_rawData[i] = SPI2_Read(adxrs290_regs[i]);
-            ARS2_NSS_High();
-        }
-        All_NSS_High();
+        ars2_spiIndex = 0;
+        ARS2_NSS_Low();
+        SPI2->CR2 |= SPI_CR2_RXNEIE;
+        //SPI2->CR1 |= SPI_CR1_SPE;
         
-        ars2_data[0] = (ars2_rawData[1] << 8) | ars2_rawData[0];
-        ars2_data[1] = (ars2_rawData[3] << 8) | ars2_rawData[2];
-        ars2_data[2] = ((ars2_rawData[5] & 0x0f) << 8) | ars2_rawData[4];
-        
+        SPI2->DR = (adxrs290_regs[0] | 0x80) << 8;
+    }
+    
+//    if (SPI2_Busy == 0/*(SPI2->SR & SPI_SR_BSY) == 0*/) {
+//        SPI2_Busy = 1;
+//        
+//        for (i = 0; i < ADXRS290_DATA_SIZE*2; i++) {
+//            ARS2_NSS_Low();
+//            ars2_rawData[i] = SPI2_Read(adxrs290_regs[i]);
+//            ARS2_NSS_High();
+//        }
+//        All_NSS_High();
+//        
+//        ars2_data[0] = (ars2_rawData[1] << 8) | ars2_rawData[0];
+//        ars2_data[1] = (ars2_rawData[3] << 8) | ars2_rawData[2];
+//        ars2_data[2] = ((ars2_rawData[5] & 0x0f) << 8) | ars2_rawData[4];
+//        
 //        if (ars2_calibrationOn) {
 //            for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
 //                ars2_sum[i] += ars2_data[i];
@@ -357,28 +417,28 @@ void ARS2_GetData() {
 //                ars2_calibrationOn = 0;
 //            }
 //        }
-        for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
-            //ars2_data[i] -= ars2_offset[i];                     // subract pre-calibrated offset
-            ars2_history[i][ars2_historyIndex] = ars1_data[i];  // recording history for future filtration
-        }
-        
-        ars2_historyIndex++;
-        if (ars2_historyIndex >= ADXRS290_FILTER_SIZE) {
-            ars2_lowpassReady = 1;
-            ars2_historyIndex = 0;
-        }    
+//        for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
+//            //ars2_data[i] -= ars2_offset[i];                     // subract pre-calibrated offset
+//            ars2_history[i][ars2_historyIndex] = ars1_data[i];  // recording history for future filtration
+//        }
+//        
+//        ars2_historyIndex++;
+//        if (ars2_historyIndex >= ADXRS290_FILTER_SIZE) {
+//            ars2_lowpassReady = 1;
+//            ars2_historyIndex = 0;
+//        }    
 
-        ars2_processIndex++;
-        if (ars2_processIndex == ars2_processNumber) {
-            ars2_processIndex = 0;
-            ars2_curHistoryIndex = ars2_historyIndex - 1;
-            if (lowpassOn && ars2_lowpassReady) {
-                ars2_doProcess = 1;
-            }
-        }
-        
-        SPI2_SensorsPoll();
-    }
+//        ars2_processIndex++;
+//        if (ars2_processIndex == ars2_processNumber) {
+//            ars2_processIndex = 0;
+//            ars2_curHistoryIndex = ars2_historyIndex - 1;
+//            if (lowpassOn && ars2_lowpassReady) {
+//                ars2_doProcess = 1;
+//            }
+//        }
+//        
+//        SPI2_SensorsPoll();
+//    }
 }
 
 //void ARS2_DMA_Init() {

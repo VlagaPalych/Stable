@@ -8,7 +8,7 @@
 #include "telemetry.h"
 #include "stdlib.h"
 #include "string.h"
-#include "gyro.h"
+#include "adxrs290.h"
 
 
 #define DT MEASUREMENT_TIME
@@ -132,28 +132,28 @@ float angularVelocityHistory[ANGVEL_HISTORY_SIZE];
 uint8_t angularVelocityHistoryIndex = 0;
 
 void turnOffUselessMotor() {
-    uint8_t i = 0;
-    uint8_t angVelSign = 1;
-    float basic = angularVelocityHistory[0];
-    
-    if (turnUselessOn) { 
-        for (i = 1; i < ANGVEL_HISTORY_SIZE; i++) {
-            if (basic * angularVelocityHistory[i] < 0) {
-                angVelSign = 0;
-                break;
-            }
-        }
-        
-        if (angle > 0) {
-            if ((angle > boundaryAngle) && angVelSign && basic > 0) {
-                pwm1 = 1000;
-            }
-        } else {
-            if ((angle < -boundaryAngle) && angVelSign && basic < 0) {
-                pwm2 = 1000;
-            }
-        }
-    }
+//    uint8_t i = 0;
+//    uint8_t angVelSign = 1;
+//    float basic = angularVelocityHistory[0];
+//    
+//    if (turnUselessOn) { 
+//        for (i = 1; i < ANGVEL_HISTORY_SIZE; i++) {
+//            if (basic * angularVelocityHistory[i] < 0) {
+//                angVelSign = 0;
+//                break;
+//            }
+//        }
+//        
+//        if (angle > 0) {
+//            if ((angle > boundaryAngle) && angVelSign && basic > 0) {
+//                pwm1 = 1000;
+//            }
+//        } else {
+//            if ((angle < -boundaryAngle) && angVelSign && basic < 0) {
+//                pwm2 = 1000;
+//            }
+//        }
+//    }
 }
 
 void control() {
@@ -173,7 +173,7 @@ void control() {
 //    turnOffUselessMotor();
 //    Motors_Run();
     
-    F = Kp*angle + Kd*angularVelocity + minF;
+//    F = Kp*angle + Kd*angularVelocity + minF;
 
     //if (stabilizationOn) {
         calcPwms();
@@ -214,17 +214,21 @@ void control() {
     
 }
 
-void calcAngVel() {
-    angularVelocity = -filteredVel / 80 * 3.14159 / 180.0;
-    //angularVelocity = - finalGX / 32767.0 * 2000 * 3.14159 / 180.0;
-    angularVelocityHistory[angularVelocityHistoryIndex] = angularVelocity;
-    if (angularVelocityHistoryIndex == ANGVEL_HISTORY_SIZE - 1) {
-        angularVelocityHistoryIndex = 0;
-    } else {
-        angularVelocityHistoryIndex++;
+void calcAngleRate() {
+    uint8_t i = 0;
+    for (i = 0; i < 2; i++) {
+        angleRate[i] = (ars1_filteredData[i] - ars2_filteredData[i]) / 2.0;
+        angleRate[i] = angleRate[i] / 200.0;
     }
-//        gyInRads = finalGY / 32767.0 * 2000 * 3.14159 / 180.0;
-//        gzInRads = finalGZ / 32767.0 * 2000 * 3.14159 / 180.0; 
+    angleRate[2] = filteredVel / 80.0;
+//    angularVelocity = -filteredVel / 80 * 3.14159 / 180.0;
+//    //angularVelocity = - finalGX / 32767.0 * 2000 * 3.14159 / 180.0;
+//    angularVelocityHistory[angularVelocityHistoryIndex] = angularVelocity;
+//    if (angularVelocityHistoryIndex == ANGVEL_HISTORY_SIZE - 1) {
+//        angularVelocityHistoryIndex = 0;
+//    } else {
+//        angularVelocityHistoryIndex++;
+//    }
 }
 
 float lowpass(int16_t *history, uint8_t lowpassIndex, float *fir, int firSize) {
@@ -240,7 +244,7 @@ float lowpass(int16_t *history, uint8_t lowpassIndex, float *fir, int firSize) {
 }
 
 void Processing_TIM_Init() {
-    TIM7->PSC = 7;
+    TIM7->PSC = 63;
     TIM7->ARR = 10000;
     TIM7->DIER |= 1;
     NVIC_SetPriority(TIM7_IRQn, 0xFF);
@@ -250,21 +254,21 @@ void Processing_TIM_Init() {
 }
 
 void simplestControl(){
-    if (angle > 0) {
-        pwm2 = Kp * fabs(angle) + minPwm;
-        pwm1 = minPwm;
-        if (pwm2 > maxPwm) {
-            pwm2 = maxPwm;
-        } 
-    } else {
-        pwm1 = Kp * fabs(angle) + minPwm;
-        pwm2 = minPwm;
-        if (pwm1 > maxPwm) {
-            pwm1 = maxPwm;
-        }  
-    }
-    turnOffUselessMotor();
-    Motors_Run();
+//    if (angle > 0) {
+//        pwm2 = Kp * fabs(angle) + minPwm;
+//        pwm1 = minPwm;
+//        if (pwm2 > maxPwm) {
+//            pwm2 = maxPwm;
+//        } 
+//    } else {
+//        pwm1 = Kp * fabs(angle) + minPwm;
+//        pwm2 = minPwm;
+//        if (pwm1 > maxPwm) {
+//            pwm1 = maxPwm;
+//        }  
+//    }
+//    turnOffUselessMotor();
+//    Motors_Run();
 }
 
 void getFinalData() {
@@ -299,40 +303,40 @@ uint8_t gCheck() {
     return diff < threshold;
 }
 void calcAngle() {
-    float accelAngle = 0;
-    float angleDiff = 0;
-    // where to take angle from
-    // three steps of control:
-    // 1) sum Ai^2 < deviation * G^2
-    // 2) absolute value of angular velocity must be small
-    // 3) for 300 ms 
-    
-    if (gCheck() && (angularVelocity < angVelSmall)) {   
-        tranquilityCount++; 
-    } else {
-        tranquilityCount = 0;
-    }
-    if (tranquilityCount >= tranquilityTime) {
-        angle = atan((float)finalAX / (float)finalAZ);
-        accelAngle = atan((float)finalAX / (float)finalAZ);
-//        angleDiff = angle - accelAngle;
-//        if (angleDiff > 0) {
-//            angle -= ANGLE_STEP;
-//        } else {
-//            angle += ANGLE_STEP;
-//        }
-        angleFromAccel = 1;
-        tranquilityCount--;
-    } else {
-        angle += angularVelocity * DT;    
-        angleFromAccel = 0;
-    }
+//    float accelAngle = 0;
+//    float angleDiff = 0;
+//    // where to take angle from
+//    // three steps of control:
+//    // 1) sum Ai^2 < deviation * G^2
+//    // 2) absolute value of angular velocity must be small
+//    // 3) for 300 ms 
+//    
+//    if (gCheck() && (angularVelocity < angVelSmall)) {   
+//        tranquilityCount++; 
+//    } else {
+//        tranquilityCount = 0;
+//    }
+//    if (tranquilityCount >= tranquilityTime) {
+//        angle = atan((float)finalAX / (float)finalAZ);
+//        accelAngle = atan((float)finalAX / (float)finalAZ);
+////        angleDiff = angle - accelAngle;
+////        if (angleDiff > 0) {
+////            angle -= ANGLE_STEP;
+////        } else {
+////            angle += ANGLE_STEP;
+////        }
+//        angleFromAccel = 1;
+//        tranquilityCount--;
+//    } else {
+//        angle += angularVelocity * DT;    
+//        angleFromAccel = 0;
+//    }
 }
 
-void calcAngAccel() {
-    angleAcceleration = (angularVelocity - prevAngularVelocity) / DT;
-    prevAngularVelocity=angularVelocity;
-}
+//void calcAngAccel() {
+//    angleAcceleration = (angularVelocity - prevAngularVelocity) / DT;
+//    prevAngularVelocity=angularVelocity;
+//}
 
 float Edes = 0;
 int pwmStep = 10;
@@ -345,47 +349,47 @@ void adjustControl() {
     //int8_t pwms = sign(pwm);
   //  int8_t edesS;
 //    float absEdes = 0;
-    float t1 = 0;
-    if (- angularVelocity * TAU / angle / 2.0 < 1.0) {
-        Edes = - angularVelocity / TAU - angle / TAU / TAU;
-    } else {
-        t1 = - 2 * angle / angularVelocity;
-        Edes = - angularVelocity / t1;
-    }
-//    edesS=sign(Edes);
-//    absEdes=fabs(Edes);
-//    angleAcceleration*=edesS;
-//    if(absEdes>angleAcceleration)
-//        pwm+=pwms*pwmStep;
-//    else pwm-=pwms*pwmStep;
-//    pwm = fabs(pwm);
-    if (Edes > 0) {
-        if (Edes > angleAcceleration) {
-            pwm += pwmStep;
-        } else {
-            pwm -= pwmStep;
-        }
-    } else {
-        if (Edes > angleAcceleration) {
-            pwm += pwmStep;
-        } else {
-            pwm -= pwmStep;
-        }
-    }
-//    pwm *= pwms;
-    // pwm = fabs(pwm);
-    // pwm *= pwms;
-    
-    Motors_SetPwm();
-    Motors_Run();
+//    float t1 = 0;
+//    if (- angularVelocity * TAU / angle / 2.0 < 1.0) {
+//        Edes = - angularVelocity / TAU - angle / TAU / TAU;
+//    } else {
+//        t1 = - 2 * angle / angularVelocity;
+//        Edes = - angularVelocity / t1;
+//    }
+////    edesS=sign(Edes);
+////    absEdes=fabs(Edes);
+////    angleAcceleration*=edesS;
+////    if(absEdes>angleAcceleration)
+////        pwm+=pwms*pwmStep;
+////    else pwm-=pwms*pwmStep;
+////    pwm = fabs(pwm);
+//    if (Edes > 0) {
+//        if (Edes > angleAcceleration) {
+//            pwm += pwmStep;
+//        } else {
+//            pwm -= pwmStep;
+//        }
+//    } else {
+//        if (Edes > angleAcceleration) {
+//            pwm += pwmStep;
+//        } else {
+//            pwm -= pwmStep;
+//        }
+//    }
+////    pwm *= pwms;
+//    // pwm = fabs(pwm);
+//    // pwm *= pwms;
+//    
+//    Motors_SetPwm();
+//    Motors_Run();
 }
 
 void TIM7_IRQHandler(void) {
     TIM7->SR &= ~TIM_SR_UIF;
 
     getFinalData();
-    calcAngVel();  
-    calcAngAccel();
+    calcAngleRate();  
+    //calcAngAccel();
     calcAngle();
     
 //    angleIntegral += angle;

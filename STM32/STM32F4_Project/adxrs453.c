@@ -31,7 +31,7 @@ void SPI3_Init() {
 	SPI3->CR1 = 0;
 	SPI3->CR1 |= SPI_CR1_DFF;                                                   // 16 bits
 	SPI3->CR2 |= SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN;
-	//SPI2->CR1 |= SPI_CR1_BR_1; 							                        // baudrate = Fpclk / 256
+	SPI2->CR1 |= SPI_CR1_BR_1; 							                        // baudrate = Fpclk / 256
 	//SPI3->CR1 |= SPI_CR1_CPOL;													// polarity
 	//SPI3->CR1 |= SPI_CR1_CPHA;													// phase	
 	SPI3->CR1 &= ~(SPI_CR1_LSBFIRST);										    // MSBFIRST		
@@ -159,7 +159,7 @@ void DMA1_Stream5_IRQHandler()  {
 }
 
 void ADXRS_TIM_Init() {
-    TIM2->PSC = 7;
+    TIM2->PSC = 63;
     TIM2->ARR = 2500;
     TIM2->DIER |= 1;
     NVIC_SetPriority(TIM2_IRQn, 0x04);

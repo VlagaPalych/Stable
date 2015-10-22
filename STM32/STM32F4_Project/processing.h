@@ -3,6 +3,9 @@
 
 #include "stdint.h"
 
+extern float angleRate[3];
+extern float angle[3];
+
 extern int pwm;
 extern uint8_t everyN;
 extern float angleAcceleration;
@@ -23,8 +26,6 @@ extern float F;
 extern float Kp;
 extern float Kd;
 extern float Ki;
-extern float angle;
-extern float angularVelocity;
 
 extern uint8_t stabilizationOn;
 

@@ -13,6 +13,10 @@
 
 extern uint8_t SPI2_Busy;
 
+typedef enum {NONE, ACCEL_USING, ARS1_USING, ARS2_USING} SPI2_Using;
+
+extern SPI2_Using SPI2_curUsing;
+
 extern float adxrs290_filterCfs[ADXRS290_FILTER_SIZE];
 
 void All_NSS_High(void);
@@ -40,15 +44,20 @@ extern uint8_t ars1_spiIndex;
 extern uint8_t ars1_rawData[ADXRS290_DATA_SIZE*2];
 extern int16_t ars1_data[ADXRS290_DATA_SIZE];
 extern float ars1_filteredData[ADXRS290_DATA_SIZE-1];
+
 extern int16_t ars1_history[ADXRS290_DATA_SIZE-1][HISTORY_SIZE];
+extern uint16_t ars1_historyIndex;
 extern uint16_t ars1_curHistoryIndex;
+extern uint8_t ars1_processIndex;
+extern uint8_t ars1_processNumber;
+extern uint8_t ars1_lowpassReady;
 extern uint8_t ars1_doProcess;
 
 extern uint8_t ars1_calibrationOn;
 extern uint32_t ars1_calibrIndex;
 extern uint32_t ars1_calibrNumber;
-extern float ars1_offset[ADXRS290_DATA_SIZE];
-extern float ars1_sum[ADXRS290_DATA_SIZE];
+extern float ars1_offset[ADXRS290_DATA_SIZE-1];
+extern float ars1_sum[ADXRS290_DATA_SIZE-1];
 
 //-------------------------------------------------------------------
 // ARS2
@@ -68,18 +77,24 @@ void ARS2_DMA_Init(void);
 void ARS2_GetData(void);
 void ARS2_Calibr(void);
 
+extern uint8_t ars2_spiIndex;
 extern uint8_t ars2_rawData[ADXRS290_DATA_SIZE*2];
 extern int16_t ars2_data[ADXRS290_DATA_SIZE];
 extern float ars2_filteredData[ADXRS290_DATA_SIZE-1];
+
 extern int16_t ars2_history[ADXRS290_DATA_SIZE-1][HISTORY_SIZE];
+extern uint16_t ars2_historyIndex;
 extern uint16_t ars2_curHistoryIndex;
+extern uint8_t ars2_processIndex;
+extern uint8_t ars2_processNumber;
+extern uint8_t ars2_lowpassReady;
 extern uint8_t ars2_doProcess;
 
 extern uint8_t ars2_calibrationOn;
 extern uint32_t ars2_calibrIndex;
 extern uint32_t ars2_calibrNumber;
-extern float ars2_offset[ADXRS290_DATA_SIZE];
-extern float ars2_sum[ADXRS290_DATA_SIZE];
+extern float ars2_offset[ADXRS290_DATA_SIZE-1];
+extern float ars2_sum[ADXRS290_DATA_SIZE-1];
 
 
 
