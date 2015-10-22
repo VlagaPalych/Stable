@@ -303,6 +303,12 @@ uint8_t gCheck() {
     return diff < threshold;
 }
 void calcAngle() {
+    uint8_t i = 0;
+    for(i = 0; i < 3; i++) {
+        angle[i] += angleRate[i] * 0.01;
+    }
+
+    
 //    float accelAngle = 0;
 //    float angleDiff = 0;
 //    // where to take angle from
@@ -384,12 +390,17 @@ void adjustControl() {
 //    Motors_Run();
 }
 
+Quat curRotation;
+
 void TIM7_IRQHandler(void) {
     TIM7->SR &= ~TIM_SR_UIF;
 
     getFinalData();
     calcAngleRate();  
     //calcAngAccel();
+//    Quat_FromAngleRate(angleRate, &curRotation);
+//    Quat_Mul(orient, curRotation, &orient);
+//    Quat_ToEuler(orient, angle);
     calcAngle();
     
 //    angleIntegral += angle;

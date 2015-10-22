@@ -2,6 +2,9 @@
 #define PROCESSING_H
 
 #include "stdint.h"
+#include "quaternion.h"
+
+extern Quat orient;
 
 extern float angleRate[3];
 extern float angle[3];
@@ -83,6 +86,8 @@ void Processing_TIM_Init(void);
 float lowpass(int16_t *history, uint8_t lowpassIndex, float *fir, int firSize);
 
 void transformGyroData(void);
+void checkCalibrationFinish(void);                
+
 
 #define MEASUREMENT_TIME 0.01
 

@@ -259,6 +259,7 @@ void DMA1_Stream3_IRQHandler() {
                 yOffset = (int16_t)(accel_ySum / accelCalibrNumber);
                 zOffset = (int16_t)(accel_zSum / accelCalibrNumber) - 0xFF;
                 accelCalibrationOn = 0;
+                checkCalibrationFinish();
             }
         }
         

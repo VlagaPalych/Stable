@@ -58,7 +58,7 @@ void USART_Init(void) {
     GPIOA->PUPDR    |= (1 << UART1_TX*2) | (1 << UART1_RX*2);
     GPIOA->AFR[1]   |= (7 << (UART1_TX-8)*4) | (7 << (UART1_RX-8)*4);
 
-    USART1->BRR     = 0x45;//0x341; 
+    USART1->BRR     = 0x22c; //0x45;//0x341; 
     USART1->CR3     |= USART_CR3_DMAT;
     USART1->CR1     |= USART_CR1_UE /*| USART_CR1_M | USART_CR1_PCE*/ | USART_CR1_RE | USART_CR1_TE | USART_CR1_RXNEIE; 
     NVIC_SetPriority(USART1_IRQn, 0x02);

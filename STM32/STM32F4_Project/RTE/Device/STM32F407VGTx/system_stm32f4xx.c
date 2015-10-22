@@ -187,7 +187,7 @@ void SystemInit(void)
   RCC->CR &= (uint32_t)0xFEF6FFFF;
 
   /* Reset PLLCFGR register */
-  RCC->PLLCFGR = 0x24003010;
+  RCC->PLLCFGR = 0x24002008; //0x24003010;
 
   /* Reset HSEBYP bit */
   RCC->CR &= (uint32_t)0xFFFBFFFF;
@@ -201,7 +201,7 @@ void SystemInit(void)
   RCC->CFGR |= RCC_CFGR_SW_HSE;
   while (!(RCC->CFGR & RCC_CFGR_SWS_HSE)) {}
       
-  RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSE | RCC_PLLCFGR_PLLN_8 /*| RCC_PLLCFGR_PLLN_5*/ | RCC_PLLCFGR_PLLM_1;
+  RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSE;
   RCC->CR |= RCC_CR_PLLON;
   while (!(RCC->CR & RCC_CR_PLLRDY)) {}
       

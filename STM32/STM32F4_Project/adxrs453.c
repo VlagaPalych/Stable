@@ -148,7 +148,7 @@ void DMA1_Stream2_IRQHandler()  {
                 doAdxrsProcess = 1;
             }
         } 
-        adxrs_data -= adxrs_Offset;  
+        //adxrs_data -= adxrs_Offset;  
     }
 }
 
@@ -171,6 +171,7 @@ void ADXRS_TIM_Init() {
 void TIM2_IRQHandler() {
     if (TIM2->SR & TIM_SR_UIF) {
         TIM2->SR &= ~TIM_SR_UIF;
+        GPIOD->ODR ^= 1 << 15;
         ADXRS_DMA_Read();
     }
 }

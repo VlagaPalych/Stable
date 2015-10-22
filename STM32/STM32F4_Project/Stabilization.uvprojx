@@ -448,6 +448,11 @@
               <FileType>1</FileType>
               <FilePath>.\adxrs290.c</FilePath>
             </File>
+            <File>
+              <FileName>quaternion.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\quaternion.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -6,6 +6,7 @@
 #include "gyro.h"
 #include "adxrs453.h"
 #include "adxrs290.h"
+#include "quaternion.h"
 
 /*
 
@@ -26,10 +27,14 @@ TIM3            - timer for turning motors on                   0x01
 TIM2            - timer providing equidistance of samples       0x04
 DMA1_Stream2    - reading from ARS3 finished                    0x03
 
+TIM7            - processing timer                              0xff
+
 */
 
+Quat orient = {{1, 0, 0}, 0};
+
 float angleRate[3];
-float angle[3];
+float angle[3] = {0, 0, 0};
 
 int16_t ax = 0;
 int16_t ay = 0;
@@ -57,6 +62,12 @@ void RCC_Init() {
     
     RCC->APB1ENR |= RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM4EN | RCC_APB1ENR_SPI2EN | RCC_APB1ENR_I2C1EN |
                     RCC_APB1ENR_TIM5EN | RCC_APB1ENR_TIM7EN | RCC_APB1ENR_SPI3EN;
+}
+
+void checkCalibrationFinish() {
+    if ((adxrs_CalibrationOn | ars1_calibrationOn | ars2_calibrationOn | accelCalibrationOn) == 0) {
+        Processing_TIM_Init();
+    }
 }
 
 int main() {
@@ -107,12 +118,12 @@ int main() {
     
     while(ENGRDY != 1) {};
           
-    Processing_TIM_Init();    
+        
 
     while(1) { 
 
         if (doAdxrsProcess) {
-            GPIOD->BSRRL |= 1 << 15;  
+            //GPIOD->BSRRL |= 1 << 15;  
             doAdxrsProcess = 0;
             filteredVel = lowpass(adxrsHistory, adxrsCurHistoryIndex, adxrs_b, ADXRS_FILTER_SIZE);
                      
@@ -127,22 +138,23 @@ int main() {
                 if (adxrs_CalibrIndex == adxrs_CalibrNumber) {
                     adxrs_Offset = adxrs_Sum / adxrs_CalibrNumber;
                     adxrs_CalibrationOn = 0;
+                    checkCalibrationFinish();
                 }
             }
             filteredVel -= adxrs_Offset;
-            GPIOD->BSRRH |= 1 << 15; 
+            //GPIOD->BSRRH |= 1 << 15; 
         }
         // Lowpass filtering of accelerations
         if (doAccelProcess) {   
-            GPIOD->BSRRL |= 1 << 15;           
+            //GPIOD->BSRRL |= 1 << 15;           
             filteredAX = filterScale * lowpass(axHistory, axCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE);
             filteredAZ = filterScale * lowpass(azHistory, azCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE); 
             doAccelProcess = 0;
-            GPIOD->BSRRH |= 1 << 15; 
+            //GPIOD->BSRRH |= 1 << 15; 
         } 
         
         if (ars1_doProcess) {
-            GPIOD->BSRRL |= 1 << 15; 
+            //GPIOD->BSRRL |= 1 << 15; 
             ars1_doProcess = 0;
 
             for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
@@ -159,17 +171,18 @@ int main() {
                         ars1_offset[i] = ars1_sum[i] / ars1_calibrNumber;
                     }
                     ars1_calibrationOn = 0;
+                    checkCalibrationFinish();
                 }
             }
             
             for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
                 ars1_filteredData[i] -= ars1_offset[i];
             }
-            GPIOD->BSRRH |= 1 << 15; 
+            //GPIOD->BSRRH |= 1 << 15; 
         }
       
         if (ars2_doProcess) {
-            GPIOD->BSRRL |= 1 << 15; 
+            //GPIOD->BSRRL |= 1 << 15; 
             ars2_doProcess = 0;
 
             for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
@@ -186,13 +199,14 @@ int main() {
                         ars2_offset[i] = ars2_sum[i] / ars2_calibrNumber;
                     }
                     ars2_calibrationOn = 0;
+                    checkCalibrationFinish();
                 }
             }
             
             for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
                 ars2_filteredData[i] -= ars2_offset[i];
             }
-            GPIOD->BSRRH |= 1 << 15; 
+            //GPIOD->BSRRH |= 1 << 15; 
         }
     }
 }

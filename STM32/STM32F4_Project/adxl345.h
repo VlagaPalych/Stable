@@ -41,6 +41,7 @@ extern uint8_t curFreq;
 extern float curDT;
 
 extern int16_t ax, ay, az;
+extern uint8_t accelCalibrationOn;
 
 void Delay(void);
 
