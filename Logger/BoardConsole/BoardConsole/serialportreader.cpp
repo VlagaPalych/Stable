@@ -43,6 +43,7 @@
 
 #include <QCoreApplication>
 #include <QDebug>
+#include "commands.h"
 
 QT_USE_NAMESPACE
 
@@ -94,25 +95,37 @@ void SerialPortReader::setFile(QString fileName) {
 void SerialPortReader::handleReadyRead()
 {
 	m_readData.append(m_serialPort->readAll());
-	int endLineIndex = 0;
-	while (endLineIndex != -1) {
-		endLineIndex = m_readData.indexOf('\n');
-		if (endLineIndex != -1) {
-			/*QByteArray dataLine = m_readData.mid(0, endLineIndex);
-			QByteArray axByteArray = dataLine.mid(0, 2);
-			qint16 ax = 0;
-			((quint8 *)&ax)[0] = axByteArray.at(0);
-			((quint8 *)&ax)[1] = axByteArray.at(1);*/
-		QString line = QString::fromLatin1(m_readData.mid(0, endLineIndex));
-			//QString line = QString::number(ax);
-			qDebug() << line;
-			if (logStream) {
-				(*logStream) << line << endl;
-			}
-			Q_EMIT freshLine(line);
-			m_readData = m_readData.mid(endLineIndex + 1);
+	while (m_readData.size() >= MESSAGE_SIZE) {
+		QByteArray msgByteArray = m_readData.mid(0, MESSAGE_SIZE);
+		Message msg;
+		if (Message_FromByteArray((uint8_t *)msgByteArray.data(), MESSAGE_SIZE, &msg)) {
+			Q_EMIT freshMessage(msg);
+			m_readData = m_readData.mid(MESSAGE_SIZE + 1);
 		}
+		else {
+			m_readData.remove(0, 1);
+		}
+		
 	}
+	//int endLineIndex = 0;
+	//while (endLineIndex != -1) {
+	//	endLineIndex = m_readData.indexOf('\n');
+	//	if (endLineIndex != -1) {
+	//		/*QByteArray dataLine = m_readData.mid(0, endLineIndex);
+	//		QByteArray axByteArray = dataLine.mid(0, 2);
+	//		qint16 ax = 0;
+	//		((quint8 *)&ax)[0] = axByteArray.at(0);
+	//		((quint8 *)&ax)[1] = axByteArray.at(1);*/
+	//	QString line = QString::fromLatin1(m_readData.mid(0, endLineIndex));
+	//		//QString line = QString::number(ax);
+	//		qDebug() << line;
+	//		if (logStream) {
+	//			(*logStream) << line << endl;
+	//		}
+	//		Q_EMIT freshLine(line);
+	//		m_readData = m_readData.mid(endLineIndex + 1);
+	//	}
+	//}
 }
 
 

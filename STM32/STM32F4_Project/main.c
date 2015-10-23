@@ -106,22 +106,19 @@ int main() {
     ARS2_Init();
     ARS2_EXTI_Init();
     ARS2_Calibr();
-//    
+    
     SPI3_Init();
     ADXRS_TIM_Init();
     ADXRS_Calibr();
-//  
+  
     EXTI->SWIER |= EXTI_SWIER_SWIER1;
 
     Motors_Init();
     USART_Init();
-    
-    while(ENGRDY != 1) {};
-          
-        
+    while(ENGRDY != 1) {};   
 
     while(1) { 
-
+        
         if (doAdxrsProcess) {
             //GPIOD->BSRRL |= 1 << 15;  
             doAdxrsProcess = 0;

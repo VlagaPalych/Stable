@@ -217,8 +217,9 @@ void control() {
 void calcAngleRate() {
     uint8_t i = 0;
     for (i = 0; i < 2; i++) {
-        angleRate[i] = (ars1_filteredData[i] - ars2_filteredData[i]) / 2.0;
-        angleRate[i] = angleRate[i] / 200.0;
+        ars1_angleRate[i] = ars1_filteredData[i] / 200.0;
+        ars2_angleRate[i] = ars2_filteredData[i] / 200.0;
+        angleRate[i] = (ars1_angleRate[i] - ars2_angleRate[i]) / 2.0;    
     }
     angleRate[2] = filteredVel / 80.0;
 //    angularVelocity = -filteredVel / 80 * 3.14159 / 180.0;
@@ -244,7 +245,7 @@ float lowpass(int16_t *history, uint8_t lowpassIndex, float *fir, int firSize) {
 }
 
 void Processing_TIM_Init() {
-    TIM7->PSC = 63;
+    TIM7->PSC = 7;
     TIM7->ARR = 10000;
     TIM7->DIER |= 1;
     NVIC_SetPriority(TIM7_IRQn, 0xFF);

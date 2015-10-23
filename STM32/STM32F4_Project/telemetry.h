@@ -9,6 +9,7 @@ extern uint8_t recalibrate;
 
 extern uint8_t turnUselessOn;
 extern uint8_t gyroRecalibrationOn;
+extern uint8_t telemetryOn;
 
 void USART_Init(void);
 void Telemetry_TIM_Init(void);

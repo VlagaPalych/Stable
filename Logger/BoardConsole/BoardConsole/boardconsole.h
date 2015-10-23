@@ -99,6 +99,8 @@ void handleProgramButton();
 
 	void handlePwmStepButton();
 	void handleEveryNButton();
+	void handleFreshMessage(Message);
+
 
 };
 

@@ -172,9 +172,8 @@ void SystemInit(void)
     SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));  /* set CP10 and CP11 Full Access */
   #endif
     
-    FLASH->ACR |= FLASH_ACR_PRFTEN;
-    FLASH->ACR &= (uint32_t)((uint32_t)~FLASH_ACR_LATENCY);
-    FLASH->ACR |= (uint32_t)FLASH_ACR_LATENCY_2WS;  
+  FLASH->ACR |= FLASH_ACR_PRFTEN | FLASH_ACR_LATENCY_2WS; 
+  while ((FLASH->ACR & FLASH_ACR_LATENCY_2WS) == 0) {}
     
   /* Reset the RCC clock configuration to the default reset state ------------*/
   /* Set HSION bit */
@@ -198,8 +197,8 @@ void SystemInit(void)
   RCC->CR |= RCC_CR_HSEON;
   while (!(RCC->CR & RCC_CR_HSERDY)) {}
       
-  RCC->CFGR |= RCC_CFGR_SW_HSE;
-  while (!(RCC->CFGR & RCC_CFGR_SWS_HSE)) {}
+//  RCC->CFGR |= RCC_CFGR_SW_HSE;
+//  while (!(RCC->CFGR & RCC_CFGR_SWS_HSE)) {}
       
   RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSE;
   RCC->CR |= RCC_CR_PLLON;

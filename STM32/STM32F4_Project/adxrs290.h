@@ -44,6 +44,7 @@ extern uint8_t ars1_spiIndex;
 extern uint8_t ars1_rawData[ADXRS290_DATA_SIZE*2];
 extern int16_t ars1_data[ADXRS290_DATA_SIZE];
 extern float ars1_filteredData[ADXRS290_DATA_SIZE-1];
+extern float ars1_angleRate[ADXRS290_DATA_SIZE-1];
 
 extern int16_t ars1_history[ADXRS290_DATA_SIZE-1][HISTORY_SIZE];
 extern uint16_t ars1_historyIndex;
@@ -81,6 +82,7 @@ extern uint8_t ars2_spiIndex;
 extern uint8_t ars2_rawData[ADXRS290_DATA_SIZE*2];
 extern int16_t ars2_data[ADXRS290_DATA_SIZE];
 extern float ars2_filteredData[ADXRS290_DATA_SIZE-1];
+extern float ars2_angleRate[ADXRS290_DATA_SIZE-1];
 
 extern int16_t ars2_history[ADXRS290_DATA_SIZE-1][HISTORY_SIZE];
 extern uint16_t ars2_historyIndex;

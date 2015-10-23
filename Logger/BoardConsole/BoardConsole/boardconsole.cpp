@@ -202,6 +202,7 @@ void BoardConsole::handleConnectButton() {
 	QString logFileName  = defineLogFile();
 	stmReader = new SerialPortReader(stm, logFileName);
 	connect(stmReader, SIGNAL(freshLine(QString &)), SLOT(handleFreshLine(QString &)));
+	connect(stmReader, SIGNAL(freshMessage(Message)), SLOT(handleFreshMessage(Message)));
 
 	//STM_Init();
 }
@@ -306,7 +307,34 @@ void BoardConsole::handleGyroButtons() {
 		stm->write(command(GYRO_FREQ_HZ1000));
 	}
 }
+void Message_ToByteArray(Message *message, uint8_t *a) {
+	uint8_t i = 0, crc = 0;
+	memcpy(a + 1, (uint8_t *)message, MESSAGE_SIZE - 2);
+	a[0] = MESSAGE_HEADER;
+	crc = a[0];
+	for (i = 1; i < MESSAGE_SIZE - 1; i++) {
+		crc ^= a[i];
+	}
+	a[MESSAGE_SIZE - 1] = crc;
+}
 
+uint8_t Message_FromByteArray(uint8_t *a, uint8_t n, Message *message) {
+	uint8_t i = 0, crc = 0;
+
+	crc = a[0];
+	for (i = 1; i < MESSAGE_SIZE - 1; i++) {
+		crc ^= a[i];
+	}
+	if ((a[0] == MESSAGE_HEADER) && (a[MESSAGE_SIZE - 1] == crc)) {
+		memcpy((uint8_t *)message, a + 1, MESSAGE_SIZE - 2);
+		return 1;
+	}
+	return 0;
+}
+
+void BoardConsole::handleFreshMessage(Message message) {
+	qDebug() << message.ars1_x << message.ars1_y << message.ars1_t << message.ars2_x << message.ars2_y << message.ars2_t;
+}
 
 void BoardConsole::handleFreshLine(QString &line) {
 	if (firstMeasurement) {

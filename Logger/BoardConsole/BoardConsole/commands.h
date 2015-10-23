@@ -60,4 +60,25 @@
 
 #define NUMBER_END 'b'
 
+#include <QtGlobal>
+
+typedef qint16 int16_t;
+typedef quint8 uint8_t;
+
+typedef struct {
+    int16_t ars1_x;
+    int16_t ars1_y;
+    int16_t ars1_t;
+    int16_t ars2_x;
+    int16_t ars2_y;
+    int16_t ars2_t;
+} Message;
+
+#define MESSAGE_SIZE    14         // +1 for header, +1 for footer
+#define MESSAGE_HEADER  0x21
+
+void Message_ToByteArray(Message *message, uint8_t *a);
+
+uint8_t Message_FromByteArray(uint8_t *a, uint8_t n, Message *message); 
+
 #endif

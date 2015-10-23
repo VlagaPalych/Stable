@@ -23,6 +23,43 @@ typedef enum { WAITING_FOR_KP, WAITING_FOR_KD, WAITING_FOR_KI, WAITING_FOR_RESEA
 WAITING_FOR_MAX_ANGLE, WAITING_FOR_ACCEL_DEVIATION, WAITING_FOR_BOUNDARY_ANGLE, WAITING_FOR_MAX_ANGVEL, FLOAT_NONE } waitingForFloat;
 
 
+typedef struct {
+    int16_t ars1_x;
+    int16_t ars1_y;
+    int16_t ars1_t;
+    int16_t ars2_x;
+    int16_t ars2_y;
+    int16_t ars2_t;
+} Message;
+
+#define MESSAGE_SIZE    14         // +1 for header, +1 for footer
+#define MESSAGE_HEADER  0x21
+
+void Message_ToByteArray(Message *message, uint8_t *a) {
+    uint8_t i = 0, crc = 0;
+    memcpy(a+1, (uint8_t *)message, MESSAGE_SIZE-2);
+    a[0] = MESSAGE_HEADER;
+    crc = a[0];
+    for (i = 1; i < MESSAGE_SIZE-1; i++) {
+        crc ^= a[i];
+    }
+    a[MESSAGE_SIZE-1] = crc;
+}
+
+uint8_t Message_FromByteArray(uint8_t *a, uint8_t n, Message *message) {
+    uint8_t i = 0, crc = 0;
+    
+    crc = a[0];
+    for (i = 1; i < MESSAGE_SIZE-1; i++) {
+        crc ^= a[i];
+    }
+    if ((a[0] == MESSAGE_HEADER) && (a[MESSAGE_SIZE-1] == crc)) {
+        memcpy((uint8_t *)message, a+1, MESSAGE_SIZE-2);
+        return 1;
+    } 
+    return 0;
+}
+
 uint8_t received;
 char str[100];
 
@@ -48,7 +85,7 @@ uint8_t turnUselessOn = 0;
 uint8_t gyroRecalibrationOn = 0;
 
 
-char tele[100] = "";
+uint8_t tele[100];
 uint8_t len = 0, j;
 
 void USART_Init(void) {
@@ -64,10 +101,7 @@ void USART_Init(void) {
     NVIC_SetPriority(USART1_IRQn, 0x02);
     NVIC_EnableIRQ(USART1_IRQn);
     
-//    GPIOA->MODER &= ~(3UL << 15*2);
-//    GPIOA->MODER |= 1 << (15*2);GPIOA->BSRRH |= 1 << 15;
-////    GPIOA->BSRRL |= 1 << 15;
-//    
+
 //    sprintf(tele, "123456789");while (1) {
 //        
 //        len = strlen(tele);
@@ -94,7 +128,7 @@ void initWaitingForFloat() {
     floatValue = 0;
 }
 
-int rst = 0;
+int rst = 0;  // reset purposes
 void USART1_IRQHandler() {
     if (USART1->SR & USART_SR_RXNE) {
         USART1->SR &= ~USART_SR_RXNE;
@@ -409,28 +443,28 @@ void send_to_uart(uint8_t data) {
     while((USART1->SR & USART_SR_TC)==0); 
     USART1->DR = data; 
 }
-
-void SendRaw() {
-    sprintf(tele, "r%hd\n", azHistory[azHistoryIndex]);
-    len = strlen(tele);
-    Telemetry_DMA_Init();
-}
-
-void SendRawAndProcessed() {
-    sprintf(tele, "%hd\n", az);
-    len = strlen(tele);
-    Telemetry_DMA_Init();
-}
-
+Message message;
 void SendTelemetry() {
+    
+    GPIOD->BSRRL |= 1 << 15;
     if (telemetryOn) {
-        /*sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %d %d %.2f %.2f %.2f %d\n", 
-                    angle, angularVelocity, F, finalAX, finalAY, finalAZ, pwm1, pwm2, COUNT1, COUNT2, Kp, Ki, Kd, angleFromAccel);*/
-        sprintf(tele, "%hd %hd %hd %hd %hd %hd\n", ars1_data[0], ars1_data[1], ars1_data[2], ars2_data[0], ars2_data[1], ars2_data[2]);
-
-        len = strlen(tele);
+        //sprintf(tele,  "%.2f %hd %hd %hd %d %d %d %d %.2f %.2f %.2f %d\n", 
+        //            F, finalAX, finalAY, finalAZ, pwm1, pwm2, COUNT1, COUNT2, Kp, Ki, Kd, angleFromAccel);
+        //sprintf(tele, "%.2f %.2f %hd %.2f %.2f %hd\n", ars1_angleRate[0], ars1_angleRate[1], ars1_data[2], ars2_angleRate[0], ars2_angleRate[1], ars2_data[2]);
+        message.ars1_x = ars1_data[0];
+        message.ars1_y = ars1_data[1];
+        message.ars1_t = ars1_data[2];
+        message.ars2_x = ars2_data[0];
+        message.ars2_y = ars2_data[1];
+        message.ars2_t = ars2_data[2];
+        Message_ToByteArray(&message, tele);
+        len = MESSAGE_SIZE;
+        //sprintf(tele, "%hd %hd %hd %hd %hd %hd\n", ars1_data[0], ars1_data[1], ars1_data[2], ars2_data[0], ars2_data[1], ars2_data[2]);
+//        sprintf(tele, "%.2f\n", angle[0]);
+        //len = strlen(tele);
         Telemetry_DMA_Init();
     }
+    GPIOD->BSRRH |= 1 << 15;
 }
 
 uint8_t USART_DMA_transferComleted = 1;
