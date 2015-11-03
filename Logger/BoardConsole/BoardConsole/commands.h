@@ -66,15 +66,22 @@ typedef qint16 int16_t;
 typedef quint8 uint8_t;
 
 typedef struct {
-    int16_t ars1_x;
-    int16_t ars1_y;
-    int16_t ars1_t;
-    int16_t ars2_x;
-    int16_t ars2_y;
-    int16_t ars2_t;
+	//    float ars1_x;
+	//    float ars1_y;
+	//    int16_t ars1_t;
+	//    float ars2_x;
+	//    float ars2_y;
+	//    int16_t ars2_t;
+	//    float ars3_z;
+	//    
+	//    int16_t accel_x;
+	//    int16_t accel_y;
+	//    int16_t accel_z;
+	float roll;
+	float pitch;
 } Message;
 
-#define MESSAGE_SIZE    14         // +1 for header, +1 for footer
+extern uint8_t Message_Size;
 #define MESSAGE_HEADER  0x21
 
 void Message_ToByteArray(Message *message, uint8_t *a);

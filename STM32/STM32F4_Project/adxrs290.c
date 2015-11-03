@@ -68,7 +68,9 @@ void SPI2_IRQHandler() {
                 ars1_data[1] = (ars1_rawData[3] << 8) | ars1_rawData[2];
                 ars1_data[2] = ((ars1_rawData[5] & 0x0f) << 8) | ars1_rawData[4];
                 
+                
                 for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
+                    ars1_termoData[i] = ars1_data[i] - ars1_termoCf[i] * ars1_data[2];
                     //ars1_data[i] -= ars1_offset[i];                     // subract pre-calibrated offset
                     ars1_history[i][ars1_historyIndex] = ars1_data[i];  // recording history for future filtration
                 }
@@ -109,6 +111,7 @@ void SPI2_IRQHandler() {
                 ars2_data[2] = ((ars2_rawData[5] & 0x0f) << 8) | ars2_rawData[4];
                 
                 for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
+                    ars2_termoData[i] = ars2_data[i] - ars2_termoCf[i] * ars2_data[2]; // termocompensation
                     //ars2_data[i] -= ars2_offset[i];                     // subract pre-calibrated offset
                     ars2_history[i][ars2_historyIndex] = ars2_data[i];  // recording history for future filtration
                 }
@@ -145,6 +148,7 @@ uint8_t ARS1_EXTI   = 10;   // PD
 uint8_t ars1_spiIndex = 0;
 uint8_t ars1_rawData[ADXRS290_DATA_SIZE*2];
 int16_t ars1_data[ADXRS290_DATA_SIZE]; 
+float ars1_termoData[ADXRS290_DATA_SIZE-1];
 float ars1_filteredData[ADXRS290_DATA_SIZE-1];
 float ars1_angleRate[ADXRS290_DATA_SIZE-1];
 
@@ -161,6 +165,8 @@ uint8_t ars1_processIndex       = 0;
 uint8_t ars1_processNumber      = 42;
 uint8_t ars1_lowpassReady       = 0;
 uint8_t ars1_doProcess          = 0;
+
+float ars1_termoCf[ADXRS290_DATA_SIZE-1] = {-0.04946, -1.761};
 
 void ARS1_VDD_Init() {
     GPIOD->MODER |= 1 << ARS1_VDD*2;
@@ -295,7 +301,8 @@ uint8_t ARS2_VDD    = 14; // PE
 uint8_t ARS2_EXTI   = 15; // PE
 
 uint8_t ars2_rawData[ADXRS290_DATA_SIZE*2];
-int16_t ars2_data[ADXRS290_DATA_SIZE];     
+int16_t ars2_data[ADXRS290_DATA_SIZE];  
+float ars2_termoData[ADXRS290_DATA_SIZE-1];
 float ars2_filteredData[ADXRS290_DATA_SIZE-1];
 float ars2_angleRate[ADXRS290_DATA_SIZE-1];
 uint8_t ars2_spiIndex = 0;
@@ -313,6 +320,8 @@ uint8_t ars2_processIndex       = 0;
 uint8_t ars2_processNumber      = 42;
 uint8_t ars2_lowpassReady       = 0;
 uint8_t ars2_doProcess          = 0;
+
+float ars2_termoCf[ADXRS290_DATA_SIZE-1] = {0.2236, -1.309};
 
 void ARS2_VDD_Init() {
     GPIOE->MODER |= 1 << ARS2_VDD*2;

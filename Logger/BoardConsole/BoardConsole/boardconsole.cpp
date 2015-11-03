@@ -4,10 +4,13 @@
 #include <qdatetime.h>
 #include "commands.h"
 
+uint8_t Message_Size = 0;
+
 BoardConsole::BoardConsole(QWidget *parent)
 	: QWidget(parent)
 {
 	ui.setupUi(this);
+	Message_Size = sizeof(Message);
 
 	QList<QSerialPortInfo> availablePorts = QSerialPortInfo::availablePorts();
 	foreach(QSerialPortInfo port, availablePorts) {
@@ -191,7 +194,7 @@ void BoardConsole::handleConnectButton() {
 	stm->setBaudRate(QSerialPort::Baud115200);
 	//stm->setParity(QSerialPort::EvenParity);
 	stm->setStopBits(QSerialPort::OneStop);
-	stm->setFlowControl(QSerialPort::NoFlowControl);
+	//stm->setFlowControl(QSerialPort::NoFlowControl);
 	if (!stm->open(QIODevice::ReadWrite)) {
 		qDebug() << QObject::tr("Failed to open port %1, error: %2").arg(stm->portName()).arg(stm->errorString()) << endl;
 	}
@@ -309,31 +312,60 @@ void BoardConsole::handleGyroButtons() {
 }
 void Message_ToByteArray(Message *message, uint8_t *a) {
 	uint8_t i = 0, crc = 0;
-	memcpy(a + 1, (uint8_t *)message, MESSAGE_SIZE - 2);
+	memcpy(a + 1, (uint8_t *)message, Message_Size);
 	a[0] = MESSAGE_HEADER;
 	crc = a[0];
-	for (i = 1; i < MESSAGE_SIZE - 1; i++) {
+	for (i = 1; i < Message_Size + 1; i++) {
 		crc ^= a[i];
 	}
-	a[MESSAGE_SIZE - 1] = crc;
+	a[Message_Size + 1] = crc;
 }
 
 uint8_t Message_FromByteArray(uint8_t *a, uint8_t n, Message *message) {
 	uint8_t i = 0, crc = 0;
 
 	crc = a[0];
-	for (i = 1; i < MESSAGE_SIZE - 1; i++) {
+	for (i = 1; i < Message_Size + 1; i++) {
 		crc ^= a[i];
 	}
-	if ((a[0] == MESSAGE_HEADER) && (a[MESSAGE_SIZE - 1] == crc)) {
-		memcpy((uint8_t *)message, a + 1, MESSAGE_SIZE - 2);
+	if ((a[0] == MESSAGE_HEADER) && (a[Message_Size + 1] == crc)) {
+		memcpy((uint8_t *)message, a + 1, Message_Size);
 		return 1;
 	}
 	return 0;
 }
 
-void BoardConsole::handleFreshMessage(Message message) {
-	qDebug() << message.ars1_x << message.ars1_y << message.ars1_t << message.ars2_x << message.ars2_y << message.ars2_t;
+float angle = 0;
+void BoardConsole::handleFreshMessage(Message msg) {
+	/*float arate = msg.ars3_z / 80.0;
+	angle += arate * 0.01;*/
+	/*qDebug() << msg.ars1_x << ' ' << msg.ars1_y << ' ' << msg.ars1_t << ' '
+		<< msg.ars2_x << ' ' << msg.ars2_y << ' ' << msg.ars2_t << ' ' << msg.ars3_z << ' '
+		<< msg.accel_x << ' ' << msg.accel_y << ' ' << msg.accel_z << endl;*/
+	qDebug() << msg.roll << msg.pitch << endl;
+
+	/*qint64 time = QDateTime::currentMSecsSinceEpoch() - startTime;
+
+	if (ui.angleCheckBox->isChecked()) {
+		if (angleX.size() == maxSize) {
+			angleX.pop_front();
+			angleY.pop_front();
+		}
+		angleX.append(time);
+		angleY.append(angle);
+		plot1_curves[0]->setSamples(angleX, angleY);
+	}
+	if (ui.angVelCheckBox->isChecked()) {
+		if (angVelX.size() == maxSize) {
+			angVelX.pop_front();
+			angVelY.pop_front();
+		}
+		angVelX.append(time);
+		angVelY.append(arate);
+		plot1_curves[1]->setSamples(angVelX, angVelY);
+
+		ui.plot1->replot();
+	}*/
 }
 
 void BoardConsole::handleFreshLine(QString &line) {

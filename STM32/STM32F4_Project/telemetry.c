@@ -23,38 +23,31 @@ typedef enum { WAITING_FOR_KP, WAITING_FOR_KD, WAITING_FOR_KI, WAITING_FOR_RESEA
 WAITING_FOR_MAX_ANGLE, WAITING_FOR_ACCEL_DEVIATION, WAITING_FOR_BOUNDARY_ANGLE, WAITING_FOR_MAX_ANGVEL, FLOAT_NONE } waitingForFloat;
 
 
-typedef struct {
-    int16_t ars1_x;
-    int16_t ars1_y;
-    int16_t ars1_t;
-    int16_t ars2_x;
-    int16_t ars2_y;
-    int16_t ars2_t;
-} Message;
+Message message;
 
-#define MESSAGE_SIZE    14         // +1 for header, +1 for footer
+uint8_t Message_Size = 0;
 #define MESSAGE_HEADER  0x21
 
 void Message_ToByteArray(Message *message, uint8_t *a) {
     uint8_t i = 0, crc = 0;
-    memcpy(a+1, (uint8_t *)message, MESSAGE_SIZE-2);
+    memcpy(a+1, (uint8_t *)message, Message_Size);
     a[0] = MESSAGE_HEADER;
     crc = a[0];
-    for (i = 1; i < MESSAGE_SIZE-1; i++) {
+    for (i = 1; i < Message_Size+1; i++) {
         crc ^= a[i];
     }
-    a[MESSAGE_SIZE-1] = crc;
+    a[Message_Size+1] = crc;
 }
 
 uint8_t Message_FromByteArray(uint8_t *a, uint8_t n, Message *message) {
     uint8_t i = 0, crc = 0;
     
     crc = a[0];
-    for (i = 1; i < MESSAGE_SIZE-1; i++) {
+    for (i = 1; i < Message_Size+1; i++) {
         crc ^= a[i];
     }
-    if ((a[0] == MESSAGE_HEADER) && (a[MESSAGE_SIZE-1] == crc)) {
-        memcpy((uint8_t *)message, a+1, MESSAGE_SIZE-2);
+    if ((a[0] == MESSAGE_HEADER) && (a[Message_Size+1] == crc)) {
+        memcpy((uint8_t *)message, a+1, Message_Size);
         return 1;
     } 
     return 0;
@@ -97,6 +90,7 @@ void USART_Init(void) {
 
     USART1->BRR     = 0x22c; //0x45;//0x341; 
     USART1->CR3     |= USART_CR3_DMAT;
+    //USART1->CR2     |= USART_CR2_STOP_1;
     USART1->CR1     |= USART_CR1_UE /*| USART_CR1_M | USART_CR1_PCE*/ | USART_CR1_RE | USART_CR1_TE | USART_CR1_RXNEIE; 
     NVIC_SetPriority(USART1_IRQn, 0x02);
     NVIC_EnableIRQ(USART1_IRQn);
@@ -443,33 +437,33 @@ void send_to_uart(uint8_t data) {
     while((USART1->SR & USART_SR_TC)==0); 
     USART1->DR = data; 
 }
-Message message;
-void SendTelemetry() {
-    
-    GPIOD->BSRRL |= 1 << 15;
-    if (telemetryOn) {
-        //sprintf(tele,  "%.2f %hd %hd %hd %d %d %d %d %.2f %.2f %.2f %d\n", 
-        //            F, finalAX, finalAY, finalAZ, pwm1, pwm2, COUNT1, COUNT2, Kp, Ki, Kd, angleFromAccel);
-        //sprintf(tele, "%.2f %.2f %hd %.2f %.2f %hd\n", ars1_angleRate[0], ars1_angleRate[1], ars1_data[2], ars2_angleRate[0], ars2_angleRate[1], ars2_data[2]);
-        message.ars1_x = ars1_data[0];
-        message.ars1_y = ars1_data[1];
-        message.ars1_t = ars1_data[2];
-        message.ars2_x = ars2_data[0];
-        message.ars2_y = ars2_data[1];
-        message.ars2_t = ars2_data[2];
-        Message_ToByteArray(&message, tele);
-        len = MESSAGE_SIZE;
-        //sprintf(tele, "%hd %hd %hd %hd %hd %hd\n", ars1_data[0], ars1_data[1], ars1_data[2], ars2_data[0], ars2_data[1], ars2_data[2]);
-//        sprintf(tele, "%.2f\n", angle[0]);
-        //len = strlen(tele);
-        Telemetry_DMA_Init();
-    }
-    GPIOD->BSRRH |= 1 << 15;
-}
 
 uint8_t USART_DMA_transferComleted = 1;
+void SendTelemetry(Message *msg) {
+    if (telemetryOn) {
+        if (USART_DMA_transferComleted) {
+            GPIOD->BSRRL |= 1 << 15;
+            
+//            message.ars1_x = ars1_termoData[0];
+//            message.ars1_y = ars1_termoData[1];
+//            message.ars1_t = ars1_data[2];
+//            message.ars2_x = ars2_termoData[0];
+//            message.ars2_y = ars2_termoData[1];
+//            message.ars2_t = ars2_data[2];
+            //msg->ars3_z = adxrs_data;
+            Message_ToByteArray(msg, tele);
+            len = Message_Size+2;
+            
+
+            Telemetry_DMA_Init();
+        }
+    }
+    
+}
+
+
 void Telemetry_DMA_Init() {
-    if (USART_DMA_transferComleted) {
+    //if (USART_DMA_transferComleted) {
         USART_DMA_transferComleted = 0;
         NVIC_EnableIRQ(DMA2_Stream7_IRQn);
         
@@ -479,12 +473,13 @@ void Telemetry_DMA_Init() {
         DMA2_Stream7->NDTR  = len;
         DMA2_Stream7->CR    |= DMA_SxCR_CHSEL_2 | DMA_SxCR_MINC /*| DMA_SxCR_PSIZE_0 | DMA_SxCR_MSIZE_0 */| 
                                     DMA_SxCR_TCIE | DMA_SxCR_DIR_0  | DMA_SxCR_PL | DMA_SxCR_EN;
-    }
+    //}
 }
 
 void DMA2_Stream7_IRQHandler() {
     if (DMA2->HISR & DMA_HISR_TCIF7) {
         DMA2->HIFCR = DMA_HIFCR_CTCIF7;
         USART_DMA_transferComleted = 1;
+        GPIOD->BSRRH |= 1 << 15;
     }
 }

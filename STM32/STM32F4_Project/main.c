@@ -80,6 +80,9 @@ int main() {
     GPIOC->BSRRL |= 1;
     GPIOD->MODER |= 1 << 15*2;
     
+    Message_Size = sizeof(Message);
+    //telemetryOn = 1;
+    
     Accel_VDD_Init();
     ARS1_VDD_Init();
     ARS2_VDD_Init();
@@ -115,6 +118,7 @@ int main() {
 
     Motors_Init();
     USART_Init();
+    //Processing_TIM_Init();
     while(ENGRDY != 1) {};   
 
     while(1) { 
@@ -122,7 +126,7 @@ int main() {
         if (doAdxrsProcess) {
             //GPIOD->BSRRL |= 1 << 15;  
             doAdxrsProcess = 0;
-            filteredVel = lowpass(adxrsHistory, adxrsCurHistoryIndex, adxrs_b, ADXRS_FILTER_SIZE);
+            filteredVel = adxrs_data; //lowpass(adxrsHistory, adxrsCurHistoryIndex, adxrs_b, ADXRS_FILTER_SIZE);
                      
             if (adxrs_CalibrationOn) {
                 adxrs_Sum += filteredVel;
@@ -149,13 +153,13 @@ int main() {
             doAccelProcess = 0;
             //GPIOD->BSRRH |= 1 << 15; 
         } 
-        
+//        
         if (ars1_doProcess) {
             //GPIOD->BSRRL |= 1 << 15; 
             ars1_doProcess = 0;
 
             for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
-                ars1_filteredData[i] = ars1_data[i]; //lowpass(ars1_history[i], ars1_curHistoryIndex, adxrs290_filterCfs, ADXRS290_FILTER_SIZE);
+                ars1_filteredData[i] = ars1_termoData[i]; //lowpass(ars1_history[i], ars1_curHistoryIndex, adxrs290_filterCfs, ADXRS290_FILTER_SIZE);
             }
             
             if (ars1_calibrationOn) {
@@ -183,7 +187,7 @@ int main() {
             ars2_doProcess = 0;
 
             for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
-                ars2_filteredData[i] = ars2_data[i]; //lowpass(ars2_history[i], ars2_curHistoryIndex, adxrs290_filterCfs, ADXRS290_FILTER_SIZE);
+                ars2_filteredData[i] = ars2_termoData[i]; //lowpass(ars2_history[i], ars2_curHistoryIndex, adxrs290_filterCfs, ADXRS290_FILTER_SIZE);
             }
             
             if (ars2_calibrationOn) {

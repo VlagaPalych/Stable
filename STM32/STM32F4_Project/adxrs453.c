@@ -1,6 +1,7 @@
 #include "adxrs453.h"
 #include "stm32f4xx.h" 
 #include "processing.h"
+#include "telemetry.h"
 
 uint8_t SPI3_SCK = 10; // PC
 uint8_t SPI3_MISO = 11; // PC
@@ -18,6 +19,7 @@ void SPI3_GPIO_Init() {
 	GPIOC->OSPEEDR 	|= (3 << SPI3_SCK*2) | (3 << SPI3_MISO*2) | (3 << SPI3_MOSI*2);
 	GPIOC->AFR[1] 	|= (6 << (SPI3_SCK-8)*4) | (6 << (SPI3_MISO-8)*4) | (6 << (SPI3_MOSI-8)*4);                         // AF6
 	GPIOC->OTYPER	&= ~((1 << SPI3_SCK) | (1 << SPI3_MISO) | (1 << SPI3_MOSI)); 
+    GPIOC->PUPDR    |= (1 << SPI3_MISO*2);
     
     GPIOA->MODER &= ~(3 << SPI3_NSS*2);
     GPIOA->MODER |= 1 << SPI3_NSS*2;
@@ -31,7 +33,7 @@ void SPI3_Init() {
 	SPI3->CR1 = 0;
 	SPI3->CR1 |= SPI_CR1_DFF;                                                   // 16 bits
 	SPI3->CR2 |= SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN;
-	SPI2->CR1 |= SPI_CR1_BR_1; 							                        // baudrate = Fpclk / 256
+	SPI3->CR1 |= SPI_CR1_BR_1; 							                        // baudrate = Fpclk / 256
 	//SPI3->CR1 |= SPI_CR1_CPOL;													// polarity
 	//SPI3->CR1 |= SPI_CR1_CPHA;													// phase	
 	SPI3->CR1 &= ~(SPI_CR1_LSBFIRST);										    // MSBFIRST		
@@ -83,7 +85,7 @@ uint16_t ADXRS453_Read(uint8_t address) {
 }
 
 
-uint16_t adxrsCommands[2] = {0x8000, 0x0000};
+uint16_t adxrsCommands[2] =  {0x8000, 0x0000}; //{0xf001, 0x0000};
 uint16_t adxrsResponses[2];
 
 uint8_t transferFinished = 1;
@@ -130,7 +132,13 @@ void DMA1_Stream2_IRQHandler()  {
         d15_d11 = adxrsResponses[0] & 0x001f;
         d10_d0 = adxrsResponses[1] & 0xffe0;
         adxrs_data = (int16_t)((d15_d11 << 11) | (d10_d0 >> 5));
+        
+//        d15_d11 = adxrsResponses[0] & 0x03ff;
+//        d10_d0 = adxrsResponses[1] & 0xf800;
+//        adxrs_data = (int16_t)((d15_d11 << 6) | (d10_d0 >> 10));
         transferFinished = 1;
+        
+       // angle[2] += (adxrs_data - adxrs_Offset) /80.0 * 0.0025;
         
         adxrsHistory[adxrsHistoryIndex] = adxrs_data;
         adxrsHistoryIndex++;
@@ -149,6 +157,9 @@ void DMA1_Stream2_IRQHandler()  {
             }
         } 
         //adxrs_data -= adxrs_Offset;  
+//        message.ars3_z = adxrs_data;
+//        SendTelemetry(&message);
+        GPIOD->BSRRH |= 1 << 15;
     }
 }
 
@@ -171,6 +182,7 @@ void ADXRS_TIM_Init() {
 void TIM2_IRQHandler() {
     if (TIM2->SR & TIM_SR_UIF) {
         TIM2->SR &= ~TIM_SR_UIF;
+        GPIOD->BSRRL |= 1 << 15;
         ADXRS_DMA_Read();
     }
 }

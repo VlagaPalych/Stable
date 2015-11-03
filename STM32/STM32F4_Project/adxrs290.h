@@ -43,6 +43,7 @@ void ARS1_Calibr(void);
 extern uint8_t ars1_spiIndex;
 extern uint8_t ars1_rawData[ADXRS290_DATA_SIZE*2];
 extern int16_t ars1_data[ADXRS290_DATA_SIZE];
+extern float ars1_termoData[ADXRS290_DATA_SIZE-1];
 extern float ars1_filteredData[ADXRS290_DATA_SIZE-1];
 extern float ars1_angleRate[ADXRS290_DATA_SIZE-1];
 
@@ -59,6 +60,8 @@ extern uint32_t ars1_calibrIndex;
 extern uint32_t ars1_calibrNumber;
 extern float ars1_offset[ADXRS290_DATA_SIZE-1];
 extern float ars1_sum[ADXRS290_DATA_SIZE-1];
+
+extern float ars1_termoCf[ADXRS290_DATA_SIZE-1];
 
 //-------------------------------------------------------------------
 // ARS2
@@ -81,6 +84,7 @@ void ARS2_Calibr(void);
 extern uint8_t ars2_spiIndex;
 extern uint8_t ars2_rawData[ADXRS290_DATA_SIZE*2];
 extern int16_t ars2_data[ADXRS290_DATA_SIZE];
+extern float ars2_termoData[ADXRS290_DATA_SIZE-1];
 extern float ars2_filteredData[ADXRS290_DATA_SIZE-1];
 extern float ars2_angleRate[ADXRS290_DATA_SIZE-1];
 
@@ -98,6 +102,6 @@ extern uint32_t ars2_calibrNumber;
 extern float ars2_offset[ADXRS290_DATA_SIZE-1];
 extern float ars2_sum[ADXRS290_DATA_SIZE-1];
 
-
+extern float ars2_termoCf[ADXRS290_DATA_SIZE-1];
 
 #endif

@@ -214,6 +214,12 @@ void control() {
     
 }
 
+float T[9];
+float eulerAngleRate[3];
+float phi = 0;
+float teta = 0;
+float psi = 0;
+
 void calcAngleRate() {
     uint8_t i = 0;
     for (i = 0; i < 2; i++) {
@@ -222,14 +228,21 @@ void calcAngleRate() {
         angleRate[i] = (ars1_angleRate[i] - ars2_angleRate[i]) / 2.0;    
     }
     angleRate[2] = filteredVel / 80.0;
-//    angularVelocity = -filteredVel / 80 * 3.14159 / 180.0;
-//    //angularVelocity = - finalGX / 32767.0 * 2000 * 3.14159 / 180.0;
-//    angularVelocityHistory[angularVelocityHistoryIndex] = angularVelocity;
-//    if (angularVelocityHistoryIndex == ANGVEL_HISTORY_SIZE - 1) {
-//        angularVelocityHistoryIndex = 0;
-//    } else {
-//        angularVelocityHistoryIndex++;
-//    }
+    
+    phi = angle[0] * 3.14159 / 180.0;
+    teta = angle[1] * 3.14159 / 180.0;
+    psi = angle[2] * 3.14159 / 180.0;
+    
+//    T[0] = 1;    T[1] = sin(phi) * tan(teta);    T[2] = cos(phi) * tan(teta);
+//    T[3] = 0;    T[4] = cos(phi);                T[5] = - sin(phi);
+//    T[6] = 0;    T[7] = sin(phi) / cos(teta);    T[8] = cos(phi) / cos(teta);
+//    
+//    mat_mul(T, angleRate, eulerAngleRate, 3, 1, 3);
+    
+    eulerAngleRate[0] = angleRate[0] + angleRate[1]*sin(phi)*tan(teta) + angleRate[2]*cos(phi)*tan(teta);
+    eulerAngleRate[1] = angleRate[1]*cos(phi) + angleRate[2]*sin(phi);
+    eulerAngleRate[2] = angleRate[1]*sin(phi)/cos(teta) + angleRate[2]*cos(phi)/cos(teta);
+    
 }
 
 float lowpass(int16_t *history, uint8_t lowpassIndex, float *fir, int firSize) {
@@ -245,7 +258,7 @@ float lowpass(int16_t *history, uint8_t lowpassIndex, float *fir, int firSize) {
 }
 
 void Processing_TIM_Init() {
-    TIM7->PSC = 7;
+    TIM7->PSC = 63;
     TIM7->ARR = 10000;
     TIM7->DIER |= 1;
     NVIC_SetPriority(TIM7_IRQn, 0xFF);
@@ -303,11 +316,23 @@ uint8_t gCheck() {
    
     return diff < threshold;
 }
+
+float roll = 0;
+float pitch = 0;
+
 void calcAngle() {
-    uint8_t i = 0;
-    for(i = 0; i < 3; i++) {
-        angle[i] += angleRate[i] * 0.01;
-    }
+    float gx = finalAX;
+    float gy = finalAY;
+    float gz = finalAZ;
+    
+    roll = atanf(gy / gz);
+    
+    pitch = atanf(- gx / sqrt(gy*gy + gz*gz));
+    
+//    uint8_t i = 0;
+//    for(i = 0; i < 3; i++) {
+//        angle[i] += eulerAngleRate[i] * 0.01;
+//    }
 
     
 //    float accelAngle = 0;
@@ -392,12 +417,46 @@ void adjustControl() {
 }
 
 Quat curRotation;
+#include "adxrs453.h"
+
+#define dt 0.01
+
+float z[4];
+float x_apriori[4];
+float x_aposteriori[4];
+
+float A[16] = { 1, 0, dt, 0,
+                0, 1, 0, dt,
+                0, 0, 1, 0,
+                0, 0, 0, 1};
+float P_apriori[4][4];
+float P_aposteriori[4][4];
+
+float Q[4][4];
+float R[4][4];
+
+float K[4][4];
+
 
 void TIM7_IRQHandler(void) {
     TIM7->SR &= ~TIM_SR_UIF;
-
+    
+    /*
+    K = P_apriori(P_apriori + R)^-1
+    x_aposteriori = x_apriori + K(z - x_apriori)
+    P_aposteriori = (I - K)P_apriori
+    
+    x_apriori = A*x_aposteriori
+    P_apriori = A*P_aposteriori*At + Q
+    */
+    
+    z[0] = roll;
+    z[1] = pitch;
+    z[2] = angleRate[0];
+    z[3] = angleRate[1];
+    
     getFinalData();
-    calcAngleRate();  
+    //calcAngleRate();  
     //calcAngAccel();
 //    Quat_FromAngleRate(angleRate, &curRotation);
 //    Quat_Mul(orient, curRotation, &orient);
@@ -455,6 +514,18 @@ void TIM7_IRQHandler(void) {
             researchIndex--;
             break;
     }
-
-    SendTelemetry();
+    
+//    message.ars1_x = ars1_angleRate[0];
+//    message.ars1_y = ars1_angleRate[1];
+//    message.ars1_t = ars1_data[2];
+//    message.ars2_x = ars2_angleRate[0];
+//    message.ars2_y = ars2_angleRate[1];
+//    message.ars2_t = ars2_data[2];
+//    message.ars3_z = angleRate[2];
+//    message.accel_x = finalAX;
+//    message.accel_y = finalAY;
+//    message.accel_z = finalAZ;
+    message.roll = roll;
+    message.pitch = pitch;
+    SendTelemetry(&message); 
 }

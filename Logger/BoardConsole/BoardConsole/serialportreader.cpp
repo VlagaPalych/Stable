@@ -92,17 +92,27 @@ void SerialPortReader::setFile(QString fileName) {
 	analyseFileName(fileName);
 }
 
+qint32 errorCounter = 0;
+
 void SerialPortReader::handleReadyRead()
 {
 	m_readData.append(m_serialPort->readAll());
-	while (m_readData.size() >= MESSAGE_SIZE) {
-		QByteArray msgByteArray = m_readData.mid(0, MESSAGE_SIZE);
+	while (m_readData.size() >= Message_Size+2) {
+		QByteArray msgByteArray = m_readData.mid(0, Message_Size + 2);
 		Message msg;
-		if (Message_FromByteArray((uint8_t *)msgByteArray.data(), MESSAGE_SIZE, &msg)) {
+		if (Message_FromByteArray((uint8_t *)msgByteArray.data(), Message_Size + 2, &msg)) {	
+			if (logStream) {
+				/*(*logStream) << msg.ars1_x << ' ' << msg.ars1_y << ' ' << msg.ars1_t << ' '
+					<< msg.ars2_x << ' ' << msg.ars2_y << ' ' << msg.ars2_t << ' ' << msg.ars3_z << ' '
+					<< msg.accel_x << ' ' << msg.accel_y << ' ' << msg.accel_z << endl;*/
+				(*logStream) << msg.roll << msg.pitch << endl;
+			}
 			Q_EMIT freshMessage(msg);
-			m_readData = m_readData.mid(MESSAGE_SIZE + 1);
+			m_readData = m_readData.remove(0, Message_Size+2);
 		}
 		else {
+			errorCounter++;
+			qDebug() << "errors=" << errorCounter << endl;
 			m_readData.remove(0, 1);
 		}
 		

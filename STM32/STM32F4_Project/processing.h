@@ -4,6 +4,9 @@
 #include "stdint.h"
 #include "quaternion.h"
 
+extern float roll;
+extern float pitch;
+
 extern Quat orient;
 
 extern float angleRate[3];

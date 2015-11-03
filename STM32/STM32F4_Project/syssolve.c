@@ -13,8 +13,7 @@ float Bfull[10];           // right column
 uint8_t anglesAccumulated;  // number of angles we have at the moment
 uint8_t row;
 
-float det3(float *mat)
-{
+float det3(float *mat) {
     float t1 = 0, t2 = 0, t3 = 0, part1 = 0, part2 = 0, part3 = 0, retval = 0;
     t1 = mat[1*3 + 1]*mat[2*3 + 2];
     t2 = mat[1*3 + 2]*mat[2*3 + 1];
@@ -30,6 +29,32 @@ float det3(float *mat)
     part3 = mat[0*3 + 2]*t3;
     retval = part1 - part2 + part3;
     return retval;
+}
+
+float det4(float *a) {
+    float t1 = 0, t2 = 0, t3 = 0,part1 = 0, part2 = 0, part3 = 0, part4 = 0;
+    
+    t1 = a[1*4 + 1]*(a[2*4 + 2]*a[3*4 + 3] - a[3*4 + 2]*a[2*4 + 3]);
+    t2 = a[1*4 + 2]*(a[2*4 + 1]*a[3*4 + 3] - a[3*4 + 1]*a[2*4 + 3]);
+    t3 = a[1*4 + 3]*(a[2*4 + 1]*a[3*4 + 2] - a[3*4 + 1]*a[2*4 + 2]);
+    part1 = a[0*4 + 0]*(t1 - t2 + t3);
+    
+    t1 = a[1*4 + 0]*(a[2*4 + 2]*a[3*4 + 3] - a[3*4 + 2]*a[2*4 + 3]);
+    t2 = a[1*4 + 2]*(a[2*4 + 0]*a[3*4 + 3] - a[3*4 + 0]*a[2*4 + 3]);
+    t3 = a[1*4 + 3]*(a[2*4 + 0]*a[3*4 + 2] - a[3*4 + 0]*a[2*4 + 2]);
+    part2 = a[0*4 + 1]*(t1 - t2 + t3);
+    
+    t1 = a[1*4 + 0]*(a[2*4 + 1]*a[3*4 + 3] - a[3*4 + 1]*a[2*4 + 3]);
+    t2 = a[1*4 + 1]*(a[2*4 + 0]*a[3*4 + 3] - a[3*4 + 0]*a[2*4 + 3]);
+    t3 = a[1*4 + 3]*(a[2*4 + 0]*a[3*4 + 1] - a[3*4 + 0]*a[2*4 + 1]);
+    part3 = a[0*4 + 2]*(t1 - t2 + t3);
+    
+    t1 = a[1*4 + 0]*(a[2*4 + 1]*a[3*4 + 2] - a[3*4 + 1]*a[2*4 + 2]);
+    t2 = a[1*4 + 1]*(a[2*4 + 0]*a[3*4 + 2] - a[3*4 + 0]*a[2*4 + 2]);
+    t3 = a[1*4 + 2]*(a[2*4 + 0]*a[3*4 + 1] - a[3*4 + 0]*a[2*4 + 1]);
+    part4 = a[0*4 + 3]*(t1 - t2 + t3);
+    
+    return part1 - part2 + part3 - part4;
 }
 
 /* A - matrix n x m */
