@@ -105,7 +105,7 @@ void SerialPortReader::handleReadyRead()
 				/*(*logStream) << msg.ars1_x << ' ' << msg.ars1_y << ' ' << msg.ars1_t << ' '
 					<< msg.ars2_x << ' ' << msg.ars2_y << ' ' << msg.ars2_t << ' ' << msg.ars3_z << ' '
 					<< msg.accel_x << ' ' << msg.accel_y << ' ' << msg.accel_z << endl;*/
-				(*logStream) << msg.roll << msg.pitch << endl;
+				(*logStream) << msg.roll << msg.pitch << msg.rollRate << msg.pitchRate << endl;
 			}
 			Q_EMIT freshMessage(msg);
 			m_readData = m_readData.remove(0, Message_Size+2);

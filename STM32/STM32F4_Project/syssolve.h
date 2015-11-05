@@ -16,10 +16,12 @@ extern uint8_t row;
 //////////////////////
 
 float det3(float *mat);
-void transpose(float *A, float *At, int n, int m);
-void mat_add(const float *A, const float *B, float *C, int n, int m);
-void mat_sub(const float *A, const float *B, float *C, int n, int m);
-void mat_mul(const float *A, const float *B, float *C, int n, int m, int k);
+void transpose(const float *A, float *At, int m, int n);
+void mat_add(const float *A, const float *B, float *C, int m, int n);
+void mat_sub(const float *A, const float *B, float *C, int m, int n);
+void mat_mul(const float *A, const float *B, float *C, int m, int n, int k);
 void system_solve(float *F, float *B, float *x, int n, int m);
+
+void mat2_inv(const float *A, float *Ainv);
 
 #endif

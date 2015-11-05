@@ -79,6 +79,9 @@ typedef struct {
 	//    int16_t accel_z;
 	float roll;
 	float pitch;
+
+	float rollRate;
+	float pitchRate;
 } Message;
 
 extern uint8_t Message_Size;

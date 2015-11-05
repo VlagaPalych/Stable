@@ -342,9 +342,9 @@ void BoardConsole::handleFreshMessage(Message msg) {
 	/*qDebug() << msg.ars1_x << ' ' << msg.ars1_y << ' ' << msg.ars1_t << ' '
 		<< msg.ars2_x << ' ' << msg.ars2_y << ' ' << msg.ars2_t << ' ' << msg.ars3_z << ' '
 		<< msg.accel_x << ' ' << msg.accel_y << ' ' << msg.accel_z << endl;*/
-	qDebug() << msg.roll << msg.pitch << endl;
+	qDebug() << msg.roll << msg.pitch << msg.rollRate << msg.pitchRate << endl;
 
-	/*qint64 time = QDateTime::currentMSecsSinceEpoch() - startTime;
+	qint64 time = QDateTime::currentMSecsSinceEpoch() - startTime;
 
 	if (ui.angleCheckBox->isChecked()) {
 		if (angleX.size() == maxSize) {
@@ -352,7 +352,7 @@ void BoardConsole::handleFreshMessage(Message msg) {
 			angleY.pop_front();
 		}
 		angleX.append(time);
-		angleY.append(angle);
+		angleY.append(msg.roll);
 		plot1_curves[0]->setSamples(angleX, angleY);
 	}
 	if (ui.angVelCheckBox->isChecked()) {
@@ -361,11 +361,11 @@ void BoardConsole::handleFreshMessage(Message msg) {
 			angVelY.pop_front();
 		}
 		angVelX.append(time);
-		angVelY.append(arate);
+		angVelY.append(msg.rollRate);
 		plot1_curves[1]->setSamples(angVelX, angVelY);
 
 		ui.plot1->replot();
-	}*/
+	}
 }
 
 void BoardConsole::handleFreshLine(QString &line) {

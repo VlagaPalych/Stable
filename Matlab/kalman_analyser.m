@@ -1,4 +1,4 @@
-logName1 = 'D:\Vlad\Projects\Stable\Logger\BoardConsole\BoardConsole\log503.txt';
+logName1 = 'D:\Vlad\Projects\Stable\Logger\BoardConsole\BoardConsole\log504.txt';
 
 logFile1 = fopen(logName1, 'r');
 A1 = fscanf(logFile1, '%f %f\n', [2 Inf]);

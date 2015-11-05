@@ -58,44 +58,42 @@ float det4(float *a) {
 }
 
 /* A - matrix n x m */
-void transpose(float *A, float *At, int n, int m) {
+void transpose(const float *A, float *At, int m, int n) {
     int i, j;
-    for (i = 0; i < n; i++) {
-        for (j = 0; j < m; j++) {
-            At[j*n + i] = A[i*m + j];
+    for (i = 0; i < m; i++) {
+        for (j = 0; j < n; j++) {
+            At[j*m + i] = A[i*n + j];
         }
     }
 }
 
-void mat_add(const float *A, const float *B, float *C, int n, int m) {
+void mat_add(const float *A, const float *B, float *C, int m, int n) {
     int i, j;
-    for (i = 0; i < n; i++) {
-        for (j = 0; j < m; j++) {
-            C[i*m + j] = A[i*m + j] + B[i*m + j];
+    for (i = 0; i < m; i++) {
+        for (j = 0; j < n; j++) {
+            C[i*n + j] = A[i*n + j] + B[i*n + j];
         }
     }
 }
 
-void mat_sub(const float *A, const float *B, float *C, int n, int m) {
+void mat_sub(const float *A, const float *B, float *C, int m, int n) {
     int i, j;
-    for (i = 0; i < n; i++) {
-        for (j = 0; j < m; j++) {
-            C[i*m + j] = A[i*m + j] - B[i*m + j];
+    for (i = 0; i < m; i++) {
+        for (j = 0; j < n; j++) {
+            C[i*n + j] = A[i*n + j] - B[i*n + j];
         }
     }
 }
 
 /* A - matrix n x k 
    B - matrix k x m */
-void mat_mul(const float *A, const float *B, float *C, int n, int m, int k) {
+void mat_mul(const float *A, const float *B, float *C, int m, int n, int k) {
     int i, j, h;
-    float tmp = 0;
-    for (i = 0; i < n; i++) {
-        for (j = 0; j < m; j++) {
-            C[i*m + j] = 0;
-            for (h = 0; h < k; h++) {
-                tmp = A[i*k + h] * B[h*m + j];
-                C[i*m + j] += tmp;  
+    for (i = 0; i < m; i++) {
+        for (j = 0; j < k; j++) {
+            C[i*k + j] = 0;
+            for (h = 0; h < n; h++) {
+                C[i*k + j] += A[i*n + h] * B[h*k + j];;  
             }
         }
     }
@@ -148,4 +146,16 @@ void system_solve(float *F, float *B, float *x, int n, int m) {
     free(A_3x3);
     free(b);
     free(tmp);
+}
+
+float det2(const float *A) {
+    return A[0*2 + 0]*A[1*2 + 1] - A[0*2 + 1]*A[1*2 + 0];
+}
+
+void mat2_inv(const float *A, float *Ainv) {
+    float detA = det2(A);
+    Ainv[0*2 + 0] = A[1*2 + 1] / detA;
+    Ainv[0*2 + 1] = - A[0*2 + 1] / detA;
+    Ainv[1*2 + 0] = - A[1*2 + 0] / detA;
+    Ainv[1*2 + 1] = A[0*2 + 0] / detA;
 }

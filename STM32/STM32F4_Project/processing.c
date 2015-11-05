@@ -325,9 +325,11 @@ void calcAngle() {
     float gy = finalAY;
     float gz = finalAZ;
     
-    roll = atanf(gy / gz);
+    roll    = atanf(gy / gz);
+    pitch   = atanf(- gx / sqrt(gy*gy + gz*gz));
     
-    pitch = atanf(- gx / sqrt(gy*gy + gz*gz));
+    roll    *= 180.0 / 3.14159;
+    pitch   *= 180.0 / 3.14159;
     
 //    uint8_t i = 0;
 //    for(i = 0; i < 3; i++) {
@@ -420,112 +422,132 @@ Quat curRotation;
 #include "adxrs453.h"
 
 #define dt 0.01
+#define Sa 1.0
 
-float z[4];
-float x_apriori[4];
-float x_aposteriori[4];
+float A[4] = {1, dt, 0, 1};
+float I[4] = {1, 0, 0, 1};
 
-float A[16] = { 1, 0, dt, 0,
-                0, 1, 0, dt,
-                0, 0, 1, 0,
-                0, 0, 0, 1};
-float P_apriori[4][4];
-float P_aposteriori[4][4];
+float Xroll[2] = {0, 0};
+float Zroll[2] = {0, 0};
+float Proll[4] = {0, 0, 0, 0};
+float Qroll[4] = {dt*dt*dt*dt*Sa*Sa/4, dt*dt*dt*dt*Sa*Sa/4 + dt*dt*Sa*Sa, dt*dt*dt*dt*Sa*Sa/4 + dt*dt*Sa*Sa, dt*dt*Sa*Sa};
+float Rroll[4] = {4.76e-5, 0, 0, 1.444e-5};
 
-float Q[4][4];
-float R[4][4];
-
-float K[4][4];
+float Xpitch[2] = {0, 0};
+float Zpitch[2] = {0, 0};
+float Ppitch[4] = {0, 0, 0, 0};
+float Qpitch[4] = {dt*dt*dt*dt*Sa*Sa/4, dt*dt*dt*dt*Sa*Sa/4 + dt*dt*Sa*Sa, dt*dt*dt*dt*Sa*Sa/4 + dt*dt*Sa*Sa, dt*dt*Sa*Sa};
+float Rpitch[4] = {4.76e-5, 0, 0, 3.72e-5};
+ 
+                
+void kalman2(const float *A, const float *Q, const float *R, float *x, const float *z, float *P) {
+    float x_apriori[2], P_apriori[4], At[4];
+    float K[4];
+    float tmp1[4], tmp2[4];
+    
+    // x_apriori = A*x
+    mat_mul(A, x, x_apriori, 2, 2, 1);
+    
+    // P_apriori = A*P_aposteriori*At + Q
+    mat_mul(A, P, tmp1, 2, 2, 2);
+    transpose(A, At, 2, 2);
+    mat_mul(tmp1, At, tmp2, 2, 2, 2);
+    mat_add(tmp2, Q, P_apriori, 2, 2);
+    
+    // K = P_apriori(P_apriori + R)^-1
+    mat_add(P_apriori, R, tmp1, 2, 2);
+    mat2_inv(tmp1, tmp2);
+    mat_mul(P_apriori, tmp2, K, 2, 2, 2);
+    
+    // x_aposteriori = x_apriori + K(z - x_apriori)
+    mat_sub(z, x_apriori, tmp1, 2, 1);
+    mat_mul(K, tmp1, tmp2, 2, 2, 1);
+    mat_add(x_apriori, tmp2, x, 2, 1);
+    
+    // P_aposteriori = (I - K)P_apriori
+    mat_sub(I, K, tmp1, 2, 2);
+    mat_mul(tmp1, P_apriori, P, 2, 2, 2);
+}
 
 
 void TIM7_IRQHandler(void) {
     TIM7->SR &= ~TIM_SR_UIF;
     
-    /*
-    K = P_apriori(P_apriori + R)^-1
-    x_aposteriori = x_apriori + K(z - x_apriori)
-    P_aposteriori = (I - K)P_apriori
-    
-    x_apriori = A*x_aposteriori
-    P_apriori = A*P_aposteriori*At + Q
-    */
-    
-    z[0] = roll;
-    z[1] = pitch;
-    z[2] = angleRate[0];
-    z[3] = angleRate[1];
-    
     getFinalData();
-    //calcAngleRate();  
-    //calcAngAccel();
-//    Quat_FromAngleRate(angleRate, &curRotation);
-//    Quat_Mul(orient, curRotation, &orient);
-//    Quat_ToEuler(orient, angle);
+    calcAngleRate(); 
     calcAngle();
+       
+    Zroll[0] = roll;
+    Zroll[1] = eulerAngleRate[0];;
+    Zpitch[0] = pitch;
+    Zpitch[1] = eulerAngleRate[1];
     
-//    angleIntegral += angle;
-//    if (angleIntegral > angleIntegralMax) {
-//        angleIntegral = angleIntegralMax;
-//    }
+    kalman2(A, Qroll, Rroll, Xroll, Zroll, Proll);
+    kalman2(A, Qpitch, Rpitch, Xpitch, Zpitch, Ppitch);
+    
+    angle[0] = Xroll[0];
+    angle[1] = Xpitch[0];
   
-    researchIndex++;
-    switch (research) {
-        case IMPULSE_RESPONSE:
-            if (researchIndex == 1) {
-                F = 1.0;
-                calcPwms();
-                Motors_Run();
-            } else if (researchIndex == 50) {
-                F = 0;
-                calcPwms();
-                Motors_Stop();
-                research = NO_RESEARCH;
-            }
-            break;
-        case STEP_RESPONSE:
-            if (researchIndex == 1) {
-                F = 1.0;
-                calcPwms();
-                Motors_Run();
-            }
-            break;
-        case SINE_RESPONSE:
-            F = researchAmplitude * sin(researchFrequency * researchIndex);
-            calcPwms();
-            Motors_Run();
-            break;
-        case EXP_RESPONSE:
-            F = researchAmplitude * exp(-researchFrequency * researchIndex);
-            calcPwms();
-            Motors_Run();
-            break;
-        case SIMPLE_CONTROL:
-            simplestControl();
-            break;
-        case PID_CONTROL:
-            control();
-            break;
-        case ADJUST_CONTROL:
-            if (researchIndex % everyN == 0) {
-                adjustControl();
-            }
-            break;
-        default:
-            researchIndex--;
-            break;
-    }
-    
-//    message.ars1_x = ars1_angleRate[0];
-//    message.ars1_y = ars1_angleRate[1];
-//    message.ars1_t = ars1_data[2];
-//    message.ars2_x = ars2_angleRate[0];
-//    message.ars2_y = ars2_angleRate[1];
-//    message.ars2_t = ars2_data[2];
-//    message.ars3_z = angleRate[2];
-//    message.accel_x = finalAX;
-//    message.accel_y = finalAY;
-//    message.accel_z = finalAZ;
-    message.roll = roll;
-    message.pitch = pitch;
+//    researchIndex++;
+//    switch (research) {
+//        case IMPULSE_RESPONSE:
+//            if (researchIndex == 1) {
+//                F = 1.0;
+//                calcPwms();
+//                Motors_Run();
+//            } else if (researchIndex == 50) {
+//                F = 0;
+//                calcPwms();
+//                Motors_Stop();
+//                research = NO_RESEARCH;
+//            }
+//            break;
+//        case STEP_RESPONSE:
+//            if (researchIndex == 1) {
+//                F = 1.0;
+//                calcPwms();
+//                Motors_Run();
+//            }
+//            break;
+//        case SINE_RESPONSE:
+//            F = researchAmplitude * sin(researchFrequency * researchIndex);
+//            calcPwms();
+//            Motors_Run();
+//            break;
+//        case EXP_RESPONSE:
+//            F = researchAmplitude * exp(-researchFrequency * researchIndex);
+//            calcPwms();
+//            Motors_Run();
+//            break;
+//        case SIMPLE_CONTROL:
+//            simplestControl();
+//            break;
+//        case PID_CONTROL:
+//            control();
+//            break;
+//        case ADJUST_CONTROL:
+//            if (researchIndex % everyN == 0) {
+//                adjustControl();
+//            }
+//            break;
+//        default:
+//            researchIndex--;
+//            break;
+//    }
+//    
+////    message.ars1_x = ars1_angleRate[0];
+////    message.ars1_y = ars1_angleRate[1];
+////    message.ars1_t = ars1_data[2];
+////    message.ars2_x = ars2_angleRate[0];
+////    message.ars2_y = ars2_angleRate[1];
+////    message.ars2_t = ars2_data[2];
+////    message.ars3_z = angleRate[2];
+////    message.accel_x = finalAX;
+////    message.accel_y = finalAY;
+////    message.accel_z = finalAZ;
+    message.roll = Xroll[0];
+    message.pitch = Xpitch[0];
+    message.rollRate = Xroll[1];
+    message.pitchRate = Xpitch[1];
     SendTelemetry(&message); 
 }
