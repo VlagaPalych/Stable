@@ -223,9 +223,9 @@ float psi = 0;
 void calcAngleRate() {
     uint8_t i = 0;
     for (i = 0; i < 2; i++) {
-        ars1_angleRate[i] = ars1_filteredData[i] / 200.0;
-        ars2_angleRate[i] = ars2_filteredData[i] / 200.0;
-        angleRate[i] = (ars1_angleRate[i] - ars2_angleRate[i]) / 2.0;    
+        ars_angleRate[0][i] = ars_filteredData[0][i] / 200.0;
+        ars_angleRate[1][i] = ars_filteredData[1][i] / 200.0;
+        angleRate[i] = (ars_angleRate[0][i] - ars_angleRate[1][i]) / 2.0;    
     }
     angleRate[2] = filteredVel / 80.0;
     
@@ -422,7 +422,7 @@ Quat curRotation;
 #include "adxrs453.h"
 
 #define dt 0.01
-#define Sa 1.0
+#define Sa 5.0
 
 float A[4] = {1, dt, 0, 1};
 float I[4] = {1, 0, 0, 1};

@@ -185,8 +185,8 @@ void EXTI1_IRQHandler() {  //what to do when accelerometer is ready
 #else
 
 void Accel_GetData() {
-    if (SPI2_curUsing == NONE) {
-        SPI2_curUsing = ACCEL_USING;
+    if (SPI2_curUsing == SPI2_NOONE_USING) {
+        SPI2_curUsing = SPI2_ACCEL_USING;
         ADXL345_DMA_Init();
     } 
 }

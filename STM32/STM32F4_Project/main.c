@@ -65,13 +65,13 @@ void RCC_Init() {
 }
 
 void checkCalibrationFinish() {
-    if ((adxrs_CalibrationOn | ars1_calibrationOn | ars2_calibrationOn | accelCalibrationOn) == 0) {
+    if ((adxrs_CalibrationOn | ars_calibrationOn[0] | ars_calibrationOn[1] | accelCalibrationOn) == 0) {
         Processing_TIM_Init();
     }
 }
 
 int main() {
-    uint8_t i = 0;
+    uint8_t i = 0, j = 0;
     
     RCC_Init();   
     
@@ -84,17 +84,16 @@ int main() {
     //telemetryOn = 1;
     
     Accel_VDD_Init();
-    ARS1_VDD_Init();
-    ARS2_VDD_Init();
+//    ARS1_VDD_Init();
+//    ARS2_VDD_Init();
     
     Accel_NSS_Init();
     Accel_NSS_High();
     
-    ARS1_NSS_Init();
-    ARS1_NSS_High();
-    
-    ARS2_NSS_Init(); 
-    ARS2_NSS_High();
+    for (i = 0; i < ADXRS290_NUMBER; i++) {
+        ADXRS290_NSS_Init(i);
+        ADXRS290_NSS_High(i);
+    }
     
     SPI2_Init();
     
@@ -102,13 +101,12 @@ int main() {
     Accel_EXTI_Init();
     ADXL345_Calibr();
 
-    ARS1_Init();
-    ARS1_EXTI_Init();
-    ARS1_Calibr();
-    
-    ARS2_Init();
-    ARS2_EXTI_Init();
-    ARS2_Calibr();
+    for (i = 0; i < ADXRS290_NUMBER; i++) {
+        ADXRS290_Init(i);
+        ADXRS290_EXTI_Init(i);
+        ADXRS290_Calibr(i);
+    }
+
     
     SPI3_Init();
     ADXRS_TIM_Init();
@@ -154,60 +152,33 @@ int main() {
             //GPIOD->BSRRH |= 1 << 15; 
         } 
 //        
-        if (ars1_doProcess) {
-            //GPIOD->BSRRL |= 1 << 15; 
-            ars1_doProcess = 0;
+        for (i = 0; i < ADXRS290_NUMBER; i++) {
+            if (ars_doProcess[i]) {
+                ars_doProcess[i] = 0;
 
-            for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
-                ars1_filteredData[i] = ars1_termoData[i]; //lowpass(ars1_history[i], ars1_curHistoryIndex, adxrs290_filterCfs, ADXRS290_FILTER_SIZE);
-            }
-            
-            if (ars1_calibrationOn) {
-                for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
-                    ars1_sum[i] += ars1_filteredData[i];
+                for (j = 0; j < ADXRS290_DATA_SIZE-1; j++) {
+                    ars_filteredData[i][j] = ars_termoData[i][j]; 
+                    //ars_filteredData[i][i] = lowpass(ars_history[0][i], ars_curHistoryIndex[0], adxrs290_filterCfs, ADXRS290_FILTER_SIZE);
                 }
-                ars1_calibrIndex++;          
-                if (ars1_calibrIndex == ars1_calibrNumber) {
-                    for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
-                        ars1_offset[i] = ars1_sum[i] / ars1_calibrNumber;
+                
+                if (ars_calibrationOn[i]) {
+                    for (j = 0; j < ADXRS290_DATA_SIZE-1; j++) {
+                        ars_sum[i][j] += ars_filteredData[i][j];
                     }
-                    ars1_calibrationOn = 0;
-                    checkCalibrationFinish();
-                }
-            }
-            
-            for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
-                ars1_filteredData[i] -= ars1_offset[i];
-            }
-            //GPIOD->BSRRH |= 1 << 15; 
-        }
-      
-        if (ars2_doProcess) {
-            //GPIOD->BSRRL |= 1 << 15; 
-            ars2_doProcess = 0;
-
-            for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
-                ars2_filteredData[i] = ars2_termoData[i]; //lowpass(ars2_history[i], ars2_curHistoryIndex, adxrs290_filterCfs, ADXRS290_FILTER_SIZE);
-            }
-            
-            if (ars2_calibrationOn) {
-                for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
-                    ars2_sum[i] += ars2_filteredData[i];
-                }
-                ars2_calibrIndex++;          
-                if (ars2_calibrIndex == ars2_calibrNumber) {
-                    for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
-                        ars2_offset[i] = ars2_sum[i] / ars2_calibrNumber;
+                    ars_calibrIndex[i]++;          
+                    if (ars_calibrIndex[i] == ars_calibrNumber[i]) {
+                        for (j = 0; j < ADXRS290_DATA_SIZE-1; j++) {
+                            ars_offset[i][j] = ars_sum[i][j] / ars_calibrNumber[i];
+                        }
+                        ars_calibrationOn[i] = 0;
+                        checkCalibrationFinish();
                     }
-                    ars2_calibrationOn = 0;
-                    checkCalibrationFinish();
+                }
+                
+                for (j = 0; j < ADXRS290_DATA_SIZE-1; j++) {
+                    ars_filteredData[i][j] -= ars_offset[i][j];
                 }
             }
-            
-            for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
-                ars2_filteredData[i] -= ars2_offset[i];
-            }
-            //GPIOD->BSRRH |= 1 << 15; 
         }
     }
 }
