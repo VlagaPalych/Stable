@@ -102,10 +102,15 @@ void SerialPortReader::handleReadyRead()
 		Message msg;
 		if (Message_FromByteArray((uint8_t *)msgByteArray.data(), Message_Size + 2, &msg)) {	
 			if (logStream) {
-				/*(*logStream) << msg.ars1_x << ' ' << msg.ars1_y << ' ' << msg.ars1_t << ' '
-					<< msg.ars2_x << ' ' << msg.ars2_y << ' ' << msg.ars2_t << ' ' << msg.ars3_z << ' '
-					<< msg.accel_x << ' ' << msg.accel_y << ' ' << msg.accel_z << endl;*/
-				(*logStream) << msg.roll << msg.pitch << msg.rollRate << msg.pitchRate << endl;
+				(*logStream) << msg.ars1_x << ' ' << msg.ars1_y << ' ' << msg.ars1_t << ' '
+					<< msg.ars2_x << ' ' << msg.ars2_y << ' ' << msg.ars2_t << ' '
+					<< msg.ars5_x << ' ' << msg.ars5_y << ' ' << msg.ars5_t << ' '
+					<< msg.accel_x << ' ' << msg.accel_y << ' ' << msg.accel_z << endl;
+
+				qDebug() << msg.ars1_x << ' ' << msg.ars1_y << ' ' << msg.ars1_t << endl
+					<< msg.ars2_x << ' ' << msg.ars2_y << ' ' << msg.ars2_t << endl 
+					<< msg.ars5_x << ' ' << msg.ars5_y << ' ' << msg.ars5_t << endl 
+					<< msg.accel_x << ' ' << msg.accel_y << ' ' << msg.accel_z << endl << endl;
 			}
 			Q_EMIT freshMessage(msg);
 			m_readData = m_readData.remove(0, Message_Size+2);

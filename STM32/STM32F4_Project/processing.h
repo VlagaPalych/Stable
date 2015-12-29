@@ -17,9 +17,6 @@ extern uint8_t everyN;
 extern float angleAcceleration;
 extern float Edes;
 
-#define GYRO_RECALIBRATION_BUFFER_SIZE 1500
-extern float gyroRecalibrationAccumulator;
-
 extern uint8_t tranquilityTime;
 
 extern float maxAngle;

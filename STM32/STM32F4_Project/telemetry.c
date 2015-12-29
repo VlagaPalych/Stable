@@ -442,7 +442,6 @@ uint8_t USART_DMA_transferComleted = 1;
 void SendTelemetry(Message *msg) {
     if (telemetryOn) {
         if (USART_DMA_transferComleted) {
-            GPIOD->BSRRL |= 1 << 15;
             
 //            message.ars1_x = ars1_termoData[0];
 //            message.ars1_y = ars1_termoData[1];
@@ -480,6 +479,5 @@ void DMA2_Stream7_IRQHandler() {
     if (DMA2->HISR & DMA_HISR_TCIF7) {
         DMA2->HIFCR = DMA_HIFCR_CTCIF7;
         USART_DMA_transferComleted = 1;
-        GPIOD->BSRRH |= 1 << 15;
     }
 }

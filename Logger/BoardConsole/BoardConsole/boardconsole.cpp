@@ -337,16 +337,9 @@ uint8_t Message_FromByteArray(uint8_t *a, uint8_t n, Message *message) {
 
 float angle = 0;
 void BoardConsole::handleFreshMessage(Message msg) {
-	/*float arate = msg.ars3_z / 80.0;
-	angle += arate * 0.01;*/
-	/*qDebug() << msg.ars1_x << ' ' << msg.ars1_y << ' ' << msg.ars1_t << ' '
-		<< msg.ars2_x << ' ' << msg.ars2_y << ' ' << msg.ars2_t << ' ' << msg.ars3_z << ' '
-		<< msg.accel_x << ' ' << msg.accel_y << ' ' << msg.accel_z << endl;*/
-	qDebug() << msg.roll << msg.pitch << msg.rollRate << msg.pitchRate << endl;
-
 	qint64 time = QDateTime::currentMSecsSinceEpoch() - startTime;
 
-	if (ui.angleCheckBox->isChecked()) {
+	/*if (ui.angleCheckBox->isChecked()) {
 		if (angleX.size() == maxSize) {
 			angleX.pop_front();
 			angleY.pop_front();
@@ -365,7 +358,7 @@ void BoardConsole::handleFreshMessage(Message msg) {
 		plot1_curves[1]->setSamples(angVelX, angVelY);
 
 		ui.plot1->replot();
-	}
+	}*/
 }
 
 void BoardConsole::handleFreshLine(QString &line) {

@@ -205,6 +205,7 @@ void ADXL345_DMA_Init() {
     NVIC_EnableIRQ(DMA1_Stream4_IRQn);
     
     DMA1->HIFCR = DMA_HIFCR_CFEIF4;
+    //GPIOD->BSRRL |= 1 << 15;
     
     DMA1_Stream4->CR    = 0;
     DMA1_Stream3->CR    = 0;
@@ -288,7 +289,7 @@ void DMA1_Stream3_IRQHandler() {
             }
         } 
 
-        GPIOA->BSRRH |= 1 << 2;
+        //GPIOD->BSRRH |= 1 << 15;
         SPI2_SensorsPoll();
     }
 }

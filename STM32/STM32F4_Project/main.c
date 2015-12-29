@@ -65,7 +65,7 @@ void RCC_Init() {
 }
 
 void checkCalibrationFinish() {
-    if ((adxrs_CalibrationOn | ars_calibrationOn[0] | ars_calibrationOn[1] | accelCalibrationOn) == 0) {
+    if ((adxrs_CalibrationOn /*| ars_calibrationOn[0] | ars_calibrationOn[1]*/ | accelCalibrationOn) == 0) {
         Processing_TIM_Init();
     }
 }
@@ -79,14 +79,11 @@ int main() {
     GPIOC->MODER |= 1;
     GPIOC->BSRRL |= 1;
     GPIOD->MODER |= 1 << 15*2;
+    GPIOA->MODER |= 1 << 2*2;
     
     Message_Size = sizeof(Message);
-    //telemetryOn = 1;
     
     Accel_VDD_Init();
-//    ARS1_VDD_Init();
-//    ARS2_VDD_Init();
-    
     Accel_NSS_Init();
     Accel_NSS_High();
     
@@ -104,27 +101,28 @@ int main() {
     for (i = 0; i < ADXRS290_NUMBER; i++) {
         ADXRS290_Init(i);
         ADXRS290_EXTI_Init(i);
-        ADXRS290_Calibr(i);
+        //ADXRS290_Calibr(i);
     }
-
-    
+//    ADXRS290_Init(2);
+//    ADXRS290_EXTI_Init(2);
+//    ADXRS290_Calibr(2);
+//    
     SPI3_Init();
     ADXRS_TIM_Init();
     ADXRS_Calibr();
   
-    EXTI->SWIER |= EXTI_SWIER_SWIER1;
+    EXTI->SWIER |= EXTI_SWIER_SWIER13;
 
     Motors_Init();
     USART_Init();
-    //Processing_TIM_Init();
+
     while(ENGRDY != 1) {};   
 
     while(1) { 
         
         if (doAdxrsProcess) {
-            //GPIOD->BSRRL |= 1 << 15;  
             doAdxrsProcess = 0;
-            filteredVel = adxrs_data; //lowpass(adxrsHistory, adxrsCurHistoryIndex, adxrs_b, ADXRS_FILTER_SIZE);
+            filteredVel = lowpass(adxrsHistory, adxrsCurHistoryIndex, adxrs_b, ADXRS_FILTER_SIZE);
                      
             if (adxrs_CalibrationOn) {
                 adxrs_Sum += filteredVel;
@@ -141,21 +139,20 @@ int main() {
                 }
             }
             filteredVel -= adxrs_Offset;
-            //GPIOD->BSRRH |= 1 << 15; 
         }
         // Lowpass filtering of accelerations
-        if (doAccelProcess) {   
-            //GPIOD->BSRRL |= 1 << 15;           
+        if (doAccelProcess) {           
             filteredAX = filterScale * lowpass(axHistory, axCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE);
             filteredAZ = filterScale * lowpass(azHistory, azCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE); 
             doAccelProcess = 0;
-            //GPIOD->BSRRH |= 1 << 15; 
+
         } 
-//        
+      
+        
         for (i = 0; i < ADXRS290_NUMBER; i++) {
             if (ars_doProcess[i]) {
                 ars_doProcess[i] = 0;
-
+                GPIOA->BSRRL |= 1 << 2;
                 for (j = 0; j < ADXRS290_DATA_SIZE-1; j++) {
                     ars_filteredData[i][j] = ars_termoData[i][j]; 
                     //ars_filteredData[i][i] = lowpass(ars_history[0][i], ars_curHistoryIndex[0], adxrs290_filterCfs, ADXRS290_FILTER_SIZE);
@@ -178,7 +175,9 @@ int main() {
                 for (j = 0; j < ADXRS290_DATA_SIZE-1; j++) {
                     ars_filteredData[i][j] -= ars_offset[i][j];
                 }
+                GPIOA->BSRRH |= 1 << 2;
             }
         }
+        
     }
 }

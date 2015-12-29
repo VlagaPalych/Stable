@@ -1,7 +1,7 @@
-logName = 'D:\Vlad\Projects\Stable\Logger\BoardConsole\BoardConsole\log291.txt';
+logName = 'D:\Vlad\Projects\Stable\Logger\BoardConsole\BoardConsole\perehod_gruz.txt';
 
 logFile = fopen(logName, 'r');
-A = fscanf(logFile, '%f %f %f %d %d %d %d %d %d %d %f %f %f %d %f \n', [15 Inf]);
+A = fscanf(logFile, '%f %f %f %f %f %f %f %f %f %f %f %f %f\n', [12 Inf]);
 
 angle   = A(1,:);
 angVel  = A(2,:);
@@ -16,7 +16,7 @@ count2  = A(10,:);
 % Kp      = A(12,:);
 % Ki      = A(13,:);
 % Kd      = A(14,:);
-Edes = A(15,:);
+%Edes = A(15,:);
 fclose(logFile);
 
 count1 = 14e6./count1;

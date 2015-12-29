@@ -21,11 +21,11 @@ bode(sys);
 
 controller = pid(20, 0, 0.1, 0);
 
-bode(tf(controller) * tf(sys));
+%bode(tf(controller) * tf(sys));
 % subplot(2, 1, 1); 
 % impulse(sys);
 % 
 % subplot(2, 1, 2); 
-% plot(time, angle);
+plot(time, angle);
 % ylabel('Angle, rads');
 % xlabel('Time, s');

@@ -222,16 +222,16 @@ float psi = 0;
 
 void calcAngleRate() {
     uint8_t i = 0;
-    for (i = 0; i < 2; i++) {
-        ars_angleRate[0][i] = ars_filteredData[0][i] / 200.0;
-        ars_angleRate[1][i] = ars_filteredData[1][i] / 200.0;
-        angleRate[i] = (ars_angleRate[0][i] - ars_angleRate[1][i]) / 2.0;    
+    for (i = 0; i < ADXRS290_NUMBER; i++) {
+        ars_angleRate[i][0] = ars_filteredData[i][0] / 200.0;
+        ars_angleRate[i][1] = ars_filteredData[i][1] / 200.0;
+        //angleRate[i] = (ars_angleRate[0][i] - ars_angleRate[1][i]) / 2.0;    
     }
     angleRate[2] = filteredVel / 80.0;
     
     phi = angle[0] * 3.14159 / 180.0;
     teta = angle[1] * 3.14159 / 180.0;
-    psi = angle[2] * 3.14159 / 180.0;
+    //psi = angle[2] * 3.14159 / 180.0;
     
 //    T[0] = 1;    T[1] = sin(phi) * tan(teta);    T[2] = cos(phi) * tan(teta);
 //    T[3] = 0;    T[4] = cos(phi);                T[5] = - sin(phi);
@@ -331,6 +331,7 @@ void calcAngle() {
     roll    *= 180.0 / 3.14159;
     pitch   *= 180.0 / 3.14159;
     
+ //   angle[2] += eulerAngleRate[2] * 0.01;
 //    uint8_t i = 0;
 //    for(i = 0; i < 3; i++) {
 //        angle[i] += eulerAngleRate[i] * 0.01;
@@ -422,7 +423,7 @@ Quat curRotation;
 #include "adxrs453.h"
 
 #define dt 0.01
-#define Sa 5.0
+#define Sa 100.0
 
 float A[4] = {1, dt, 0, 1};
 float I[4] = {1, 0, 0, 1};
@@ -535,19 +536,21 @@ void TIM7_IRQHandler(void) {
 //            break;
 //    }
 //    
-////    message.ars1_x = ars1_angleRate[0];
-////    message.ars1_y = ars1_angleRate[1];
-////    message.ars1_t = ars1_data[2];
-////    message.ars2_x = ars2_angleRate[0];
-////    message.ars2_y = ars2_angleRate[1];
-////    message.ars2_t = ars2_data[2];
-////    message.ars3_z = angleRate[2];
-////    message.accel_x = finalAX;
-////    message.accel_y = finalAY;
-////    message.accel_z = finalAZ;
-    message.roll = Xroll[0];
-    message.pitch = Xpitch[0];
-    message.rollRate = Xroll[1];
-    message.pitchRate = Xpitch[1];
+    message.ars1_x = ars_angleRate[0][0];
+    message.ars1_y = ars_angleRate[0][1];
+    message.ars1_t = ars_data[0][2];
+    
+    message.ars2_x = ars_angleRate[1][0];
+    message.ars2_y = ars_angleRate[1][1];
+    message.ars2_t = ars_data[1][2];
+    
+    message.ars5_x = ars_angleRate[3][0];
+    message.ars5_y = ars_angleRate[3][1];
+    message.ars5_t = ars_data[3][2];
+    
+    message.accel_x = ax;
+    message.accel_y = ay;
+    message.accel_z = az;
+
     SendTelemetry(&message); 
 }

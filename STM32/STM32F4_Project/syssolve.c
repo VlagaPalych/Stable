@@ -112,7 +112,6 @@ void system_solve(float *F, float *B, float *x, int n, int m) {
     for (i = 0; i < 10; i++) {
         for (j = 0; j < 3; j++) {
             if (F[i*3 + j] != Ft[j*10 + i]) {
-                //GPIOD->BSRRL |= 1 << 15;
             }
         }
     }

@@ -125,7 +125,7 @@ void DMA1_Stream2_IRQHandler()  {
     uint16_t d10_d0 = 0;
     if (DMA1->LISR & DMA_LISR_TCIF2) {
         DMA1->LIFCR = DMA_LIFCR_CTCIF2 | DMA_LIFCR_CHTIF2;
-          DMA1->HIFCR = DMA_HIFCR_CTCIF5 | DMA_HIFCR_CHTIF5;
+        DMA1->HIFCR = DMA_HIFCR_CTCIF5 | DMA_HIFCR_CHTIF5;
         
         SPI3_NSS_High();
         
@@ -133,12 +133,7 @@ void DMA1_Stream2_IRQHandler()  {
         d10_d0 = adxrsResponses[1] & 0xffe0;
         adxrs_data = (int16_t)((d15_d11 << 11) | (d10_d0 >> 5));
         
-//        d15_d11 = adxrsResponses[0] & 0x03ff;
-//        d10_d0 = adxrsResponses[1] & 0xf800;
-//        adxrs_data = (int16_t)((d15_d11 << 6) | (d10_d0 >> 10));
         transferFinished = 1;
-        
-       // angle[2] += (adxrs_data - adxrs_Offset) /80.0 * 0.0025;
         
         adxrsHistory[adxrsHistoryIndex] = adxrs_data;
         adxrsHistoryIndex++;
@@ -156,10 +151,6 @@ void DMA1_Stream2_IRQHandler()  {
                 doAdxrsProcess = 1;
             }
         } 
-        //adxrs_data -= adxrs_Offset;  
-//        message.ars3_z = adxrs_data;
-//        SendTelemetry(&message);
-        GPIOD->BSRRH |= 1 << 15;
     }
 }
 
@@ -182,7 +173,6 @@ void ADXRS_TIM_Init() {
 void TIM2_IRQHandler() {
     if (TIM2->SR & TIM_SR_UIF) {
         TIM2->SR &= ~TIM_SR_UIF;
-        GPIOD->BSRRL |= 1 << 15;
         ADXRS_DMA_Read();
     }
 }

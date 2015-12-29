@@ -8,7 +8,7 @@
 // COMMON
 //-------------------------------------------------------------------
 
-#define ADXRS290_NUMBER 2
+#define ADXRS290_NUMBER 4
 #define ADXRS290_DATA_SIZE 3
 #define ADXRS290_FILTER_SIZE 116
 
@@ -36,7 +36,7 @@ extern int16_t ars_history[ADXRS290_NUMBER][ADXRS290_DATA_SIZE-1][HISTORY_SIZE];
 extern uint16_t ars_historyIndex[ADXRS290_NUMBER];
 extern uint16_t ars_curHistoryIndex[ADXRS290_NUMBER];
 extern uint8_t ars_processIndex[ADXRS290_NUMBER];
-extern uint8_t ars_processNumber[ADXRS290_NUMBER];
+extern uint8_t ars_processNumber;
 extern uint8_t ars_lowpassReady[ADXRS290_NUMBER];
 extern uint8_t ars_doProcess[ADXRS290_NUMBER];
 
