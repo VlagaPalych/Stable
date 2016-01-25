@@ -64,23 +64,15 @@
 
 typedef qint16 int16_t;
 typedef quint8 uint8_t;
+typedef quint16 uint16_t;
 
 typedef struct {
-	float ars1_x;
-	float ars1_y;
-	int16_t ars1_t;
-
-	float ars2_x;
-	float ars2_y;
-	int16_t ars2_t;
-
-	float ars5_x;
-	float ars5_y;
-	int16_t ars5_t;
-
-	int16_t accel_x;
-	int16_t accel_y;
-	int16_t accel_z;
+	float angle;
+	float angleRate;
+	uint16_t pwm1;
+	uint16_t pwm2;
+	uint16_t freq1;
+	uint16_t freq2;
 } Message;
 
 extern uint8_t Message_Size;

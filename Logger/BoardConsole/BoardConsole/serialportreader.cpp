@@ -102,15 +102,15 @@ void SerialPortReader::handleReadyRead()
 		Message msg;
 		if (Message_FromByteArray((uint8_t *)msgByteArray.data(), Message_Size + 2, &msg)) {	
 			if (logStream) {
-				(*logStream) << msg.ars1_x << ' ' << msg.ars1_y << ' ' << msg.ars1_t << ' '
-					<< msg.ars2_x << ' ' << msg.ars2_y << ' ' << msg.ars2_t << ' '
-					<< msg.ars5_x << ' ' << msg.ars5_y << ' ' << msg.ars5_t << ' '
-					<< msg.accel_x << ' ' << msg.accel_y << ' ' << msg.accel_z << endl;
+				(*logStream) << msg.angle << ' '
+							<< msg.angleRate << ' ' 
+							<< msg.pwm1 << ' ' << msg.pwm2 
+							<< msg.freq1 << ' ' << msg.freq2 << endl;
 
-				qDebug() << msg.ars1_x << ' ' << msg.ars1_y << ' ' << msg.ars1_t << endl
-					<< msg.ars2_x << ' ' << msg.ars2_y << ' ' << msg.ars2_t << endl 
-					<< msg.ars5_x << ' ' << msg.ars5_y << ' ' << msg.ars5_t << endl 
-					<< msg.accel_x << ' ' << msg.accel_y << ' ' << msg.accel_z << endl << endl;
+				qDebug() << msg.angle << ' '
+					<< msg.angleRate << ' '
+					<< msg.pwm1 << ' ' << msg.pwm2
+					<< msg.freq1 << ' ' << msg.freq2 << endl;
 			}
 			Q_EMIT freshMessage(msg);
 			m_readData = m_readData.remove(0, Message_Size+2);
@@ -122,25 +122,6 @@ void SerialPortReader::handleReadyRead()
 		}
 		
 	}
-	//int endLineIndex = 0;
-	//while (endLineIndex != -1) {
-	//	endLineIndex = m_readData.indexOf('\n');
-	//	if (endLineIndex != -1) {
-	//		/*QByteArray dataLine = m_readData.mid(0, endLineIndex);
-	//		QByteArray axByteArray = dataLine.mid(0, 2);
-	//		qint16 ax = 0;
-	//		((quint8 *)&ax)[0] = axByteArray.at(0);
-	//		((quint8 *)&ax)[1] = axByteArray.at(1);*/
-	//	QString line = QString::fromLatin1(m_readData.mid(0, endLineIndex));
-	//		//QString line = QString::number(ax);
-	//		qDebug() << line;
-	//		if (logStream) {
-	//			(*logStream) << line << endl;
-	//		}
-	//		Q_EMIT freshLine(line);
-	//		m_readData = m_readData.mid(endLineIndex + 1);
-	//	}
-	//}
 }
 
 

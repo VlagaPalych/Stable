@@ -25,17 +25,17 @@ BoardConsole::BoardConsole(QWidget *parent)
 	connect(ui.clearTelemetryButton, SIGNAL(clicked()), SLOT(handleClearTelemetryButton()));
 
 	connect(ui.telemetryToggleButton, SIGNAL(clicked()), SLOT(handleTelemetryToggleButton()));
-	connect(ui.HZ25RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
-	connect(ui.HZ50RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
-	connect(ui.HZ100RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
-	connect(ui.HZ800RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
-	connect(ui.HZ1600RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
-	connect(ui.HZ3200RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
+	//connect(ui.HZ25RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
+	//connect(ui.HZ50RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
+	//connect(ui.HZ100RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
+	//connect(ui.HZ800RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
+	//connect(ui.HZ1600RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
+	//connect(ui.HZ3200RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
 
-	connect(ui.gyroHZ100RadioButton, SIGNAL(clicked()), SLOT(handleGyroButtons()));
-	connect(ui.gyroHZ250RadioButton, SIGNAL(clicked()), SLOT(handleGyroButtons()));
-	connect(ui.gyroHZ500RadioButton, SIGNAL(clicked()), SLOT(handleGyroButtons()));
-	connect(ui.gyroHZ1000RadioButton, SIGNAL(clicked()), SLOT(handleGyroButtons()));
+	//connect(ui.gyroHZ100RadioButton, SIGNAL(clicked()), SLOT(handleGyroButtons()));
+	//connect(ui.gyroHZ250RadioButton, SIGNAL(clicked()), SLOT(handleGyroButtons()));
+	//connect(ui.gyroHZ500RadioButton, SIGNAL(clicked()), SLOT(handleGyroButtons()));
+	//connect(ui.gyroHZ1000RadioButton, SIGNAL(clicked()), SLOT(handleGyroButtons()));
 
 
 	connect(ui.lowpassFilterCheckBox, SIGNAL(clicked()), SLOT(handleLowpassFilterCheckBox()));
@@ -66,21 +66,21 @@ BoardConsole::BoardConsole(QWidget *parent)
 	connect(ui.operatorRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
 	connect(ui.adjustRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
 
-	connect(ui.maxAngleButton, SIGNAL(clicked()), SLOT(handleMaxAngleButton()));
-	connect(ui.accelDeviationButton, SIGNAL(clicked()), SLOT(handleAccelDeviationButton()));
+	//connect(ui.maxAngleButton, SIGNAL(clicked()), SLOT(handleMaxAngleButton()));
+	//connect(ui.accelDeviationButton, SIGNAL(clicked()), SLOT(handleAccelDeviationButton()));
 
 	connect(ui.pwm1Slider, SIGNAL(valueChanged(int)), SLOT(handlePwm1Slider(int)));
 	connect(ui.pwm2Slider, SIGNAL(valueChanged(int)), SLOT(handlePwm2Slider(int)));
 
 
-	connect(ui.turnoffAngleButton, SIGNAL(clicked()), SLOT(handleTurnoffAngleButton()));
-	connect(ui.maxVelButton, SIGNAL(clicked()), SLOT(handleMaxVelButton()));
+	//connect(ui.turnoffAngleButton, SIGNAL(clicked()), SLOT(handleTurnoffAngleButton()));
+	//connect(ui.maxVelButton, SIGNAL(clicked()), SLOT(handleMaxVelButton()));
 
-	connect(ui.turnUselessCheckBox, SIGNAL(clicked()), SLOT(handleTurnUselessCheckBox()));
-	connect(ui.gyroRecalibrationCheckBox, SIGNAL(clicked()), SLOT(handleGyroRecalibrationCheckBox()));
-	connect(ui.tranquilityButton, SIGNAL(clicked()), SLOT(handleTranquilityButton()));
-	connect(ui.pwmStepButton, SIGNAL(clicked()), SLOT(handlePwmStepButton()));
-	connect(ui.everyNButton, SIGNAL(clicked()), SLOT(handleEveryNButton()));
+	//connect(ui.turnUselessCheckBox, SIGNAL(clicked()), SLOT(handleTurnUselessCheckBox()));
+	//connect(ui.gyroRecalibrationCheckBox, SIGNAL(clicked()), SLOT(handleGyroRecalibrationCheckBox()));
+	//connect(ui.tranquilityButton, SIGNAL(clicked()), SLOT(handleTranquilityButton()));
+	//connect(ui.pwmStepButton, SIGNAL(clicked()), SLOT(handlePwmStepButton()));
+	//connect(ui.everyNButton, SIGNAL(clicked()), SLOT(handleEveryNButton()));
 
 	stm = NULL;
 	stmReader = NULL;
@@ -274,42 +274,43 @@ void BoardConsole::handleTelemetryToggleButton() {
 	}
 }
 
-void BoardConsole::handleAccelButtons() {
-	if (ui.HZ25RadioButton->isChecked()) {
-		stm->write(command(ACCEL_FREQ_HZ25));
-	}
-	else if (ui.HZ50RadioButton->isChecked()) {
-		stm->write(command(ACCEL_FREQ_HZ50));
-	}
-	else if (ui.HZ100RadioButton->isChecked()) {
-		stm->write(command(ACCEL_FREQ_HZ100));
-	}
-	else if (ui.HZ800RadioButton->isChecked())
-	{
-		stm->write(command(ACCEL_FREQ_HZ800));
-	}
-	else if (ui.HZ1600RadioButton->isChecked()) {
-		stm->write(command(ACCEL_FREQ_HZ1600));
-	}
-	else if (ui.HZ3200RadioButton->isChecked()) {
-		stm->write(command(ACCEL_FREQ_HZ3200));
-	}
-}
+//void BoardConsole::handleAccelButtons() {
+//	if (ui.HZ25RadioButton->isChecked()) {
+//		stm->write(command(ACCEL_FREQ_HZ25));
+//	}
+//	else if (ui.HZ50RadioButton->isChecked()) {
+//		stm->write(command(ACCEL_FREQ_HZ50));
+//	}
+//	else if (ui.HZ100RadioButton->isChecked()) {
+//		stm->write(command(ACCEL_FREQ_HZ100));
+//	}
+//	else if (ui.HZ800RadioButton->isChecked())
+//	{
+//		stm->write(command(ACCEL_FREQ_HZ800));
+//	}
+//	else if (ui.HZ1600RadioButton->isChecked()) {
+//		stm->write(command(ACCEL_FREQ_HZ1600));
+//	}
+//	else if (ui.HZ3200RadioButton->isChecked()) {
+//		stm->write(command(ACCEL_FREQ_HZ3200));
+//	}
+//}
 
-void BoardConsole::handleGyroButtons() {
-	if (ui.gyroHZ100RadioButton->isChecked()) {
-		stm->write(command(GYRO_FREQ_HZ100));
-	}
-	else if (ui.gyroHZ250RadioButton->isChecked()) {
-		stm->write(command(GYRO_FREQ_HZ250));
-	}
-	else if (ui.gyroHZ500RadioButton->isChecked()) {
-		stm->write(command(GYRO_FREQ_HZ500));
-	}
-	else if (ui.gyroHZ1000RadioButton->isChecked()) {
-		stm->write(command(GYRO_FREQ_HZ1000));
-	}
-}
+//void BoardConsole::handleGyroButtons() {
+//	if (ui.gyroHZ100RadioButton->isChecked()) {
+//		stm->write(command(GYRO_FREQ_HZ100));
+//	}
+//	else if (ui.gyroHZ250RadioButton->isChecked()) {
+//		stm->write(command(GYRO_FREQ_HZ250));
+//	}
+//	else if (ui.gyroHZ500RadioButton->isChecked()) {
+//		stm->write(command(GYRO_FREQ_HZ500));
+//	}
+//	else if (ui.gyroHZ1000RadioButton->isChecked()) {
+//		stm->write(command(GYRO_FREQ_HZ1000));
+//	}
+//}
+
 void Message_ToByteArray(Message *message, uint8_t *a) {
 	uint8_t i = 0, crc = 0;
 	memcpy(a + 1, (uint8_t *)message, Message_Size);
@@ -339,13 +340,13 @@ float angle = 0;
 void BoardConsole::handleFreshMessage(Message msg) {
 	qint64 time = QDateTime::currentMSecsSinceEpoch() - startTime;
 
-	/*if (ui.angleCheckBox->isChecked()) {
+	if (ui.angleCheckBox->isChecked()) {
 		if (angleX.size() == maxSize) {
 			angleX.pop_front();
 			angleY.pop_front();
 		}
 		angleX.append(time);
-		angleY.append(msg.roll);
+		angleY.append(msg.angle);
 		plot1_curves[0]->setSamples(angleX, angleY);
 	}
 	if (ui.angVelCheckBox->isChecked()) {
@@ -354,11 +355,51 @@ void BoardConsole::handleFreshMessage(Message msg) {
 			angVelY.pop_front();
 		}
 		angVelX.append(time);
-		angVelY.append(msg.rollRate);
+		angVelY.append(msg.angleRate);
 		plot1_curves[1]->setSamples(angVelX, angVelY);
+	}
 
-		ui.plot1->replot();
-	}*/
+	if (ui.pwm1CheckBox->isChecked()) {
+		if (pwm1X.size() == maxSize) {
+			pwm1X.pop_front();
+			pwm1Y.pop_front();
+		}
+		pwm1X.append(time);
+		pwm1Y.append(msg.pwm1);
+		plot2_curves[0]->setSamples(pwm1X, pwm1Y);
+	}
+	if (ui.pwm2CheckBox->isChecked()) {
+		if (pwm2X.size() == maxSize) {
+			pwm2X.pop_front();
+			pwm2Y.pop_front();
+		}
+		pwm2X.append(time);
+		pwm2Y.append(msg.pwm2);
+		plot2_curves[1]->setSamples(pwm2X, pwm2Y);
+	}
+
+	if (ui.count1CheckBox->isChecked()) {
+		if (count1X.size() == maxSize) {
+			count1X.pop_front();
+			count1Y.pop_front();
+		}
+		count1X.append(time);
+		count1Y.append(msg.freq1);
+		plot3_curves[0]->setSamples(count1X, count1Y);
+	}
+	if (ui.count2CheckBox->isChecked()) {
+		if (count2X.size() == maxSize) {
+			count2X.pop_front();
+			count2Y.pop_front();
+		}
+		count2X.append(time);
+		count2Y.append(msg.freq2);
+		plot3_curves[1]->setSamples(count2X, count2Y);
+	}
+
+	ui.plot1->replot();
+	ui.plot2->replot();
+	ui.plot3->replot();
 }
 
 void BoardConsole::handleFreshLine(QString &line) {
@@ -553,51 +594,51 @@ void BoardConsole::handleResearchButtons() {
 	}
 }
 
-void BoardConsole::handleMaxAngleButton() {
-	//handleSaveToFileCheckBox();
-	//handleSaveToFileCheckBox();
-	QString maxAngleStr = ui.maxAngleLineEdit->text();
-	double inRadians = maxAngleStr.toDouble() * 3.14159 / 180;
-	stm->write(number_command(MAX_ANGLE, QString::number(inRadians)));
-}
+//void BoardConsole::handleMaxAngleButton() {
+//	//handleSaveToFileCheckBox();
+//	//handleSaveToFileCheckBox();
+//	QString maxAngleStr = ui.maxAngleLineEdit->text();
+//	double inRadians = maxAngleStr.toDouble() * 3.14159 / 180;
+//	stm->write(number_command(MAX_ANGLE, QString::number(inRadians)));
+//}
 
-void BoardConsole::handleAccelDeviationButton() {
-	QString dfStr = ui.accelDeviationLineEdit->text();
-	double deviation = tan(dfStr.toDouble()) * tan(dfStr.toDouble());
-	stm->write(number_command(ACCEL_DEVIATION, QString::number(deviation)));
-}
+//void BoardConsole::handleAccelDeviationButton() {
+//	QString dfStr = ui.accelDeviationLineEdit->text();
+//	double deviation = tan(dfStr.toDouble()) * tan(dfStr.toDouble());
+//	stm->write(number_command(ACCEL_DEVIATION, QString::number(deviation)));
+//}
 
-void BoardConsole::handleTurnoffAngleButton() {
-	QString boundaryAngleStr = ui.turnoffAngleLineEdit->text();
-	double inRadians = boundaryAngleStr.toDouble() * 3.14159 / 180;
-	stm->write(number_command(BOUNDARY_ANGLE, QString::number(inRadians)));
-}
+//void BoardConsole::handleTurnoffAngleButton() {
+//	QString boundaryAngleStr = ui.turnoffAngleLineEdit->text();
+//	double inRadians = boundaryAngleStr.toDouble() * 3.14159 / 180;
+//	stm->write(number_command(BOUNDARY_ANGLE, QString::number(inRadians)));
+//}
 
-void BoardConsole::handleMaxVelButton(){
-	QString maxVel = ui.maxVelLineEdit->text();
-	double inRadians = maxVel.toDouble() * 3.14159 / 180;
-	stm->write(number_command(MAX_ANGVEL, QString::number(inRadians)));
-}
+//void BoardConsole::handleMaxVelButton(){
+//	QString maxVel = ui.maxVelLineEdit->text();
+//	double inRadians = maxVel.toDouble() * 3.14159 / 180;
+//	stm->write(number_command(MAX_ANGVEL, QString::number(inRadians)));
+//}
 
 void BoardConsole::handleTurnUselessCheckBox() {
 	stm->write(command(TURN_USELESS));
 }
 
-void BoardConsole::handleGyroRecalibrationCheckBox() {
-	stm->write(command(GYRO_RECALIBRATION));
-}
+//void BoardConsole::handleGyroRecalibrationCheckBox() {
+//	stm->write(command(GYRO_RECALIBRATION));
+//}
 
-void BoardConsole::handleTranquilityButton() {
-	QString time = ui.tranquilityLineEdit->text();
-	stm->write(number_command(TRANQUILITY_TIME, time));
-}
+//void BoardConsole::handleTranquilityButton() {
+//	QString time = ui.tranquilityLineEdit->text();
+//	stm->write(number_command(TRANQUILITY_TIME, time));
+//}
 
-void BoardConsole::handlePwmStepButton() {
-	QString step = ui.pwmStepLineEdit->text();
-	stm->write(number_command(PWM_STEP, step));
-}
-
-void BoardConsole::handleEveryNButton() {
-	QString n = ui.everyNLineEdit->text();
-	stm->write(number_command(EVERY_N, n));
-}
+//void BoardConsole::handlePwmStepButton() {
+//	QString step = ui.pwmStepLineEdit->text();
+//	stm->write(number_command(PWM_STEP, step));
+//}
+//
+//void BoardConsole::handleEveryNButton() {
+//	QString n = ui.everyNLineEdit->text();
+//	stm->write(number_command(EVERY_N, n));
+//}

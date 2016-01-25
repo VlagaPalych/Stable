@@ -65,8 +65,8 @@ void handleProgramButton();
 	void handleCalibrButton();
 	void handleClearTelemetryButton();
 	void handleTelemetryToggleButton();
-	void handleAccelButtons();
-	void handleGyroButtons();
+	//void handleAccelButtons();
+	//void handleGyroButtons();
 
 	void handleFreshLine(QString &line);
 
@@ -88,17 +88,17 @@ void handleProgramButton();
 
 	void handleResearchButtons();
 
-	void handleMaxAngleButton();
-	void handleAccelDeviationButton();
-	void handleTurnoffAngleButton();
-	void handleMaxVelButton();
+	//void handleMaxAngleButton();
+	//void handleAccelDeviationButton();
+	//void handleTurnoffAngleButton();
+	//void handleMaxVelButton();
 
 	void handleTurnUselessCheckBox();
-	void handleGyroRecalibrationCheckBox();
-	void handleTranquilityButton();
+	//void handleGyroRecalibrationCheckBox();
+	//void handleTranquilityButton();
 
-	void handlePwmStepButton();
-	void handleEveryNButton();
+	//void handlePwmStepButton();
+	//void handleEveryNButton();
 	void handleFreshMessage(Message);
 
 

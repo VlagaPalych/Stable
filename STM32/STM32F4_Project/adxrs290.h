@@ -8,7 +8,7 @@
 // COMMON
 //-------------------------------------------------------------------
 
-#define ADXRS290_NUMBER 4
+#define ADXRS290_NUMBER 2
 #define ADXRS290_DATA_SIZE 3
 #define ADXRS290_FILTER_SIZE 116
 
