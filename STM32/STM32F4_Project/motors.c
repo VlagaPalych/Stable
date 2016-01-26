@@ -36,7 +36,7 @@ void Motors_EXTI_Init() {
     EXTI->FTSR 	|= EXTI_FTSR_TR2; 
     EXTI->IMR 	|= EXTI_IMR_MR2;
     NVIC_SetPriority(EXTI2_IRQn, 0x01); 
-NVIC_EnableIRQ(EXTI2_IRQn); 
+    NVIC_EnableIRQ(EXTI2_IRQn); 
     
     // frequency calculation interrupt for motor2
     SYSCFG->EXTICR[1] |= SYSCFG_EXTICR2_EXTI4_PE; 
@@ -52,29 +52,31 @@ void Motors_Init() {
     Motors_TIM_Init();
 }
 
+// Start procedure:
+// Hold 10% duty cycle for 1500 ms
 uint8_t tim3_status = 0;
-int start_pwm         = 1000;
+int start_pwm   = 1000;
 int timer       = 0;
-int timer_1000  = 300; //2000;
-int timer_2000  = 600;//2000;
-int pwm_step    = 2;//5;
-int pwmstartmax = 1600;
+int timer_1000  = 300; 
+
 
 void Motors_TIM_Init() {
     // TIM4 - PWM timer for motors
-	TIM4->PSC 		= 7;	
+    // Motors are controlled by pwm signal of frequency 100 Hz
+    // Possible duty cycles - [10%, 20%]
+	TIM4->PSC 		= 63;	
 	TIM4->ARR 		= 10000;
-	TIM4->CCR1 	    = start_pwm;//2000;
+	TIM4->CCR1 	    = start_pwm;
 	TIM4->CCMR1 	|= TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1PE; 
 	TIM4->CCER 	    |= TIM_CCER_CC1E; 
     
-    TIM4->CCR3 	    = start_pwm;//2000;		
+    TIM4->CCR3 	    = start_pwm;		
 	TIM4->CCMR2 	|= TIM_CCMR2_OC3M_2 | TIM_CCMR2_OC3M_1 | TIM_CCMR2_OC3PE; 
 	TIM4->CCER 	    |= TIM_CCER_CC3E; 
 	TIM4->CR1       = TIM_CR1_CEN;
     
     // TIM3 - timer for turning motors on
-    TIM3->PSC = 7;
+    TIM3->PSC = 63;
     TIM3->ARR = 5000;
     TIM3->DIER |= 1;			
     NVIC_SetPriority(TIM3_IRQn, 0x01);     
@@ -96,47 +98,18 @@ void Motors_TIM_Init() {
 }
 
 
-void TIM3_IRQHandler() { //moving pwm from 2 to 1ms in the start
+void TIM3_IRQHandler() { 
     TIM3->SR &= ~TIM_SR_UIF;
 
     if (tim3_status == 0) {
         timer++;
-        if (start_pwm == 1000 && timer == timer_1000) {
-            tim3_status = 3;
+        if (timer == timer_1000) {
+            tim3_status = 1;
             TIM3->CR1 &= ~TIM_CR1_CEN;
             ENGRDY = 1;
             timer = 0;
-        } else if (start_pwm == pwmstartmax && timer == timer_2000) {
-            tim3_status = 2;
-            timer = 0;
-        }
-    } else if (tim3_status == 1) {
-        start_pwm += pwm_step;
-        TIM4->CCR1 = start_pwm;
-        TIM4->CCR3 = start_pwm;
-        if (start_pwm == pwmstartmax) {
-            tim3_status = 0;
-            timer = 0;
-        }
-    } else if (tim3_status == 2) {
-        start_pwm -= pwm_step;
-        TIM4->CCR1 = start_pwm;
-        TIM4->CCR3 = start_pwm;
-        if (start_pwm == 1000) {
-//            pwm = minPwm;
-//            TIM4->CCR1 = pwm;
-//            TIM4->CCR3 = pwm;
-            ENGRDY = 1;
-            tim3_status = 3;
-            timer = 0;
-        }
-    }  else if (tim3_status == 4) {
-        timer++;
-        if (timer == 1000) {
-            tim3_status = 5;
-            timer = 0;
-        }
-    }        
+        } 
+    }       
 }
 
 void Motors_Stop() {

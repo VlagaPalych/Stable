@@ -9,6 +9,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "adxrs290.h"
+#include "adxrs453.h"
 
 
 #define DT MEASUREMENT_TIME
@@ -55,163 +56,70 @@ uint8_t doAdxrsProcess = 0;
     
 uint8_t lowpassOn = 1;
 uint8_t accelLowpassReady = 0;
+    
+uint8_t stabilizationOn = 0;
+
+
+//**************************************************************
+//
+// F depends on duty cycle of pwm like:
+// F = k_dc * pwm + b_dc
+//
+// F depends on squared frequency of rotation of motor
+// F = k_f2 * f + b_f2
+//
+//**************************************************************
+
+float k_dc = 0.002496;
+float b_dc = -2.898293;
+
+float k_f2 = 4.915078e-8;
+float b_f2 = -0.178341;
+
+float pwm_from_force(float F) {
+    return (F - b_dc) / k_dc;
+}
+
+float force_from_freq2(float f2) {
+    return k_f2 * f2 + b_f2;
+}    
+
+void Motors_CalcPwm() {
+    float absF = fabs(F);
+    if (F > 0) {
+        pwm1 = pwm_from_force(F);
+        if (pwm1 > maxPwm) {
+            pwm1 = maxPwm;
+        }
+        pwm2 = minPwm;
+    } else if (F < 0) {
+        pwm2 = pwm_from_force(F);
+        if (pwm2 > maxPwm) {
+            pwm2 = maxPwm;
+        }
+        pwm1 = minPwm;
+    }
+
+}
+
+//**************************************************************
+//
+// Implementation of pid-controller in form:
+// u(t) = Kp*e(t) + Ki*int_0^t{e(tau)dtau} + Kd*(de(t)/dt)
+//
+//**************************************************************
 
 float angleIntegral = 0;
 float angleIntegralMax = 1e5;
 
-float angleAcceleration = 0;
-float prevAngularVelocity = 0;
-
-float Aappr = 5.13e-7;
-float Bappr = 0.001;
-float Cappr = -1.81;
-float D = 0;
-float x1 = 0;
-float x2 = 0;
-float minF = 0.075;
-
-float chooseRoot() {
-    if (D < 0) return 2000;
+void pid_control() {
+    angleIntegral += angle[0];
     
-    x1 = (-Bappr - sqrt(D)) / (2 * Aappr);
-    x2 = (-Bappr + sqrt(D)) / (2 * Aappr);
-    
-    if (x1 > 1000 && x1 < 2000) return x1;
-    if (x2 > 1000 && x2 < 2000) return x2;
-    return 2000;
-}
+    F = Kp * angle[0]  + Ki * angleIntegral + Kd * angleRate[0];
 
-int8_t sign(int val) {
-    if (val >= 0) return 1;
-    if (val < 0) return -1;
-}
-
-uint8_t min(uint8_t val1, uint8_t val2) {
-    return val1 > val2 ? val2 : val1;
-}
-
-uint8_t identificationReady = 0;
-
-
-void calcPwms() {
-    float absF = fabs(F);
-    float absPwm = 0;
-    // tilt of the line is changed
-    if (absF < 0.8) {
-        pwm = (absF + 3.299) / 0.0028;       
-    } else {
-        pwm = (absF + 1.1542) / 0.0013;
-    }
-    if (pwm > maxPwm) {
-        pwm = maxPwm;
-    }
-    if (pwm < minPwm) {
-        pwm = minPwm;
-    }
-
-    if (F > 0) {
-        pwm1 = minPwm;
-        pwm2 = pwm;
-    } else {
-        pwm2 = minPwm;
-        pwm1 = pwm;
-    }
-//    D = Bappr*Bappr - 4*Aappr*(Cappr - fabs(F));
-//    if (F > 0) {
-//        pwm1 = minPwm;
-//        pwm2 = (int)chooseRoot();
-//    } else {
-//        pwm2 = minPwm;
-//        pwm1 = (int)chooseRoot();
-//    }
-}
-
-#define ANGVEL_HISTORY_SIZE 5
-float boundaryAngle = 0.05;
-float angularVelocityHistory[ANGVEL_HISTORY_SIZE];
-uint8_t angularVelocityHistoryIndex = 0;
-
-void turnOffUselessMotor() {
-//    uint8_t i = 0;
-//    uint8_t angVelSign = 1;
-//    float basic = angularVelocityHistory[0];
-//    
-//    if (turnUselessOn) { 
-//        for (i = 1; i < ANGVEL_HISTORY_SIZE; i++) {
-//            if (basic * angularVelocityHistory[i] < 0) {
-//                angVelSign = 0;
-//                break;
-//            }
-//        }
-//        
-//        if (angle > 0) {
-//            if ((angle > boundaryAngle) && angVelSign && basic > 0) {
-//                pwm1 = 1000;
-//            }
-//        } else {
-//            if ((angle < -boundaryAngle) && angVelSign && basic < 0) {
-//                pwm2 = 1000;
-//            }
-//        }
-//    }
-}
-
-void control() {
-//    if (angle > 0) {
-//        pwm2 = Kp * fabs(angle) + Kd * angularVelocity + minPwm;
-//        if (pwm2 > maxPwm) {
-//            pwm2 = maxPwm;
-//        }
-//        pwm1 = minPwm;
-//    } else {
-//        pwm1 = Kp * fabs(angle) - Kd * angularVelocity + minPwm;
-//        if (pwm1 > maxPwm) {
-//            pwm1 = maxPwm;
-//        }
-//        pwm2 = minPwm;
-//    }
-//    turnOffUselessMotor();
-//    Motors_Run();
-    
-//    F = Kp*angle + Kd*angularVelocity + minF;
-
-    //if (stabilizationOn) {
-        calcPwms();
-        turnOffUselessMotor();
-        Motors_Run();
-    //}     
-//        // Identification block
-//        if (anglesAccumulated < 2) {
-//            y[anglesAccumulated] = angle;
-//            u[anglesAccumulated] = F;
-//        } else {
-//            y[2] = angle;
-//            u[2] = F;
-//            
-//            row = anglesAccumulated - 2;
-//            Afull[row*3 + 0] = (y[2] - y[1]) / ((float)DT);
-//            Afull[row*3 + 1] = y[2];
-//            Afull[row*3 + 2] = -u[2];
-//            
-//            Bfull[row] = (2*y[1] - y[2] - y[0]) / ((float)DT) / ((float)DT);
-//            
-//            y[0] = y[1];
-//            y[1] = y[2];
-//            u[0] = u[1];
-//            u[1] = u[2];
-//            
-//            if (anglesAccumulated == 11) {
-//                identificationReady = 1;         
-//                anglesAccumulated = 1;
-//            }      
-//            
-//            if (identificationReady) {
-//                system_solve(Afull, Bfull, w, 10, 3);
-//            }
-//        } 
-//        anglesAccumulated++;
-
-    
+    Motors_CalcPwm();
+    Motors_Run();   
+  
 }
 
 float T[9];
@@ -267,24 +175,6 @@ void Processing_TIM_Init() {
     TIM7->CR1 |= TIM_CR1_CEN;
 }
 
-void simplestControl(){
-//    if (angle > 0) {
-//        pwm2 = Kp * fabs(angle) + minPwm;
-//        pwm1 = minPwm;
-//        if (pwm2 > maxPwm) {
-//            pwm2 = maxPwm;
-//        } 
-//    } else {
-//        pwm1 = Kp * fabs(angle) + minPwm;
-//        pwm2 = minPwm;
-//        if (pwm1 > maxPwm) {
-//            pwm1 = maxPwm;
-//        }  
-//    }
-//    turnOffUselessMotor();
-//    Motors_Run();
-}
-
 void getFinalData() {
     if (lowpassOn) {
         finalAX = filteredAX;
@@ -296,26 +186,6 @@ void getFinalData() {
     finalAY = ay;
 }
 
-
-uint8_t tranquilityTime = 30;
-uint8_t tranquilityCount = 0;
-float angVelSmall = 0.1;
-#define ANGLE_STEP 0.02
-
-uint8_t gCheck() {
-    float a2 = 0;
-    float diff = 0;
-    float threshold = 0;
-    int i;
-     threshold   = accelDeviation * G2;
-    for(i=tranquilityTime;i<tranquilityCount;i++){
-        threshold*=0.7;
-    }
-    a2          = finalAX * finalAX + finalAY * finalAY + finalAZ * finalAZ;
-    diff        = abs(a2 - G2);
-   
-    return diff < threshold;
-}
 
 float roll = 0;
 float pitch = 0;
@@ -330,97 +200,7 @@ void calcAngle() {
     
     roll    *= 180.0 / 3.14159;
     pitch   *= 180.0 / 3.14159;
-    
- //   angle[2] += eulerAngleRate[2] * 0.01;
-//    uint8_t i = 0;
-//    for(i = 0; i < 3; i++) {
-//        angle[i] += eulerAngleRate[i] * 0.01;
-//    }
-
-    
-//    float accelAngle = 0;
-//    float angleDiff = 0;
-//    // where to take angle from
-//    // three steps of control:
-//    // 1) sum Ai^2 < deviation * G^2
-//    // 2) absolute value of angular velocity must be small
-//    // 3) for 300 ms 
-//    
-//    if (gCheck() && (angularVelocity < angVelSmall)) {   
-//        tranquilityCount++; 
-//    } else {
-//        tranquilityCount = 0;
-//    }
-//    if (tranquilityCount >= tranquilityTime) {
-//        angle = atan((float)finalAX / (float)finalAZ);
-//        accelAngle = atan((float)finalAX / (float)finalAZ);
-////        angleDiff = angle - accelAngle;
-////        if (angleDiff > 0) {
-////            angle -= ANGLE_STEP;
-////        } else {
-////            angle += ANGLE_STEP;
-////        }
-//        angleFromAccel = 1;
-//        tranquilityCount--;
-//    } else {
-//        angle += angularVelocity * DT;    
-//        angleFromAccel = 0;
-//    }
 }
-
-//void calcAngAccel() {
-//    angleAcceleration = (angularVelocity - prevAngularVelocity) / DT;
-//    prevAngularVelocity=angularVelocity;
-//}
-
-float Edes = 0;
-int pwmStep = 10;
-
-#define CONTROL_TIME_STEP 0.5
-uint8_t everyN = 2;
-#define TAU 1.0
-
-void adjustControl() {
-    //int8_t pwms = sign(pwm);
-  //  int8_t edesS;
-//    float absEdes = 0;
-//    float t1 = 0;
-//    if (- angularVelocity * TAU / angle / 2.0 < 1.0) {
-//        Edes = - angularVelocity / TAU - angle / TAU / TAU;
-//    } else {
-//        t1 = - 2 * angle / angularVelocity;
-//        Edes = - angularVelocity / t1;
-//    }
-////    edesS=sign(Edes);
-////    absEdes=fabs(Edes);
-////    angleAcceleration*=edesS;
-////    if(absEdes>angleAcceleration)
-////        pwm+=pwms*pwmStep;
-////    else pwm-=pwms*pwmStep;
-////    pwm = fabs(pwm);
-//    if (Edes > 0) {
-//        if (Edes > angleAcceleration) {
-//            pwm += pwmStep;
-//        } else {
-//            pwm -= pwmStep;
-//        }
-//    } else {
-//        if (Edes > angleAcceleration) {
-//            pwm += pwmStep;
-//        } else {
-//            pwm -= pwmStep;
-//        }
-//    }
-////    pwm *= pwms;
-//    // pwm = fabs(pwm);
-//    // pwm *= pwms;
-//    
-//    Motors_SetPwm();
-//    Motors_Run();
-}
-
-Quat curRotation;
-#include "adxrs453.h"
 
 #define dt 0.01
 #define Sa 100.0
@@ -489,53 +269,45 @@ void TIM7_IRQHandler(void) {
     angle[0] = Xroll[0];
     angle[1] = Xpitch[0];
   
-//    researchIndex++;
-//    switch (research) {
-//        case IMPULSE_RESPONSE:
-//            if (researchIndex == 1) {
-//                F = 1.0;
-//                calcPwms();
-//                Motors_Run();
-//            } else if (researchIndex == 50) {
-//                F = 0;
-//                calcPwms();
-//                Motors_Stop();
-//                research = NO_RESEARCH;
-//            }
-//            break;
-//        case STEP_RESPONSE:
-//            if (researchIndex == 1) {
-//                F = 1.0;
-//                calcPwms();
-//                Motors_Run();
-//            }
-//            break;
-//        case SINE_RESPONSE:
-//            F = researchAmplitude * sin(researchFrequency * researchIndex);
-//            calcPwms();
-//            Motors_Run();
-//            break;
-//        case EXP_RESPONSE:
-//            F = researchAmplitude * exp(-researchFrequency * researchIndex);
-//            calcPwms();
-//            Motors_Run();
-//            break;
-//        case SIMPLE_CONTROL:
-//            simplestControl();
-//            break;
-//        case PID_CONTROL:
-//            control();
-//            break;
-//        case ADJUST_CONTROL:
-//            if (researchIndex % everyN == 0) {
-//                adjustControl();
-//            }
-//            break;
-//        default:
-//            researchIndex--;
-//            break;
-//    }
-//    
+    researchIndex++;
+    switch (research) {
+        case IMPULSE_RESPONSE:
+            if (researchIndex == 1) {
+                F = 1.0;
+                Motors_CalcPwm();
+                Motors_Run();
+            } else if (researchIndex == 50) {
+                F = 0;
+                Motors_CalcPwm();
+                Motors_Stop();
+                research = NO_RESEARCH;
+            }
+            break;
+        case STEP_RESPONSE:
+            if (researchIndex == 1) {
+                F = 1.0;
+                Motors_CalcPwm();
+                Motors_Run();
+            }
+            break;
+        case SINE_RESPONSE:
+            F = researchAmplitude * sin(researchFrequency * researchIndex);
+            Motors_CalcPwm();
+            Motors_Run();
+            break;
+        case EXP_RESPONSE:
+            F = researchAmplitude * exp(-researchFrequency * researchIndex);
+            Motors_CalcPwm();
+            Motors_Run();
+            break;
+        case PID_CONTROL:
+            pid_control();
+            break;
+        default:
+            researchIndex--;
+            break;
+    }
+    
     message.angle = Xroll[0];
     message.angleRate = Xroll[1];
     message.pwm1 = pwm1;
@@ -545,3 +317,37 @@ void TIM7_IRQHandler(void) {
 
     SendTelemetry(&message); 
 }
+
+
+//void identify() {
+//        // Identification block
+//        if (anglesAccumulated < 2) {
+//            y[anglesAccumulated] = angle;
+//            u[anglesAccumulated] = F;
+//        } else {
+//            y[2] = angle;
+//            u[2] = F;
+//            
+//            row = anglesAccumulated - 2;
+//            Afull[row*3 + 0] = (y[2] - y[1]) / ((float)DT);
+//            Afull[row*3 + 1] = y[2];
+//            Afull[row*3 + 2] = -u[2];
+//            
+//            Bfull[row] = (2*y[1] - y[2] - y[0]) / ((float)DT) / ((float)DT);
+//            
+//            y[0] = y[1];
+//            y[1] = y[2];
+//            u[0] = u[1];
+//            u[1] = u[2];
+//            
+//            if (anglesAccumulated == 11) {
+//                identificationReady = 1;         
+//                anglesAccumulated = 1;
+//            }      
+//            
+//            if (identificationReady) {
+//                system_solve(Afull, Bfull, w, 10, 3);
+//            }
+//        } 
+//        anglesAccumulated++; 
+//}

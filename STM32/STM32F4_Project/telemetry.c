@@ -352,15 +352,15 @@ void USART1_IRQHandler() {
                             case WAITING_FOR_MAX_PWM:
                                 maxPwm = intValue;
                                 break;
-                            case WAITING_FOR_TRANQUILITY_TIME:
-                                tranquilityTime = intValue / 10;
-                                break;
-                            case WAITING_FOR_PWM_STEP:
-                                pwmStep = intValue;
-                                break;
-                            case WAITING_FOR_EVERY_N:
-                                everyN = intValue;
-                                break;
+//                            case WAITING_FOR_TRANQUILITY_TIME:
+//                                tranquilityTime = intValue / 10;
+//                                break;
+//                            case WAITING_FOR_PWM_STEP:
+//                                pwmStep = intValue;
+//                                break;
+//                            case WAITING_FOR_EVERY_N:
+//                                everyN = intValue;
+//                                break;
                             default:
                                 break;
                         }
@@ -405,9 +405,9 @@ void USART1_IRQHandler() {
                             case WAITING_FOR_ACCEL_DEVIATION:
                                 accelDeviation = floatValue;
                                 break;
-                            case WAITING_FOR_BOUNDARY_ANGLE:
-                                boundaryAngle = floatValue;
-                                break;
+//                            case WAITING_FOR_BOUNDARY_ANGLE:
+//                                boundaryAngle = floatValue;
+//                                break;
                             case WAITING_FOR_MAX_ANGVEL:
                                 maxAngVel = floatValue;
                                 Kd = (maxPwm - minPwm) / maxAngVel;
@@ -442,17 +442,8 @@ uint8_t USART_DMA_transferComleted = 1;
 void SendTelemetry(Message *msg) {
     if (telemetryOn) {
         if (USART_DMA_transferComleted) {
-            
-//            message.ars1_x = ars1_termoData[0];
-//            message.ars1_y = ars1_termoData[1];
-//            message.ars1_t = ars1_data[2];
-//            message.ars2_x = ars2_termoData[0];
-//            message.ars2_y = ars2_termoData[1];
-//            message.ars2_t = ars2_data[2];
-            //msg->ars3_z = adxrs_data;
             Message_ToByteArray(msg, tele);
             len = Message_Size+2;
-            
 
             Telemetry_DMA_Init();
         }
