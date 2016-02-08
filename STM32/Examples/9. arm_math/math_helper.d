@@ -1,0 +1,11 @@
+.\math_helper.o: math_helper.c
+.\math_helper.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
+.\math_helper.o: math_helper.h
+.\math_helper.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\arm_math.h
+.\math_helper.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cm4.h
+.\math_helper.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\math_helper.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cmInstr.h
+.\math_helper.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\cmsis_armcc.h
+.\math_helper.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cmFunc.h
+.\math_helper.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cmSimd.h
+.\math_helper.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
