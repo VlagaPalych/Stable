@@ -12,6 +12,13 @@
 
 /*
 
+Main tacting frequency is 64 MHz
+AHB         64 MHz
+APB1        32 MHz
+APB2        64 MHz
+APB1 timers 64 MHz
+
+
 Several interrupts and their priorities used in the program.
 
 EXTI1           - DRDY interrupt from Accel                     0x06
@@ -98,11 +105,16 @@ int main() {
     GPIOA->MODER |= 1 << 2*2;
     
     Message_Size = sizeof(Message);
-    
+    // Filters initialization
+    // Accel
     for (i = 0; i < 3; i++) {
         arm_fir_decimate_init_f32(&accel_lpf[i], ACCEL_FILTER_SIZE, ACCEL_DECIMATION, accel_lpf_coeffs, accel_lpf_state[i], ACCEL_DECIMATION);
     }
-//    Accel_VDD_Init();
+    // ADXRS453
+    arm_fir_decimate_init_f32(&adxrs453_lpf, ADXRS453_FILTER_SIZE, ADXRS453_DECIMATION, adxrs453_lpf_coeffs, adxrs453_lpf_state, ADXRS453_DECIMATION);
+    
+    
+    Accel_VDD_Init();
     Accel_NSS_Init();
     Accel_NSS_High();
     
@@ -127,8 +139,8 @@ int main() {
 //    ADXRS290_EXTI_Init(2);
 //    ADXRS290_Calibr(2);
 //    
-//    SPI3_Init();
-//    ADXRS_TIM_Init();
+    SPI3_Init();
+    ADXRS_TIM_Init();
 //    ADXRS_Calibr();
      
     EXTI->SWIER |= EXTI_SWIER_SWIER1;
@@ -143,7 +155,8 @@ int main() {
         
         if (doAdxrsProcess) {
             doAdxrsProcess = 0;
-            filteredVel = lowpass(adxrsHistory, adxrsCurHistoryIndex, adxrs_b, ADXRS_FILTER_SIZE);
+            filtered_arz = lowpass(adxrsHistory, adxrsCurHistoryIndex, adxrs_b, ADXRS_FILTER_SIZE);
+            arm_fir_decimate_f32(&adxrs453_lpf, adxrs453_history + adxrs453_history_filter_index - ADXRS453_FILTER_SIZE, &filtered_arz, ADXRS453_DECIMATION);
                      
 //            if (adxrs_CalibrationOn) {
 //                adxrs_Sum += filteredVel;
@@ -163,11 +176,13 @@ int main() {
         }
 //        // Lowpass filtering of accelerations
         if (doAccelProcess) { 
+            GPIOD->BSRRL |= 1 << 15;
             for (i = 0; i < 3; i++) {
                 //filtered_a[i] = filterScale * lowpass(accel_history[i], accel_curHistoryIndex[i], accel_b, ACCEL_FILTER_SIZE);
                 arm_fir_decimate_f32(&accel_lpf[i], accel_history[i] + accel_history_filter_index - ACCEL_FILTER_SIZE, &filtered_a[i], ACCEL_DECIMATION);
             }
             doAccelProcess = 0;
+            GPIOD->BSRRH |= 1 << 15;
         } 
       
         

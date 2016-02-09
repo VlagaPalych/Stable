@@ -1,6 +1,6 @@
 #include "adxrs453.h"
 #include "stm32f4xx.h" 
-#include "processing.h"
+#include "filters.h"
 #include "telemetry.h"
 
 uint8_t SPI3_SCK = 10; // PC
@@ -33,7 +33,7 @@ void SPI3_Init() {
 	SPI3->CR1 = 0;
 	SPI3->CR1 |= SPI_CR1_DFF;                                                   // 16 bits
 	SPI3->CR2 |= SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN;
-	SPI3->CR1 |= SPI_CR1_BR_1; 							                        // baudrate = Fpclk / 256
+	SPI3->CR1 |= SPI_CR1_BR_1; 							                        // baudrate = Fpclk / 8 = 32 / 8 = 4 MHz
 	//SPI3->CR1 |= SPI_CR1_CPOL;													// polarity
 	//SPI3->CR1 |= SPI_CR1_CPHA;													// phase	
 	SPI3->CR1 &= ~(SPI_CR1_LSBFIRST);										    // MSBFIRST		
@@ -135,18 +135,24 @@ void DMA1_Stream2_IRQHandler()  {
         
         transferFinished = 1;
         
-        adxrsHistory[adxrsHistoryIndex] = adxrs_data;
-        adxrsHistoryIndex++;
+        adxrs453_history[adxrs453_history_index] = adxrs_data;
+        adxrs453_history_index++;
         
-        if (adxrsHistoryIndex >= ADXRS_FILTER_SIZE) {
+        if (adxrs453_history_index >= ADXRS453_FILTER_SIZE) {
+            // enough data for filtering
             adxrsLowpassReady = 1;
+            if (accel_history_index >= 2*ADXRS453_FILTER_SIZE) {
+                // transition to beginning of array required
+                memcpy(adxrs453_history, &adxrs453_history[ADXRS453_FILTER_SIZE], ADXRS453_FILTER_SIZE*sizeof(float)); 
+                adxrs453_history_index = ADXRS453_FILTER_SIZE;
+            }
         }
         
         adxrsProcessCounter++;
-        if (adxrsProcessCounter == 4) {
+        if (adxrsProcessCounter == ADXRS453_DECIMATION) {
             adxrsProcessCounter = 0;
             
-            adxrsCurHistoryIndex = adxrsHistoryIndex - 1;
+            adxrs453_history_filter_index = adxrs453_history_index;
             if (lowpassOn && adxrsLowpassReady) {
                 doAdxrsProcess = 1;
             }

@@ -28,4 +28,16 @@ extern uint8_t accel_history_filter_index;
 extern float filtered_a[3];
 
 
+
+#define ADXRS453_DECIMATION 4
+#define ADXRS453_FILTER_SIZE 90
+
+extern arm_fir_decimate_instance_f32 adxrs453_lpf;
+extern float adxrs453_lpf_state[ADXRS453_FILTER_SIZE + ADXRS453_DECIMATION - 1];
+extern float adxrs453_lpf_coeffs[ADXRS453_FILTER_SIZE];
+extern float adxrs453_history[2*ADXRS453_FILTER_SIZE];
+extern uint8_t adxrs453_history_index;
+extern uint8_t adxrs453_history_filter_index;
+extern float filtered_arz;
+
 #endif
