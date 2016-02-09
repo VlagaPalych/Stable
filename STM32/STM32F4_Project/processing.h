@@ -46,10 +46,10 @@ extern float filteredVel;
 
 extern float accel_b[ACCEL_FILTER_SIZE];
 
-extern int16_t accel_history[3][HISTORY_SIZE];
-extern uint8_t accel_historyIndex[3];
-extern uint8_t accel_curHistoryIndex[3];
-extern int16_t filtered_a[3];
+//extern int16_t accel_history[3][HISTORY_SIZE];
+//extern uint8_t accel_historyIndex[3];
+//extern uint8_t accel_curHistoryIndex[3];
+//extern int16_t filtered_a[3];
 extern float final_a[3];
 
 extern uint8_t doAccelProcess;

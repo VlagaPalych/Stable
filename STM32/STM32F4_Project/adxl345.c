@@ -3,6 +3,7 @@
 #include "processing.h"
 #include "telemetry.h"
 #include "adxrs290.h"
+#include "filters.h"
 
 #define ACCEL_DMA
 
@@ -272,28 +273,30 @@ void DMA1_Stream3_IRQHandler() {
 //        az -= zOffset;     
 
         for (i = 0; i < 3; i++) {
-            accel_history[i][accel_historyIndex[i]] = a[i];
-            accel_historyIndex[i]++;
+            accel_history[i][accel_history_index] = a[i];   
         }
-        
-        
-        if (accel_historyIndex[0] >= ACCEL_FILTER_SIZE) {
+        accel_history_index++;  
+        if (accel_history_index >= ACCEL_FILTER_SIZE) {
+            // enough data for filtering
             accelLowpassReady = 1;
+            if (accel_history_index >= 2*ACCEL_FILTER_SIZE) {
+                // transition to beginning of array required
+                for (i = 0; i < 3; i++) {
+                    memcpy(accel_history[i], &accel_history[i][ACCEL_FILTER_SIZE], ACCEL_FILTER_SIZE*sizeof(float)); 
+                }
+                accel_history_index = ACCEL_FILTER_SIZE;
+            }
         }
         
         processCounter++;
-        if (processCounter == 16) {
+        if (processCounter == ACCEL_DECIMATION) {
             processCounter = 0;
-            
-            for (i = 0; i < 3; i++) {
-                accel_curHistoryIndex[i] = accel_historyIndex[i] - 1;
-            }
             if (lowpassOn && accelLowpassReady) {
                 doAccelProcess = 1;
-            }
-        } 
+                accel_history_filter_index = accel_history_index;
+            }          
 
-        //GPIOD->BSRRH |= 1 << 15;
+        } 
         SPI2_SensorsPoll();
     }
 }

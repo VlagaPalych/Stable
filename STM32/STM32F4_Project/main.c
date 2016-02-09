@@ -99,6 +99,9 @@ int main() {
     
     Message_Size = sizeof(Message);
     
+    for (i = 0; i < 3; i++) {
+        arm_fir_decimate_init_f32(&accel_lpf[i], ACCEL_FILTER_SIZE, ACCEL_DECIMATION, accel_lpf_coeffs, accel_lpf_state[i], ACCEL_DECIMATION);
+    }
 //    Accel_VDD_Init();
     Accel_NSS_Init();
     Accel_NSS_High();
@@ -114,21 +117,21 @@ int main() {
     Accel_EXTI_Init();
     //ADXL345_Calibr();
 
-    for (i = 0; i < 1; i++) {
-        ADXRS290_Init(i);
-        ADXRS290_EXTI_Init(i);
+//    for (i = 0; i < 1; i++) {
+//        ADXRS290_Init(i);
+//        ADXRS290_EXTI_Init(i);
         //ADXRS290_Calibr(i);
-        arm_fir_decimate_init_f32(&adxrs290_lpf[i], ADXRS290_NUM_TAPS, ADXRS290_DECIMATION, adxrs290_lpf_cf, ars_state[i], ADXRS290_DECIMATION); 
-    }
+//        arm_fir_decimate_init_f32(&adxrs290_lpf[i], ADXRS290_NUM_TAPS, ADXRS290_DECIMATION, adxrs290_lpf_cf, ars_state[i], ADXRS290_DECIMATION); 
+//    }
 //    ADXRS290_Init(2);
 //    ADXRS290_EXTI_Init(2);
 //    ADXRS290_Calibr(2);
 //    
-    SPI3_Init();
-    ADXRS_TIM_Init();
+//    SPI3_Init();
+//    ADXRS_TIM_Init();
 //    ADXRS_Calibr();
      
-    EXTI->SWIER |= EXTI_SWIER_SWIER15;
+    EXTI->SWIER |= EXTI_SWIER_SWIER1;
 
 //    Motors_Init();
     USART_Init();
@@ -159,23 +162,24 @@ int main() {
 //            filteredVel -= adxrs_Offset;
         }
 //        // Lowpass filtering of accelerations
-//        if (doAccelProcess) { 
-//            for (i = 0; i < 3; i++) {
-//                filtered_a[i] = filterScale * lowpass(accel_history[i], accel_curHistoryIndex[i], accel_b, ACCEL_FILTER_SIZE);
-//            }
-//            doAccelProcess = 0;
-//        } 
-//      
-//        
-        for (i = 0; i < 1; i++) {
-            if (ars_doProcess[i]) {
-                ars_doProcess[i] = 0;
-                GPIOA->BSRRL |= 1 << 2;
-                for (j = 0; j < ADXRS290_DATA_SIZE-1; j++) {
-                    //ars_filteredData[i][j] = ars_termoData[i][j]; 
-                    //ars_filteredData[i][j] = lowpass(ars_history[i][j], ars_curHistoryIndex[i], adxrs290_filterCfs, ADXRS290_FILTER_SIZE);
-                    arm_fir_decimate_f32(&adxrs290_lpf[j], &ars_history[i][j][ars_curHistoryIndex[i]-ADXRS290_NUM_TAPS], &ars_filteredData[i][j], ADXRS290_DECIMATION);
-                }
+        if (doAccelProcess) { 
+            for (i = 0; i < 3; i++) {
+                //filtered_a[i] = filterScale * lowpass(accel_history[i], accel_curHistoryIndex[i], accel_b, ACCEL_FILTER_SIZE);
+                arm_fir_decimate_f32(&accel_lpf[i], accel_history[i] + accel_history_filter_index - ACCEL_FILTER_SIZE, &filtered_a[i], ACCEL_DECIMATION);
+            }
+            doAccelProcess = 0;
+        } 
+      
+        
+//        for (i = 0; i < 1; i++) {
+//            if (ars_doProcess[i]) {
+//                ars_doProcess[i] = 0;
+//                GPIOA->BSRRL |= 1 << 2;
+//                for (j = 0; j < ADXRS290_DATA_SIZE-1; j++) {
+//                    //ars_filteredData[i][j] = ars_termoData[i][j]; 
+//                    //ars_filteredData[i][j] = lowpass(ars_history[i][j], ars_curHistoryIndex[i], adxrs290_filterCfs, ADXRS290_FILTER_SIZE);
+//                    arm_fir_decimate_f32(&adxrs290_lpf[j], &ars_history[i][j][ars_curHistoryIndex[i]-ADXRS290_NUM_TAPS], &ars_filteredData[i][j], ADXRS290_DECIMATION);
+//                }
                 
 //                if (ars_calibrationOn[i]) {
 //                    for (j = 0; j < ADXRS290_DATA_SIZE-1; j++) {
@@ -194,9 +198,9 @@ int main() {
 //                for (j = 0; j < ADXRS290_DATA_SIZE-1; j++) {
 //                    ars_filteredData[i][j] -= ars_offset[i][j];
 //                }
-                GPIOA->BSRRH |= 1 << 2;
-            }
-        }
+//                GPIOA->BSRRH |= 1 << 2;
+//            }
+//        }
         
     }
 }
