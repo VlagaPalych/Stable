@@ -340,15 +340,15 @@ float angle = 0;
 void BoardConsole::handleFreshMessage(Message msg) {
 	qint64 time = QDateTime::currentMSecsSinceEpoch() - startTime;
 
-	/*if (ui.angleCheckBox->isChecked()) {
+	if (ui.angleCheckBox->isChecked()) {
 		if (angleX.size() == maxSize) {
 			angleX.pop_front();
 			angleY.pop_front();
 		}
 		angleX.append(time);
-		angleY.append(msg.ax);
+		angleY.append(msg.arx);
 		plot1_curves[0]->setSamples(angleX, angleY);
-	}*/
+	}
 	/*if (ui.angVelCheckBox->isChecked()) {
 		if (angVelX.size() == maxSize) {
 			angVelX.pop_front();
@@ -359,15 +359,15 @@ void BoardConsole::handleFreshMessage(Message msg) {
 		plot1_curves[1]->setSamples(angVelX, angVelY);
 	}*/
 
-	/*if (ui.pwm1CheckBox->isChecked()) {
+	if (ui.pwm1CheckBox->isChecked()) {
 		if (pwm1X.size() == maxSize) {
 			pwm1X.pop_front();
 			pwm1Y.pop_front();
 		}
 		pwm1X.append(time);
-		pwm1Y.append(msg.ay);
+		pwm1Y.append(msg.ary);
 		plot2_curves[0]->setSamples(pwm1X, pwm1Y);
-	}*/
+	}
 	/*if (ui.pwm2CheckBox->isChecked()) {
 		if (pwm2X.size() == maxSize) {
 			pwm2X.pop_front();
@@ -397,9 +397,9 @@ void BoardConsole::handleFreshMessage(Message msg) {
 		plot3_curves[1]->setSamples(count2X, count2Y);
 	}*/
 
-	//ui.plot1->replot();
-	//ui.plot2->replot();
-	//ui.plot3->replot();
+	ui.plot1->replot();
+	ui.plot2->replot();
+	ui.plot3->replot();
 }
 
 void BoardConsole::handleFreshLine(QString &line) {

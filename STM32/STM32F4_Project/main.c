@@ -115,7 +115,7 @@ int main() {
     arm_fir_decimate_init_f32(&adxrs453_lpf, ADXRS453_FILTER_SIZE, ADXRS453_DECIMATION, adxrs453_lpf_coeffs, adxrs453_lpf_state, ADXRS453_DECIMATION);
     // ADXRS290
     for (i = 0; i < 2; i++) {
-        arm_fir_decimate_init_f32(&adxrs290_lpf[i], ADXRS290_FILTER_SIZE, ADXRS290_DECIMATION, adxrs290_lpf_coeffs, adxrs290_lpf_state[i], ADXRS290_DECIMATION);
+        arm_fir_decimate_init_f32(&adxrs290_lpf[i], ADXRS290_FILTER_SIZE, ADXRS290_DECIMATION, accel_lpf_coeffs, adxrs290_lpf_state[i], ADXRS290_DECIMATION);
     }
     
     Accel_VDD_Init();

@@ -158,7 +158,7 @@ float lowpass(int16_t *history, uint8_t lowpassIndex, float *fir, int firSize) {
 
 void Processing_TIM_Init() {
     TIM7->PSC = 63;
-    TIM7->ARR = 1000000;
+    TIM7->ARR = 10000;
     TIM7->DIER |= 1;
     NVIC_SetPriority(TIM7_IRQn, 0xFF);
     NVIC_EnableIRQ(TIM7_IRQn);
@@ -251,6 +251,7 @@ void TIM7_IRQHandler(void) {
     TIM7->SR &= ~TIM_SR_UIF;
     
     getFinalData();
+    GPIOD->ODR ^= 1 << 15;
 //    calcAngleRate(); 
 //    calcAngle();
 //       

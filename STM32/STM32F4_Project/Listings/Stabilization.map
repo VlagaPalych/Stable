@@ -1176,65 +1176,65 @@ Image Symbol Table
     i.NVIC_SetPriority                       0x08001434   Section        0  adxrs453.o(i.NVIC_SetPriority)
     NVIC_SetPriority                         0x08001435   Thumb Code    32  adxrs453.o(i.NVIC_SetPriority)
     i.Processing_TIM_Init                    0x0800145c   Section        0  processing.o(i.Processing_TIM_Init)
-    i.RCC_Init                               0x080014d8   Section        0  main.o(i.RCC_Init)
-    i.SPI2_GPIO_Init                         0x08001518   Section        0  adxl345.o(i.SPI2_GPIO_Init)
-    i.SPI2_IRQHandler                        0x08001600   Section        0  adxrs290.o(i.SPI2_IRQHandler)
-    i.SPI2_Init                              0x080018dc   Section        0  adxl345.o(i.SPI2_Init)
-    i.SPI2_Read                              0x0800194c   Section        0  adxl345.o(i.SPI2_Read)
-    i.SPI2_SensorsPoll                       0x08001964   Section        0  adxrs290.o(i.SPI2_SensorsPoll)
-    i.SPI2_Transfer                          0x080019d8   Section        0  adxl345.o(i.SPI2_Transfer)
-    i.SPI2_Write                             0x08001a0c   Section        0  adxl345.o(i.SPI2_Write)
-    i.SPI3_GPIO_Init                         0x08001a20   Section        0  adxrs453.o(i.SPI3_GPIO_Init)
-    i.SPI3_Init                              0x08001b58   Section        0  adxrs453.o(i.SPI3_Init)
-    i.SPI3_NSS_High                          0x08001bb4   Section        0  adxrs453.o(i.SPI3_NSS_High)
-    i.SPI3_NSS_Low                           0x08001bd0   Section        0  adxrs453.o(i.SPI3_NSS_Low)
-    i.SendTelemetry                          0x08001bec   Section        0  telemetry.o(i.SendTelemetry)
-    i.SystemInit                             0x08001c28   Section        0  system_stm32f4xx.o(i.SystemInit)
-    i.TIM1_BRK_TIM9_IRQHandler               0x08001d08   Section        0  motors.o(i.TIM1_BRK_TIM9_IRQHandler)
-    i.TIM2_IRQHandler                        0x08001d3c   Section        0  adxrs453.o(i.TIM2_IRQHandler)
-    i.TIM3_IRQHandler                        0x08001d60   Section        0  motors.o(i.TIM3_IRQHandler)
-    i.TIM5_IRQHandler                        0x08001dc0   Section        0  motors.o(i.TIM5_IRQHandler)
-    i.TIM7_IRQHandler                        0x08001df4   Section        0  processing.o(i.TIM7_IRQHandler)
-    i.Telemetry_DMA_Init                     0x08001e84   Section        0  telemetry.o(i.Telemetry_DMA_Init)
-    i.USART1_IRQHandler                      0x08001ed8   Section        0  telemetry.o(i.USART1_IRQHandler)
-    i.USART_Init                             0x08002550   Section        0  telemetry.o(i.USART_Init)
-    i.getFinalData                           0x08002654   Section        0  processing.o(i.getFinalData)
-    i.initWaitingForFloat                    0x080026b4   Section        0  telemetry.o(i.initWaitingForFloat)
-    i.initWaitingForInt                      0x080026f8   Section        0  telemetry.o(i.initWaitingForInt)
-    i.lowpass                                0x08002724   Section        0  processing.o(i.lowpass)
-    i.main                                   0x08002778   Section        0  main.o(i.main)
-    x$fpl$d2f                                0x080029e4   Section      708  d2f_clz.o(x$fpl$d2f)
-    $v0                                      0x080029e4   Number         0  d2f_clz.o(x$fpl$d2f)
-    x$fpl$ddiv                               0x08002ca8   Section      892  ddiv_clz.o(x$fpl$ddiv)
-    $v0                                      0x08002ca8   Number         0  ddiv_clz.o(x$fpl$ddiv)
-    ddiv_entry                               0x08002caf   Thumb Code     0  ddiv_clz.o(x$fpl$ddiv)
-    x$fpl$dfltn                              0x08003024   Section       26  dflt_clz.o(x$fpl$dfltn)
-    $v0                                      0x08003024   Number         0  dflt_clz.o(x$fpl$dfltn)
-    x$fpl$dnaninf                            0x0800303e   Section      258  dnaninf.o(x$fpl$dnaninf)
-    $v0                                      0x0800303e   Number         0  dnaninf.o(x$fpl$dnaninf)
-    x$fpl$drenorm                            0x08003140   Section      112  drenorm_clz.o(x$fpl$drenorm)
-    $v0                                      0x08003140   Number         0  drenorm_clz.o(x$fpl$drenorm)
-    x$fpl$dretinf                            0x080031b0   Section       12  dretinf.o(x$fpl$dretinf)
-    $v0                                      0x080031b0   Number         0  dretinf.o(x$fpl$dretinf)
-    x$fpl$dunder                             0x080031bc   Section      378  dunder_clz.o(x$fpl$dunder)
-    $v0                                      0x080031bc   Number         0  dunder_clz.o(x$fpl$dunder)
-    x$fpl$exception                          0x08003338   Section      492  except.o(x$fpl$exception)
-    $v0                                      0x08003338   Number         0  except.o(x$fpl$exception)
-    x$fpl$f2d                                0x08003524   Section      122  f2d.o(x$fpl$f2d)
-    $v0                                      0x08003524   Number         0  f2d.o(x$fpl$f2d)
-    x$fpl$fnaninf                            0x0800359e   Section      242  fnaninf.o(x$fpl$fnaninf)
-    $v0                                      0x0800359e   Number         0  fnaninf.o(x$fpl$fnaninf)
-    x$fpl$fpinit                             0x08003690   Section       10  fpinit.o(x$fpl$fpinit)
-    $v0                                      0x08003690   Number         0  fpinit.o(x$fpl$fpinit)
-    x$fpl$fretinf                            0x0800369a   Section       10  fretinf.o(x$fpl$fretinf)
-    $v0                                      0x0800369a   Number         0  fretinf.o(x$fpl$fretinf)
-    x$fpl$funder                             0x080036a4   Section      316  funder_clz.o(x$fpl$funder)
-    $v0                                      0x080036a4   Number         0  funder_clz.o(x$fpl$funder)
-    x$fpl$retnan                             0x080037e0   Section      178  retnan.o(x$fpl$retnan)
-    $v0                                      0x080037e0   Number         0  retnan.o(x$fpl$retnan)
-    x$fpl$trapveneer                         0x08003892   Section      126  trapv.o(x$fpl$trapveneer)
-    $v0                                      0x08003892   Number         0  trapv.o(x$fpl$trapveneer)
-    x$fpl$usenofp                            0x08003910   Section        0  usenofp.o(x$fpl$usenofp)
+    i.RCC_Init                               0x080014d4   Section        0  main.o(i.RCC_Init)
+    i.SPI2_GPIO_Init                         0x08001514   Section        0  adxl345.o(i.SPI2_GPIO_Init)
+    i.SPI2_IRQHandler                        0x080015fc   Section        0  adxrs290.o(i.SPI2_IRQHandler)
+    i.SPI2_Init                              0x080018b4   Section        0  adxl345.o(i.SPI2_Init)
+    i.SPI2_Read                              0x08001924   Section        0  adxl345.o(i.SPI2_Read)
+    i.SPI2_SensorsPoll                       0x0800193c   Section        0  adxrs290.o(i.SPI2_SensorsPoll)
+    i.SPI2_Transfer                          0x080019b0   Section        0  adxl345.o(i.SPI2_Transfer)
+    i.SPI2_Write                             0x080019e4   Section        0  adxl345.o(i.SPI2_Write)
+    i.SPI3_GPIO_Init                         0x080019f8   Section        0  adxrs453.o(i.SPI3_GPIO_Init)
+    i.SPI3_Init                              0x08001b30   Section        0  adxrs453.o(i.SPI3_Init)
+    i.SPI3_NSS_High                          0x08001b8c   Section        0  adxrs453.o(i.SPI3_NSS_High)
+    i.SPI3_NSS_Low                           0x08001ba8   Section        0  adxrs453.o(i.SPI3_NSS_Low)
+    i.SendTelemetry                          0x08001bc4   Section        0  telemetry.o(i.SendTelemetry)
+    i.SystemInit                             0x08001c00   Section        0  system_stm32f4xx.o(i.SystemInit)
+    i.TIM1_BRK_TIM9_IRQHandler               0x08001ce0   Section        0  motors.o(i.TIM1_BRK_TIM9_IRQHandler)
+    i.TIM2_IRQHandler                        0x08001d14   Section        0  adxrs453.o(i.TIM2_IRQHandler)
+    i.TIM3_IRQHandler                        0x08001d38   Section        0  motors.o(i.TIM3_IRQHandler)
+    i.TIM5_IRQHandler                        0x08001d98   Section        0  motors.o(i.TIM5_IRQHandler)
+    i.TIM7_IRQHandler                        0x08001dcc   Section        0  processing.o(i.TIM7_IRQHandler)
+    i.Telemetry_DMA_Init                     0x08001e6c   Section        0  telemetry.o(i.Telemetry_DMA_Init)
+    i.USART1_IRQHandler                      0x08001ec0   Section        0  telemetry.o(i.USART1_IRQHandler)
+    i.USART_Init                             0x08002538   Section        0  telemetry.o(i.USART_Init)
+    i.getFinalData                           0x0800263c   Section        0  processing.o(i.getFinalData)
+    i.initWaitingForFloat                    0x0800269c   Section        0  telemetry.o(i.initWaitingForFloat)
+    i.initWaitingForInt                      0x080026e0   Section        0  telemetry.o(i.initWaitingForInt)
+    i.lowpass                                0x0800270c   Section        0  processing.o(i.lowpass)
+    i.main                                   0x08002760   Section        0  main.o(i.main)
+    x$fpl$d2f                                0x080029c4   Section      708  d2f_clz.o(x$fpl$d2f)
+    $v0                                      0x080029c4   Number         0  d2f_clz.o(x$fpl$d2f)
+    x$fpl$ddiv                               0x08002c88   Section      892  ddiv_clz.o(x$fpl$ddiv)
+    $v0                                      0x08002c88   Number         0  ddiv_clz.o(x$fpl$ddiv)
+    ddiv_entry                               0x08002c8f   Thumb Code     0  ddiv_clz.o(x$fpl$ddiv)
+    x$fpl$dfltn                              0x08003004   Section       26  dflt_clz.o(x$fpl$dfltn)
+    $v0                                      0x08003004   Number         0  dflt_clz.o(x$fpl$dfltn)
+    x$fpl$dnaninf                            0x0800301e   Section      258  dnaninf.o(x$fpl$dnaninf)
+    $v0                                      0x0800301e   Number         0  dnaninf.o(x$fpl$dnaninf)
+    x$fpl$drenorm                            0x08003120   Section      112  drenorm_clz.o(x$fpl$drenorm)
+    $v0                                      0x08003120   Number         0  drenorm_clz.o(x$fpl$drenorm)
+    x$fpl$dretinf                            0x08003190   Section       12  dretinf.o(x$fpl$dretinf)
+    $v0                                      0x08003190   Number         0  dretinf.o(x$fpl$dretinf)
+    x$fpl$dunder                             0x0800319c   Section      378  dunder_clz.o(x$fpl$dunder)
+    $v0                                      0x0800319c   Number         0  dunder_clz.o(x$fpl$dunder)
+    x$fpl$exception                          0x08003318   Section      492  except.o(x$fpl$exception)
+    $v0                                      0x08003318   Number         0  except.o(x$fpl$exception)
+    x$fpl$f2d                                0x08003504   Section      122  f2d.o(x$fpl$f2d)
+    $v0                                      0x08003504   Number         0  f2d.o(x$fpl$f2d)
+    x$fpl$fnaninf                            0x0800357e   Section      242  fnaninf.o(x$fpl$fnaninf)
+    $v0                                      0x0800357e   Number         0  fnaninf.o(x$fpl$fnaninf)
+    x$fpl$fpinit                             0x08003670   Section       10  fpinit.o(x$fpl$fpinit)
+    $v0                                      0x08003670   Number         0  fpinit.o(x$fpl$fpinit)
+    x$fpl$fretinf                            0x0800367a   Section       10  fretinf.o(x$fpl$fretinf)
+    $v0                                      0x0800367a   Number         0  fretinf.o(x$fpl$fretinf)
+    x$fpl$funder                             0x08003684   Section      316  funder_clz.o(x$fpl$funder)
+    $v0                                      0x08003684   Number         0  funder_clz.o(x$fpl$funder)
+    x$fpl$retnan                             0x080037c0   Section      178  retnan.o(x$fpl$retnan)
+    $v0                                      0x080037c0   Number         0  retnan.o(x$fpl$retnan)
+    x$fpl$trapveneer                         0x08003872   Section      126  trapv.o(x$fpl$trapveneer)
+    $v0                                      0x08003872   Number         0  trapv.o(x$fpl$trapveneer)
+    x$fpl$usenofp                            0x080038f0   Section        0  usenofp.o(x$fpl$usenofp)
     .data                                    0x20000000   Section       64  main.o(.data)
     .data                                    0x20000040   Section       48  adxl345.o(.data)
     .data                                    0x20000070   Section       61  telemetry.o(.data)
@@ -1247,13 +1247,13 @@ Image Symbol Table
     .bss                                     0x200010e0   Section      200  telemetry.o(.bss)
     .bss                                     0x200011a8   Section      976  processing.o(.bss)
     .bss                                     0x20001578   Section     4200  adxrs290.o(.bss)
-    .bss                                     0x200025e0   Section    12712  filters.o(.bss)
-    .bss                                     0x20005788   Section       96  libspace.o(.bss)
-    HEAP                                     0x200057e8   Section     1024  startup_stm32f407xx.o(HEAP)
-    Heap_Mem                                 0x200057e8   Data        1024  startup_stm32f407xx.o(HEAP)
-    STACK                                    0x20005be8   Section     2048  startup_stm32f407xx.o(STACK)
-    Stack_Mem                                0x20005be8   Data        2048  startup_stm32f407xx.o(STACK)
-    __initial_sp                             0x200063e8   Data           0  startup_stm32f407xx.o(STACK)
+    .bss                                     0x200025e0   Section     7896  filters.o(.bss)
+    .bss                                     0x200044b8   Section       96  libspace.o(.bss)
+    HEAP                                     0x20004518   Section     1024  startup_stm32f407xx.o(HEAP)
+    Heap_Mem                                 0x20004518   Data        1024  startup_stm32f407xx.o(HEAP)
+    STACK                                    0x20004918   Section     2048  startup_stm32f407xx.o(STACK)
+    Stack_Mem                                0x20004918   Data        2048  startup_stm32f407xx.o(STACK)
+    __initial_sp                             0x20005118   Data           0  startup_stm32f407xx.o(STACK)
 
     Global Symbols
 
@@ -1481,61 +1481,61 @@ Image Symbol Table
     Message_ToByteArray                      0x08001329   Thumb Code    64  telemetry.o(i.Message_ToByteArray)
     Motors_Run                               0x0800136d   Thumb Code    20  motors.o(i.Motors_Run)
     Motors_Stop                              0x0800138d   Thumb Code    26  motors.o(i.Motors_Stop)
-    Processing_TIM_Init                      0x0800145d   Thumb Code   106  processing.o(i.Processing_TIM_Init)
-    RCC_Init                                 0x080014d9   Thumb Code    46  main.o(i.RCC_Init)
-    SPI2_GPIO_Init                           0x08001519   Thumb Code   216  adxl345.o(i.SPI2_GPIO_Init)
-    SPI2_IRQHandler                          0x08001601   Thumb Code   662  adxrs290.o(i.SPI2_IRQHandler)
-    SPI2_Init                                0x080018dd   Thumb Code   108  adxl345.o(i.SPI2_Init)
-    SPI2_Read                                0x0800194d   Thumb Code    22  adxl345.o(i.SPI2_Read)
-    SPI2_SensorsPoll                         0x08001965   Thumb Code    90  adxrs290.o(i.SPI2_SensorsPoll)
-    SPI2_Transfer                            0x080019d9   Thumb Code    46  adxl345.o(i.SPI2_Transfer)
-    SPI2_Write                               0x08001a0d   Thumb Code    20  adxl345.o(i.SPI2_Write)
-    SPI3_GPIO_Init                           0x08001a21   Thumb Code   286  adxrs453.o(i.SPI3_GPIO_Init)
-    SPI3_Init                                0x08001b59   Thumb Code    88  adxrs453.o(i.SPI3_Init)
-    SPI3_NSS_High                            0x08001bb5   Thumb Code    20  adxrs453.o(i.SPI3_NSS_High)
-    SPI3_NSS_Low                             0x08001bd1   Thumb Code    20  adxrs453.o(i.SPI3_NSS_Low)
-    SendTelemetry                            0x08001bed   Thumb Code    40  telemetry.o(i.SendTelemetry)
-    SystemInit                               0x08001c29   Thumb Code   202  system_stm32f4xx.o(i.SystemInit)
-    TIM1_BRK_TIM9_IRQHandler                 0x08001d09   Thumb Code    38  motors.o(i.TIM1_BRK_TIM9_IRQHandler)
-    TIM2_IRQHandler                          0x08001d3d   Thumb Code    36  adxrs453.o(i.TIM2_IRQHandler)
-    TIM3_IRQHandler                          0x08001d61   Thumb Code    76  motors.o(i.TIM3_IRQHandler)
-    TIM5_IRQHandler                          0x08001dc1   Thumb Code    38  motors.o(i.TIM5_IRQHandler)
-    TIM7_IRQHandler                          0x08001df5   Thumb Code   122  processing.o(i.TIM7_IRQHandler)
-    Telemetry_DMA_Init                       0x08001e85   Thumb Code    58  telemetry.o(i.Telemetry_DMA_Init)
-    USART1_IRQHandler                        0x08001ed9   Thumb Code  1572  telemetry.o(i.USART1_IRQHandler)
-    USART_Init                               0x08002551   Thumb Code   236  telemetry.o(i.USART_Init)
-    getFinalData                             0x08002655   Thumb Code    80  processing.o(i.getFinalData)
-    initWaitingForFloat                      0x080026b5   Thumb Code    44  telemetry.o(i.initWaitingForFloat)
-    initWaitingForInt                        0x080026f9   Thumb Code    26  telemetry.o(i.initWaitingForInt)
-    lowpass                                  0x08002725   Thumb Code    78  processing.o(i.lowpass)
-    main                                     0x08002779   Thumb Code   500  main.o(i.main)
-    __aeabi_d2f                              0x080029e5   Thumb Code     0  d2f_clz.o(x$fpl$d2f)
-    _d2f                                     0x080029e5   Thumb Code   700  d2f_clz.o(x$fpl$d2f)
-    __aeabi_ddiv                             0x08002ca9   Thumb Code     0  ddiv_clz.o(x$fpl$ddiv)
-    _ddiv                                    0x08002ca9   Thumb Code   748  ddiv_clz.o(x$fpl$ddiv)
-    __dflt_normalise                         0x08003025   Thumb Code    26  dflt_clz.o(x$fpl$dfltn)
-    __fpl_dnaninf                            0x0800303f   Thumb Code   258  dnaninf.o(x$fpl$dnaninf)
-    __fpl_drenorm2                           0x08003141   Thumb Code   106  drenorm_clz.o(x$fpl$drenorm)
-    __fpl_drenorm1                           0x080031ab   Thumb Code     6  drenorm_clz.o(x$fpl$drenorm)
-    __fpl_dretinf                            0x080031b1   Thumb Code    12  dretinf.o(x$fpl$dretinf)
-    __dunder                                 0x080031bd   Thumb Code   314  dunder_clz.o(x$fpl$dunder)
-    __dunder_d                               0x080032f7   Thumb Code    64  dunder_clz.o(x$fpl$dunder)
-    __fpl_exception                          0x08003339   Thumb Code   454  except.o(x$fpl$exception)
-    __aeabi_f2d                              0x08003525   Thumb Code     0  f2d.o(x$fpl$f2d)
-    _f2d                                     0x08003525   Thumb Code   122  f2d.o(x$fpl$f2d)
-    __fpl_fnaninf                            0x0800359f   Thumb Code   242  fnaninf.o(x$fpl$fnaninf)
-    _fp_init                                 0x08003691   Thumb Code    10  fpinit.o(x$fpl$fpinit)
-    __fplib_config_fpu_vfp                   0x08003699   Thumb Code     0  fpinit.o(x$fpl$fpinit)
-    __fplib_config_pureend_doubles           0x08003699   Thumb Code     0  fpinit.o(x$fpl$fpinit)
-    __fpl_fretinf                            0x0800369b   Thumb Code    10  fretinf.o(x$fpl$fretinf)
-    __funder                                 0x080036a5   Thumb Code   254  funder_clz.o(x$fpl$funder)
-    __funder_d                               0x080037a3   Thumb Code    62  funder_clz.o(x$fpl$funder)
-    __fpl_return_NaN                         0x080037e1   Thumb Code   178  retnan.o(x$fpl$retnan)
-    _fp_trapveneer                           0x08003893   Thumb Code    36  trapv.o(x$fpl$trapveneer)
-    __fpl_cmpreturn                          0x080038b7   Thumb Code    90  trapv.o(x$fpl$trapveneer)
-    Region$$Table$$Base                      0x08003910   Number         0  anon$$obj.o(Region$$Table)
-    __I$use$fp                               0x08003910   Number         0  usenofp.o(x$fpl$usenofp)
-    Region$$Table$$Limit                     0x08003930   Number         0  anon$$obj.o(Region$$Table)
+    Processing_TIM_Init                      0x0800145d   Thumb Code   108  processing.o(i.Processing_TIM_Init)
+    RCC_Init                                 0x080014d5   Thumb Code    46  main.o(i.RCC_Init)
+    SPI2_GPIO_Init                           0x08001515   Thumb Code   216  adxl345.o(i.SPI2_GPIO_Init)
+    SPI2_IRQHandler                          0x080015fd   Thumb Code   632  adxrs290.o(i.SPI2_IRQHandler)
+    SPI2_Init                                0x080018b5   Thumb Code   108  adxl345.o(i.SPI2_Init)
+    SPI2_Read                                0x08001925   Thumb Code    22  adxl345.o(i.SPI2_Read)
+    SPI2_SensorsPoll                         0x0800193d   Thumb Code    90  adxrs290.o(i.SPI2_SensorsPoll)
+    SPI2_Transfer                            0x080019b1   Thumb Code    46  adxl345.o(i.SPI2_Transfer)
+    SPI2_Write                               0x080019e5   Thumb Code    20  adxl345.o(i.SPI2_Write)
+    SPI3_GPIO_Init                           0x080019f9   Thumb Code   286  adxrs453.o(i.SPI3_GPIO_Init)
+    SPI3_Init                                0x08001b31   Thumb Code    88  adxrs453.o(i.SPI3_Init)
+    SPI3_NSS_High                            0x08001b8d   Thumb Code    20  adxrs453.o(i.SPI3_NSS_High)
+    SPI3_NSS_Low                             0x08001ba9   Thumb Code    20  adxrs453.o(i.SPI3_NSS_Low)
+    SendTelemetry                            0x08001bc5   Thumb Code    40  telemetry.o(i.SendTelemetry)
+    SystemInit                               0x08001c01   Thumb Code   202  system_stm32f4xx.o(i.SystemInit)
+    TIM1_BRK_TIM9_IRQHandler                 0x08001ce1   Thumb Code    38  motors.o(i.TIM1_BRK_TIM9_IRQHandler)
+    TIM2_IRQHandler                          0x08001d15   Thumb Code    36  adxrs453.o(i.TIM2_IRQHandler)
+    TIM3_IRQHandler                          0x08001d39   Thumb Code    76  motors.o(i.TIM3_IRQHandler)
+    TIM5_IRQHandler                          0x08001d99   Thumb Code    38  motors.o(i.TIM5_IRQHandler)
+    TIM7_IRQHandler                          0x08001dcd   Thumb Code   134  processing.o(i.TIM7_IRQHandler)
+    Telemetry_DMA_Init                       0x08001e6d   Thumb Code    58  telemetry.o(i.Telemetry_DMA_Init)
+    USART1_IRQHandler                        0x08001ec1   Thumb Code  1572  telemetry.o(i.USART1_IRQHandler)
+    USART_Init                               0x08002539   Thumb Code   236  telemetry.o(i.USART_Init)
+    getFinalData                             0x0800263d   Thumb Code    80  processing.o(i.getFinalData)
+    initWaitingForFloat                      0x0800269d   Thumb Code    44  telemetry.o(i.initWaitingForFloat)
+    initWaitingForInt                        0x080026e1   Thumb Code    26  telemetry.o(i.initWaitingForInt)
+    lowpass                                  0x0800270d   Thumb Code    78  processing.o(i.lowpass)
+    main                                     0x08002761   Thumb Code   496  main.o(i.main)
+    __aeabi_d2f                              0x080029c5   Thumb Code     0  d2f_clz.o(x$fpl$d2f)
+    _d2f                                     0x080029c5   Thumb Code   700  d2f_clz.o(x$fpl$d2f)
+    __aeabi_ddiv                             0x08002c89   Thumb Code     0  ddiv_clz.o(x$fpl$ddiv)
+    _ddiv                                    0x08002c89   Thumb Code   748  ddiv_clz.o(x$fpl$ddiv)
+    __dflt_normalise                         0x08003005   Thumb Code    26  dflt_clz.o(x$fpl$dfltn)
+    __fpl_dnaninf                            0x0800301f   Thumb Code   258  dnaninf.o(x$fpl$dnaninf)
+    __fpl_drenorm2                           0x08003121   Thumb Code   106  drenorm_clz.o(x$fpl$drenorm)
+    __fpl_drenorm1                           0x0800318b   Thumb Code     6  drenorm_clz.o(x$fpl$drenorm)
+    __fpl_dretinf                            0x08003191   Thumb Code    12  dretinf.o(x$fpl$dretinf)
+    __dunder                                 0x0800319d   Thumb Code   314  dunder_clz.o(x$fpl$dunder)
+    __dunder_d                               0x080032d7   Thumb Code    64  dunder_clz.o(x$fpl$dunder)
+    __fpl_exception                          0x08003319   Thumb Code   454  except.o(x$fpl$exception)
+    __aeabi_f2d                              0x08003505   Thumb Code     0  f2d.o(x$fpl$f2d)
+    _f2d                                     0x08003505   Thumb Code   122  f2d.o(x$fpl$f2d)
+    __fpl_fnaninf                            0x0800357f   Thumb Code   242  fnaninf.o(x$fpl$fnaninf)
+    _fp_init                                 0x08003671   Thumb Code    10  fpinit.o(x$fpl$fpinit)
+    __fplib_config_fpu_vfp                   0x08003679   Thumb Code     0  fpinit.o(x$fpl$fpinit)
+    __fplib_config_pureend_doubles           0x08003679   Thumb Code     0  fpinit.o(x$fpl$fpinit)
+    __fpl_fretinf                            0x0800367b   Thumb Code    10  fretinf.o(x$fpl$fretinf)
+    __funder                                 0x08003685   Thumb Code   254  funder_clz.o(x$fpl$funder)
+    __funder_d                               0x08003783   Thumb Code    62  funder_clz.o(x$fpl$funder)
+    __fpl_return_NaN                         0x080037c1   Thumb Code   178  retnan.o(x$fpl$retnan)
+    _fp_trapveneer                           0x08003873   Thumb Code    36  trapv.o(x$fpl$trapveneer)
+    __fpl_cmpreturn                          0x08003897   Thumb Code    90  trapv.o(x$fpl$trapveneer)
+    Region$$Table$$Base                      0x080038f0   Number         0  anon$$obj.o(Region$$Table)
+    __I$use$fp                               0x080038f0   Number         0  usenofp.o(x$fpl$usenofp)
+    Region$$Table$$Limit                     0x08003910   Number         0  anon$$obj.o(Region$$Table)
     orient                                   0x20000000   Data          16  main.o(.data)
     ax                                       0x20000010   Data           2  main.o(.data)
     ay                                       0x20000012   Data           2  main.o(.data)
@@ -1719,10 +1719,10 @@ Image Symbol Table
     adxrs453_lpf_state                       0x200035dc   Data         372  filters.o(.bss)
     adxrs453_history                         0x20003750   Data         720  filters.o(.bss)
     adxrs290_lpf                             0x20003a20   Data          24  filters.o(.bss)
-    adxrs290_lpf_state                       0x20003a38   Data        2720  filters.o(.bss)
-    adxrs290_history                         0x200044d8   Data        4784  filters.o(.bss)
-    __libspace_start                         0x20005788   Data          96  libspace.o(.bss)
-    __temporary_stack_top$libspace           0x200057e8   Data           0  libspace.o(.bss)
+    adxrs290_lpf_state                       0x20003a38   Data         976  filters.o(.bss)
+    adxrs290_history                         0x20003e08   Data        1712  filters.o(.bss)
+    __libspace_start                         0x200044b8   Data          96  libspace.o(.bss)
+    __temporary_stack_top$libspace           0x20004518   Data           0  libspace.o(.bss)
 
 
 
@@ -1732,9 +1732,9 @@ Memory Map of the image
 
   Image Entry point : 0x08000271
 
-  Load Region LR_1 (Base: 0x08000000, Size: 0x000049f8, Max: 0xffffffff, ABSOLUTE, COMPRESSED[0x000045cc])
+  Load Region LR_1 (Base: 0x08000000, Size: 0x000049d8, Max: 0xffffffff, ABSOLUTE, COMPRESSED[0x000045ac])
 
-    Execution Region ER_RO (Base: 0x08000000, Size: 0x00003930, Max: 0xffffffff, ABSOLUTE)
+    Execution Region ER_RO (Base: 0x08000000, Size: 0x00003910, Max: 0xffffffff, ABSOLUTE)
 
     Base Addr    Size         Type   Attr      Idx    E Section Name        Object
 
@@ -1846,53 +1846,53 @@ Memory Map of the image
     0x080013f6   0x00000016   Code   RO          796    i.NVIC_EnableIRQ    adxrs290.o
     0x0800140c   0x00000028   Code   RO          216    i.NVIC_SetPriority  adxl345.o
     0x08001434   0x00000028   Code   RO          684    i.NVIC_SetPriority  adxrs453.o
-    0x0800145c   0x0000007c   Code   RO          474    i.Processing_TIM_Init  processing.o
-    0x080014d8   0x00000040   Code   RO            4    i.RCC_Init          main.o
-    0x08001518   0x000000e8   Code   RO          217    i.SPI2_GPIO_Init    adxl345.o
-    0x08001600   0x000002dc   Code   RO          797    i.SPI2_IRQHandler   adxrs290.o
-    0x080018dc   0x00000070   Code   RO          218    i.SPI2_Init         adxl345.o
-    0x0800194c   0x00000016   Code   RO          219    i.SPI2_Read         adxl345.o
-    0x08001962   0x00000002   PAD
-    0x08001964   0x00000074   Code   RO          798    i.SPI2_SensorsPoll  adxrs290.o
-    0x080019d8   0x00000034   Code   RO          220    i.SPI2_Transfer     adxl345.o
-    0x08001a0c   0x00000014   Code   RO          221    i.SPI2_Write        adxl345.o
-    0x08001a20   0x00000138   Code   RO          685    i.SPI3_GPIO_Init    adxrs453.o
-    0x08001b58   0x0000005c   Code   RO          686    i.SPI3_Init         adxrs453.o
-    0x08001bb4   0x0000001c   Code   RO          687    i.SPI3_NSS_High     adxrs453.o
-    0x08001bd0   0x0000001c   Code   RO          688    i.SPI3_NSS_Low      adxrs453.o
-    0x08001bec   0x0000003c   Code   RO          367    i.SendTelemetry     telemetry.o
-    0x08001c28   0x000000e0   Code   RO          985    i.SystemInit        system_stm32f4xx.o
-    0x08001d08   0x00000034   Code   RO          580    i.TIM1_BRK_TIM9_IRQHandler  motors.o
-    0x08001d3c   0x00000024   Code   RO          690    i.TIM2_IRQHandler   adxrs453.o
-    0x08001d60   0x00000060   Code   RO          581    i.TIM3_IRQHandler   motors.o
-    0x08001dc0   0x00000034   Code   RO          582    i.TIM5_IRQHandler   motors.o
-    0x08001df4   0x00000090   Code   RO          475    i.TIM7_IRQHandler   processing.o
-    0x08001e84   0x00000054   Code   RO          368    i.Telemetry_DMA_Init  telemetry.o
-    0x08001ed8   0x00000678   Code   RO          369    i.USART1_IRQHandler  telemetry.o
-    0x08002550   0x00000104   Code   RO          370    i.USART_Init        telemetry.o
-    0x08002654   0x00000060   Code   RO          478    i.getFinalData      processing.o
-    0x080026b4   0x00000044   Code   RO          371    i.initWaitingForFloat  telemetry.o
-    0x080026f8   0x0000002c   Code   RO          372    i.initWaitingForInt  telemetry.o
-    0x08002724   0x00000054   Code   RO          480    i.lowpass           processing.o
-    0x08002778   0x0000026c   Code   RO            6    i.main              main.o
-    0x080029e4   0x000002c4   Code   RO         1164    x$fpl$d2f           g_wm.l(d2f_clz.o)
-    0x08002ca8   0x0000037c   Code   RO         1173    x$fpl$ddiv          g_wm.l(ddiv_clz.o)
-    0x08003024   0x0000001a   Code   RO         1178    x$fpl$dfltn         g_wm.l(dflt_clz.o)
-    0x0800303e   0x00000102   Code   RO         1349    x$fpl$dnaninf       g_wm.l(dnaninf.o)
-    0x08003140   0x00000070   Code   RO         1351    x$fpl$drenorm       g_wm.l(drenorm_clz.o)
-    0x080031b0   0x0000000c   Code   RO         1353    x$fpl$dretinf       g_wm.l(dretinf.o)
-    0x080031bc   0x0000017a   Code   RO         1357    x$fpl$dunder        g_wm.l(dunder_clz.o)
-    0x08003336   0x00000002   PAD
-    0x08003338   0x000001ec   Code   RO         1359    x$fpl$exception     g_wm.l(except.o)
-    0x08003524   0x0000007a   Code   RO         1184    x$fpl$f2d           g_wm.l(f2d.o)
-    0x0800359e   0x000000f2   Code   RO         1361    x$fpl$fnaninf       g_wm.l(fnaninf.o)
-    0x08003690   0x0000000a   Code   RO         1458    x$fpl$fpinit        g_wm.l(fpinit.o)
-    0x0800369a   0x0000000a   Code   RO         1363    x$fpl$fretinf       g_wm.l(fretinf.o)
-    0x080036a4   0x0000013c   Code   RO         1365    x$fpl$funder        g_wm.l(funder_clz.o)
-    0x080037e0   0x000000b2   Code   RO         1460    x$fpl$retnan        g_wm.l(retnan.o)
-    0x08003892   0x0000007e   Code   RO         1367    x$fpl$trapveneer    g_wm.l(trapv.o)
-    0x08003910   0x00000000   Code   RO         1369    x$fpl$usenofp       g_wm.l(usenofp.o)
-    0x08003910   0x00000020   Data   RO         1548    Region$$Table       anon$$obj.o
+    0x0800145c   0x00000078   Code   RO          474    i.Processing_TIM_Init  processing.o
+    0x080014d4   0x00000040   Code   RO            4    i.RCC_Init          main.o
+    0x08001514   0x000000e8   Code   RO          217    i.SPI2_GPIO_Init    adxl345.o
+    0x080015fc   0x000002b8   Code   RO          797    i.SPI2_IRQHandler   adxrs290.o
+    0x080018b4   0x00000070   Code   RO          218    i.SPI2_Init         adxl345.o
+    0x08001924   0x00000016   Code   RO          219    i.SPI2_Read         adxl345.o
+    0x0800193a   0x00000002   PAD
+    0x0800193c   0x00000074   Code   RO          798    i.SPI2_SensorsPoll  adxrs290.o
+    0x080019b0   0x00000034   Code   RO          220    i.SPI2_Transfer     adxl345.o
+    0x080019e4   0x00000014   Code   RO          221    i.SPI2_Write        adxl345.o
+    0x080019f8   0x00000138   Code   RO          685    i.SPI3_GPIO_Init    adxrs453.o
+    0x08001b30   0x0000005c   Code   RO          686    i.SPI3_Init         adxrs453.o
+    0x08001b8c   0x0000001c   Code   RO          687    i.SPI3_NSS_High     adxrs453.o
+    0x08001ba8   0x0000001c   Code   RO          688    i.SPI3_NSS_Low      adxrs453.o
+    0x08001bc4   0x0000003c   Code   RO          367    i.SendTelemetry     telemetry.o
+    0x08001c00   0x000000e0   Code   RO          985    i.SystemInit        system_stm32f4xx.o
+    0x08001ce0   0x00000034   Code   RO          580    i.TIM1_BRK_TIM9_IRQHandler  motors.o
+    0x08001d14   0x00000024   Code   RO          690    i.TIM2_IRQHandler   adxrs453.o
+    0x08001d38   0x00000060   Code   RO          581    i.TIM3_IRQHandler   motors.o
+    0x08001d98   0x00000034   Code   RO          582    i.TIM5_IRQHandler   motors.o
+    0x08001dcc   0x000000a0   Code   RO          475    i.TIM7_IRQHandler   processing.o
+    0x08001e6c   0x00000054   Code   RO          368    i.Telemetry_DMA_Init  telemetry.o
+    0x08001ec0   0x00000678   Code   RO          369    i.USART1_IRQHandler  telemetry.o
+    0x08002538   0x00000104   Code   RO          370    i.USART_Init        telemetry.o
+    0x0800263c   0x00000060   Code   RO          478    i.getFinalData      processing.o
+    0x0800269c   0x00000044   Code   RO          371    i.initWaitingForFloat  telemetry.o
+    0x080026e0   0x0000002c   Code   RO          372    i.initWaitingForInt  telemetry.o
+    0x0800270c   0x00000054   Code   RO          480    i.lowpass           processing.o
+    0x08002760   0x00000264   Code   RO            6    i.main              main.o
+    0x080029c4   0x000002c4   Code   RO         1164    x$fpl$d2f           g_wm.l(d2f_clz.o)
+    0x08002c88   0x0000037c   Code   RO         1173    x$fpl$ddiv          g_wm.l(ddiv_clz.o)
+    0x08003004   0x0000001a   Code   RO         1178    x$fpl$dfltn         g_wm.l(dflt_clz.o)
+    0x0800301e   0x00000102   Code   RO         1349    x$fpl$dnaninf       g_wm.l(dnaninf.o)
+    0x08003120   0x00000070   Code   RO         1351    x$fpl$drenorm       g_wm.l(drenorm_clz.o)
+    0x08003190   0x0000000c   Code   RO         1353    x$fpl$dretinf       g_wm.l(dretinf.o)
+    0x0800319c   0x0000017a   Code   RO         1357    x$fpl$dunder        g_wm.l(dunder_clz.o)
+    0x08003316   0x00000002   PAD
+    0x08003318   0x000001ec   Code   RO         1359    x$fpl$exception     g_wm.l(except.o)
+    0x08003504   0x0000007a   Code   RO         1184    x$fpl$f2d           g_wm.l(f2d.o)
+    0x0800357e   0x000000f2   Code   RO         1361    x$fpl$fnaninf       g_wm.l(fnaninf.o)
+    0x08003670   0x0000000a   Code   RO         1458    x$fpl$fpinit        g_wm.l(fpinit.o)
+    0x0800367a   0x0000000a   Code   RO         1363    x$fpl$fretinf       g_wm.l(fretinf.o)
+    0x08003684   0x0000013c   Code   RO         1365    x$fpl$funder        g_wm.l(funder_clz.o)
+    0x080037c0   0x000000b2   Code   RO         1460    x$fpl$retnan        g_wm.l(retnan.o)
+    0x08003872   0x0000007e   Code   RO         1367    x$fpl$trapveneer    g_wm.l(trapv.o)
+    0x080038f0   0x00000000   Code   RO         1369    x$fpl$usenofp       g_wm.l(usenofp.o)
+    0x080038f0   0x00000020   Data   RO         1548    Region$$Table       anon$$obj.o
 
 
     Execution Region ER_RW (Base: 0x20000000, Size: 0x000010c8, Max: 0xffffffff, ABSOLUTE, COMPRESSED[0x00000c9c])
@@ -1913,7 +1913,7 @@ Memory Map of the image
     0x200008ec   0x000007db   Data   RW          950    .data               filters.o
 
 
-    Execution Region ER_ZI (Base: 0x200010c8, Size: 0x00005320, Max: 0xffffffff, ABSOLUTE)
+    Execution Region ER_ZI (Base: 0x200010c8, Size: 0x00004050, Max: 0xffffffff, ABSOLUTE)
 
     Base Addr    Size         Type   Attr      Idx    E Section Name        Object
 
@@ -1921,10 +1921,10 @@ Memory Map of the image
     0x200010e0   0x000000c8   Zero   RW          374    .bss                telemetry.o
     0x200011a8   0x000003d0   Zero   RW          483    .bss                processing.o
     0x20001578   0x00001068   Zero   RW          799    .bss                adxrs290.o
-    0x200025e0   0x000031a8   Zero   RW          949    .bss                filters.o
-    0x20005788   0x00000060   Zero   RW         1411    .bss                c_w.l(libspace.o)
-    0x200057e8   0x00000400   Zero   RW          975    HEAP                startup_stm32f407xx.o
-    0x20005be8   0x00000800   Zero   RW          974    STACK               startup_stm32f407xx.o
+    0x200025e0   0x00001ed8   Zero   RW          949    .bss                filters.o
+    0x200044b8   0x00000060   Zero   RW         1411    .bss                c_w.l(libspace.o)
+    0x20004518   0x00000400   Zero   RW          975    HEAP                startup_stm32f407xx.o
+    0x20004918   0x00000800   Zero   RW          974    STACK               startup_stm32f407xx.o
 
 
 ==============================================================================
@@ -1935,18 +1935,18 @@ Image component sizes
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Object Name
 
       1592        194          0         48         24      38021   adxl345.o
-      1452        174          0       1769       4200       8200   adxrs290.o
+      1416        168          0       1769       4200       8188   adxrs290.o
       1072        158          0         34          0       7106   adxrs453.o
-         0          0          0       2011      12712       1872   filters.o
-       684        138          0         64          0     260354   main.o
+         0          0          0       2011       7896       1872   filters.o
+       676        134          0         64          0     260354   main.o
        380         98          0         30          0       3777   motors.o
-       448         62          0        268        976       6380   processing.o
+       460         60          0        268        976       6384   processing.o
         64         26        392          0       3072        864   startup_stm32f407xx.o
        224         22          0          0          0        585   system_stm32f4xx.o
       2298        418          0         61        200      34371   telemetry.o
 
     ----------------------------------------------------------------------
-      8220       1290        424       4296      21184     361530   Object Totals
+      8188       1278        424       4296      16368     361522   Object Totals
          0          0         32          0          0          0   (incl. Generated)
          6          0          0         11          0          0   (incl. Padding)
 
@@ -2024,15 +2024,15 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   
 
-     14216       1644        424       4296      21280     377085   Grand Totals
-     14216       1644        424       3228      21280     377085   ELF Image Totals (compressed)
-     14216       1644        424       3228          0          0   ROM Totals
+     14184       1632        424       4296      16464     377077   Grand Totals
+     14184       1632        424       3228      16464     377077   ELF Image Totals (compressed)
+     14184       1632        424       3228          0          0   ROM Totals
 
 ==============================================================================
 
-    Total RO  Size (Code + RO Data)                14640 (  14.30kB)
-    Total RW  Size (RW Data + ZI Data)             25576 (  24.98kB)
-    Total ROM Size (Code + RO Data + RW Data)      17868 (  17.45kB)
+    Total RO  Size (Code + RO Data)                14608 (  14.27kB)
+    Total RW  Size (RW Data + ZI Data)             20760 (  20.27kB)
+    Total ROM Size (Code + RO Data + RW Data)      17836 (  17.42kB)
 
 ==============================================================================
 

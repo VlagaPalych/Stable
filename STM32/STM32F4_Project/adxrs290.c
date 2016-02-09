@@ -166,9 +166,9 @@ void SPI2_IRQHandler() {
                 tmp = (adxrs290_regs[ars_spiIndex[SPI2_curUsing]] | 0x80) << 8;
                 SPI2->DR = tmp;
             } else {
-                if (SPI2_curUsing == 0) {
-                    GPIOD->ODR ^= 1 << 15;
-                }
+//                if (SPI2_curUsing == 0) {
+//                    GPIOD->ODR ^= 1 << 15;
+//                }
                 SPI2->CR2 &= ~SPI_CR2_RXNEIE;
                 
                 ars_data[SPI2_curUsing][0] = (ars_rawData[SPI2_curUsing][1] << 8) | ars_rawData[SPI2_curUsing][0];

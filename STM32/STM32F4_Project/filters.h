@@ -29,8 +29,8 @@ extern uint8_t adxrs453_history_filter_index;
 extern float filtered_arz;
 
 
-#define ADXRS290_DECIMATION 42
-#define ADXRS290_FILTER_SIZE 299
+#define ADXRS290_DECIMATION ACCEL_DECIMATION
+#define ADXRS290_FILTER_SIZE ACCEL_FILTER_SIZE
 
 extern arm_fir_decimate_instance_f32 adxrs290_lpf[2];
 extern float adxrs290_lpf_state[2][ADXRS290_FILTER_SIZE + ADXRS290_DECIMATION - 1];
