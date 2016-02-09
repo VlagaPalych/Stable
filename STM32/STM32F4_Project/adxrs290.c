@@ -147,6 +147,8 @@ void EXTI15_10_IRQHandler() {
     }
 }
 
+uint8_t termoDataCollected = 0;
+
 void SPI2_IRQHandler() {
     uint8_t i = 0;
     uint16_t tmp = 0;
@@ -165,37 +167,46 @@ void SPI2_IRQHandler() {
                 SPI2->DR = tmp;
             } else {
                 SPI2->CR2 &= ~SPI_CR2_RXNEIE;
-                //SPI2->CR1 &= ~SPI_CR1_SPE;
                 
                 ars_data[SPI2_curUsing][0] = (ars_rawData[SPI2_curUsing][1] << 8) | ars_rawData[SPI2_curUsing][0];
                 ars_data[SPI2_curUsing][1] = (ars_rawData[SPI2_curUsing][3] << 8) | ars_rawData[SPI2_curUsing][2];
                 ars_data[SPI2_curUsing][2] = ((ars_rawData[SPI2_curUsing][5] & 0x0f) << 8) | ars_rawData[SPI2_curUsing][4];
                 
-                
-                for (i = 0; i < ADXRS290_DATA_SIZE-1; i++) {
+                for (i = 0; i < 2; i++) {
                     ars_termoData[SPI2_curUsing][i] = ars_data[SPI2_curUsing][i] - ars_termoCf[SPI2_curUsing][i] * ars_data[SPI2_curUsing][2];
-                    //ars1_data[i] -= ars1_offset[i];                     // subract pre-calibrated offset
-                    ars_history[SPI2_curUsing][i][ars_historyIndex[SPI2_curUsing]] = ars_termoData[SPI2_curUsing][i];  // recording history for future filtration
                 }
                 
-                ars_historyIndex[SPI2_curUsing]++;
-                if (ars_historyIndex[SPI2_curUsing] >= ADXRS290_NUM_TAPS) {
-                    ars_lowpassReady[SPI2_curUsing] = 1;
-                    ars_historyIndex[SPI2_curUsing] = 0;
-                }    
-
-                ars_processIndex[SPI2_curUsing]++;
-                if (ars_processIndex[SPI2_curUsing] == ars_processNumber) {
-                    ars_processIndex[SPI2_curUsing] = 0;
-                    ars_curHistoryIndex[SPI2_curUsing] = ars_historyIndex[SPI2_curUsing] - 1;
-                    if (lowpassOn && ars_lowpassReady[SPI2_curUsing]) {
-                        ars_doProcess[SPI2_curUsing] = 1;
+                if (termoDataCollected == 0) {
+                    termoDataCollected = 1;
+                } else {
+                    termoDataCollected = 0;
+                    for (i = 0; i < 2; i++) {
+                        adxrs290_history[i][adxrs290_history_index] = (ars_termoData[0][i] - ars_termoData[1][i]) / 2;
+                    }
+                    adxrs290_history_index++;          
+                        
+                    if (adxrs290_history_index >= ADXRS290_FILTER_SIZE) {
+                        adxrs290_lowpass_ready = 1;
+                        if (adxrs290_history_index >= 2*ADXRS290_FILTER_SIZE) {
+                        // transition to beginning of array required
+                            for (i = 0; i < 2; i++) {
+                                memcpy(adxrs290_history[i], &adxrs290_history[i][ADXRS290_FILTER_SIZE], ADXRS290_FILTER_SIZE*sizeof(float)); 
+                            }
+                            adxrs290_history_index = ACCEL_FILTER_SIZE;
+                        }
+                    }   
+                    
+                    adxrs290_process_index++;
+                    if (adxrs290_process_index == ADXRS290_DECIMATION) {
+                        adxrs290_process_index = 0;
+                        adxrs290_history_filter_index = adxrs290_history_index;
+                        if (lowpassOn && adxrs290_lowpass_ready) {
+                            adxrs290_do_process = 1;
+                        }
                     }
                 }
-                
-                GPIOD->BSRRH |= 1 << 15;
-                SPI2_SensorsPoll();
-            }
-        }    
+                SPI2_SensorsPoll(); 
+            }                     
+        }            
     }
 }
