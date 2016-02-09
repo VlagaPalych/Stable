@@ -155,7 +155,7 @@ void SPI2_IRQHandler() {
     
     if (SPI2->SR & SPI_SR_RXNE) { 
         if (SPI2_curUsing < SPI2_ACCEL_USING) {
-            GPIOD->BSRRL |= 1 << 15;
+            //GPIOD->BSRRL |= 1 << 15;
             ADXRS290_NSS_High(SPI2_curUsing);        
             tmp = SPI2->DR;
             ars_rawData[SPI2_curUsing][ars_spiIndex[SPI2_curUsing]] = (uint8_t)(tmp & 0xff);
@@ -166,6 +166,9 @@ void SPI2_IRQHandler() {
                 tmp = (adxrs290_regs[ars_spiIndex[SPI2_curUsing]] | 0x80) << 8;
                 SPI2->DR = tmp;
             } else {
+                if (SPI2_curUsing == 0) {
+                    GPIOD->ODR ^= 1 << 15;
+                }
                 SPI2->CR2 &= ~SPI_CR2_RXNEIE;
                 
                 ars_data[SPI2_curUsing][0] = (ars_rawData[SPI2_curUsing][1] << 8) | ars_rawData[SPI2_curUsing][0];

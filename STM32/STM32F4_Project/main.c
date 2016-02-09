@@ -118,7 +118,7 @@ int main() {
         arm_fir_decimate_init_f32(&adxrs290_lpf[i], ADXRS290_FILTER_SIZE, ADXRS290_DECIMATION, adxrs290_lpf_coeffs, adxrs290_lpf_state[i], ADXRS290_DECIMATION);
     }
     
-//    Accel_VDD_Init();
+    Accel_VDD_Init();
     Accel_NSS_Init();
     Accel_NSS_High();
     
@@ -175,18 +175,19 @@ int main() {
         }
 //        // Lowpass filtering of accelerations
         if (doAccelProcess) { 
-            GPIOD->BSRRL |= 1 << 15;
+            //GPIOD->BSRRL |= 1 << 15;
             for (i = 0; i < 3; i++) {
                 //filtered_a[i] = filterScale * lowpass(accel_history[i], accel_curHistoryIndex[i], accel_b, ACCEL_FILTER_SIZE);
                 arm_fir_decimate_f32(&accel_lpf[i], accel_history[i] + accel_history_filter_index - ACCEL_FILTER_SIZE, &filtered_a[i], ACCEL_DECIMATION);
             }
             doAccelProcess = 0;
-            GPIOD->BSRRH |= 1 << 15;
+            //GPIOD->BSRRH |= 1 << 15;
         } 
       
         
         if (adxrs290_do_process) {
             adxrs290_do_process = 0;
+              //GPIOD->BSRRL |= 1 << 15;
             for (i = 0; i < 2; i++) {
                 arm_fir_decimate_f32(&adxrs290_lpf[i], adxrs290_history[i] + adxrs290_history_filter_index - ADXRS290_FILTER_SIZE, &filtered_ar[i], ADXRS290_DECIMATION);
                 
@@ -208,6 +209,7 @@ int main() {
 //                    ars_filteredData[i][j] -= ars_offset[i][j];
 //                }
             }
+            //GPIOD->BSRRH |= 1 << 15;
         }
         
     }

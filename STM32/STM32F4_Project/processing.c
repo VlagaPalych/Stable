@@ -314,12 +314,8 @@ void TIM7_IRQHandler(void) {
 //    mat_sub(final_a, offset, tmp, 3, 1);
 //    mat_mul(invS, tmp, final_a, 3, 1, 3);
     
-    message.ars1_x = ars_filteredData[0][0];
-    message.ars1_y = ars_filteredData[0][1];
-    message.ars2_x = ars_filteredData[1][0];
-    message.ars2_y = ars_filteredData[1][1];
-    message.ars3_z = filteredVel;
-
+    message.arx = filtered_ar[0] / 200.0;
+    message.ary = filtered_ar[1] / 200.0;
     SendTelemetry(&message); 
 }
 

@@ -4,11 +4,8 @@
 #include "stdint.h"
 
 typedef struct {
-    float ars1_x;
-    float ars1_y;
-    float ars2_x;
-    float ars2_y;
-    float ars3_z;
+    float arx;
+    float ary;
 } Message;
 
 extern Message message;
