@@ -46,19 +46,11 @@ extern float filteredVel;
 
 extern float accel_b[ACCEL_FILTER_SIZE];
 
-extern int16_t axHistory[HISTORY_SIZE];
-extern uint8_t axHistoryIndex;
-extern uint8_t axCurHistoryIndex;
-extern int16_t finalAX;
-extern int16_t finalAY;
-extern int16_t filteredAX;
-extern int16_t filteredAY;
-
-extern int16_t azHistory[HISTORY_SIZE];
-extern uint8_t azHistoryIndex;
-extern uint8_t azCurHistoryIndex;
-extern int16_t finalAZ;
-extern int16_t filteredAZ;
+extern int16_t accel_history[3][HISTORY_SIZE];
+extern uint8_t accel_historyIndex[3];
+extern uint8_t accel_curHistoryIndex[3];
+extern int16_t filtered_a[3];
+extern float final_a[3];
 
 extern uint8_t doAccelProcess;
 extern uint8_t doGyroProcess;

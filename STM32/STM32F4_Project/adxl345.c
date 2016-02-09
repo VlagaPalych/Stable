@@ -20,9 +20,10 @@ int16_t accel[6];
 uint8_t accelCalibrationOn = 0;
 uint32_t accelCalibrIndex = 0;
 uint32_t accelCalibrNumber = 0;
-float accel_xSum = 0, accel_ySum = 0, accel_zSum = 0;
+float a_sum[3] = {0, 0, 0};
+int16_t a[3];
 
-int16_t xOffset, yOffset, zOffset;
+int16_t a_offset[3] = {0, 0, 0};
 
 uint8_t freshFreq   = 0;
 uint8_t curFreq     = HZ1600;
@@ -150,7 +151,7 @@ void ADXL345_GetAccel(int16_t *x, int16_t *y, int16_t *z) {
 }
 
 void ADXL345_Calibr() {
-    accel_xSum = 0; accel_ySum = 0; accel_zSum = 0;
+    a_sum[0] = 0; a_sum[1] = 0; a_sum[2] = 0;
     accelCalibrIndex = 0;
     accelCalibrNumber = 1600;
     accelCalibrationOn = 1;
@@ -234,47 +235,49 @@ void Accel_UpdateFreq() {
 }
 
 void DMA1_Stream3_IRQHandler() {
+    uint8_t i = 0;
     if (DMA1->LISR & DMA_LISR_TCIF3) {
         DMA1->LIFCR = DMA_LIFCR_CTCIF3 | DMA_LIFCR_CHTIF3;
         All_NSS_High();
         
         Accel_UpdateFreq();
         
-        ((uint8_t *)(&ax))[0] = (uint8_t)(accel[0] & 0xFF);
-        ((uint8_t *)(&ax))[1] = (uint8_t)(accel[1] & 0xFF);
-        ((uint8_t *)(&ay))[0] = (uint8_t)(accel[2] & 0xFF);
-        ((uint8_t *)(&ay))[1] = (uint8_t)(accel[3] & 0xFF);
-        ((uint8_t *)(&az))[0] = (uint8_t)(accel[4] & 0xFF);
-        ((uint8_t *)(&az))[1] = (uint8_t)(accel[5] & 0xFF);
+        ((uint8_t *)(&a[0]))[0] = (uint8_t)(accel[0] & 0xFF);
+        ((uint8_t *)(&a[0]))[1] = (uint8_t)(accel[1] & 0xFF);
+        ((uint8_t *)(&a[1]))[0] = (uint8_t)(accel[2] & 0xFF);
+        ((uint8_t *)(&a[1]))[1] = (uint8_t)(accel[3] & 0xFF);
+        ((uint8_t *)(&a[2]))[0] = (uint8_t)(accel[4] & 0xFF);
+        ((uint8_t *)(&a[2]))[1] = (uint8_t)(accel[5] & 0xFF);
+        
     
         
-        if (accelCalibrationOn) {
-            accel_xSum += ax;
-            accel_ySum += ay;
-            accel_zSum += az;  
-            
-            accelCalibrIndex++;
-            
-            if (accelCalibrIndex == accelCalibrNumber) {
-                xOffset = (int16_t)(accel_xSum / accelCalibrNumber);
-                yOffset = (int16_t)(accel_ySum / accelCalibrNumber);
-                zOffset = (int16_t)(accel_zSum / accelCalibrNumber) - 0xFF;
-                accelCalibrationOn = 0;
-                checkCalibrationFinish();
-            }
+//        if (accelCalibrationOn) {
+//            accel_xSum += ax;
+//            accel_ySum += ay;
+//            accel_zSum += az;  
+//            
+//            accelCalibrIndex++;
+//            
+//            if (accelCalibrIndex == accelCalibrNumber) {
+//                xOffset = (int16_t)(accel_xSum / accelCalibrNumber);
+//                yOffset = (int16_t)(accel_ySum / accelCalibrNumber);
+//                zOffset = (int16_t)(accel_zSum / accelCalibrNumber) - 0xFF;
+//                accelCalibrationOn = 0;
+//                checkCalibrationFinish();
+//            }
+//        }
+//        
+//        ax -= xOffset;
+//        ay -= yOffset;
+//        az -= zOffset;     
+
+        for (i = 0; i < 3; i++) {
+            accel_history[i][accel_historyIndex[i]] = a[i];
+            accel_historyIndex[i]++;
         }
         
-        ax -= xOffset;
-        ay -= yOffset;
-        az -= zOffset;     
         
-        axHistory[axHistoryIndex] = ax;
-        axHistoryIndex++;
-        
-        azHistory[azHistoryIndex] = az;
-        azHistoryIndex++;
-        
-        if (azHistoryIndex >= ACCEL_FILTER_SIZE) {
+        if (accel_historyIndex[0] >= ACCEL_FILTER_SIZE) {
             accelLowpassReady = 1;
         }
         
@@ -282,8 +285,9 @@ void DMA1_Stream3_IRQHandler() {
         if (processCounter == 16) {
             processCounter = 0;
             
-            axCurHistoryIndex = axHistoryIndex - 1;
-            azCurHistoryIndex = azHistoryIndex - 1;
+            for (i = 0; i < 3; i++) {
+                accel_curHistoryIndex[i] = accel_historyIndex[i] - 1;
+            }
             if (lowpassOn && accelLowpassReady) {
                 doAccelProcess = 1;
             }

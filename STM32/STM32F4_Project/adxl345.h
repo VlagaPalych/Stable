@@ -40,13 +40,13 @@ extern uint8_t freshFreq;
 extern uint8_t curFreq;
 extern float curDT;
 
-extern int16_t ax, ay, az;
+extern int16_t a[3];
 extern uint8_t accelCalibrationOn;
 
 void Delay(void);
 
 void Accel_VDD_Init(void);
-void Accel_NSS_Init();
+void Accel_NSS_Init(void);
 void Accel_NSS_Low(void);
 void Accel_NSS_High(void);
 

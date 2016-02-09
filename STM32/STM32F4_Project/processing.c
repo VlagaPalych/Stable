@@ -37,18 +37,12 @@ float filteredVel = 0;
 // accel FIR-filter coefficients
 float accel_b[ACCEL_FILTER_SIZE] = {-0.000971251596459908, -7.69406717604047e-05, -6.19799209654469e-05, -3.30906543649738e-05, 1.10814561797306e-05, 7.24805531343648e-05, 0.000152598071257586, 0.000253698805736882, 0.000377317468335945, 0.000525701202486072, 0.000700518195310734, 0.000903997339458505, 0.00113739692160716, 0.00140312152077752, 0.00170195103075679, 0.00203566452362004, 0.00240546060485815, 0.00281231733030840, 0.00325638090562598, 0.00373853563596467, 0.00425842477132322, 0.00481595944431221, 0.00541027647136111, 0.00604061130952030, 0.00670524975565512, 0.00740308239924367, 0.00813154544121787, 0.00888873230285860, 0.00967096533068780, 0.0104756034830591, 0.0112971993347504, 0.0121352733530491, 0.0129849453923593, 0.0138385519287171, 0.0146955841292333, 0.0155486053454725, 0.0163942550438339, 0.0172263771763229, 0.0180408483356263, 0.0188316697226914, 0.0195946307655523, 0.0203241247156848, 0.0210158009852968, 0.0216645459211678, 0.0222667388005664, 0.0228165591799628, 0.0233122609941272, 0.0237489436996918, 0.0241240737240030, 0.0244343475043236, 0.0246784705527375, 0.0248538046118870, 0.0249598963537244, 0.0249951385161779, 0.0249598963537244, 0.0248538046118870, 0.0246784705527375, 0.0244343475043236, 0.0241240737240030, 0.0237489436996918, 0.0233122609941272, 0.0228165591799628, 0.0222667388005664, 0.0216645459211678, 0.0210158009852968, 0.0203241247156848, 0.0195946307655523, 0.0188316697226914, 0.0180408483356263, 0.0172263771763229, 0.0163942550438339, 0.0155486053454725, 0.0146955841292333, 0.0138385519287171, 0.0129849453923593, 0.0121352733530491, 0.0112971993347504, 0.0104756034830591, 0.00967096533068780, 0.00888873230285860, 0.00813154544121787, 0.00740308239924367, 0.00670524975565512, 0.00604061130952030, 0.00541027647136111, 0.00481595944431221, 0.00425842477132322, 0.00373853563596467, 0.00325638090562598, 0.00281231733030840, 0.00240546060485815, 0.00203566452362004, 0.00170195103075679, 0.00140312152077752, 0.00113739692160716, 0.000903997339458505, 0.000700518195310734, 0.000525701202486072, 0.000377317468335945, 0.000253698805736882, 0.000152598071257586, 7.24805531343648e-05, 1.10814561797306e-05, -3.30906543649738e-05, -6.19799209654469e-05, -7.69406717604047e-05, -0.000971251596459908};
 
-int16_t azHistory[HISTORY_SIZE];
-uint8_t azHistoryIndex = 0;
-uint8_t azCurHistoryIndex = 0;
-int16_t filteredAZ = 0;
-int16_t finalAZ = 0;
     
-int16_t axHistory[HISTORY_SIZE];
-uint8_t axHistoryIndex = 0;
-uint8_t axCurHistoryIndex = 0;
-int16_t filteredAX = 0;
-int16_t finalAX = 0;
-int16_t finalAY = 0;
+int16_t accel_history[3][HISTORY_SIZE];
+uint8_t accel_historyIndex[3];
+uint8_t accel_curHistoryIndex[3];
+int16_t filtered_a[3];
+float final_a[3];
     
 uint8_t doAccelProcess = 0;
 uint8_t doGyroProcess = 0;
@@ -167,7 +161,7 @@ float lowpass(int16_t *history, uint8_t lowpassIndex, float *fir, int firSize) {
 
 void Processing_TIM_Init() {
     TIM7->PSC = 63;
-    TIM7->ARR = 10000;
+    TIM7->ARR = 1000000;
     TIM7->DIER |= 1;
     NVIC_SetPriority(TIM7_IRQn, 0xFF);
     NVIC_EnableIRQ(TIM7_IRQn);
@@ -176,31 +170,33 @@ void Processing_TIM_Init() {
 }
 
 void getFinalData() {
+    uint8_t i = 0;
     if (lowpassOn) {
-        finalAX = filteredAX;
-        finalAZ = filteredAZ;
+        for (i = 0; i < 3; i++) {
+            final_a[i] = filtered_a[i];
+        }
     } else {
-        finalAX = ax;
-        finalAZ = az;
+        for (i = 0; i < 3; i++) {
+            final_a[i] = a[i];
+        }
     }
-    finalAY = ay;
 }
 
 
 float roll = 0;
 float pitch = 0;
 
-void calcAngle() {
-    float gx = finalAX;
-    float gy = finalAY;
-    float gz = finalAZ;
-    
-    roll    = atanf(gy / gz);
-    pitch   = atanf(- gx / sqrt(gy*gy + gz*gz));
-    
-    roll    *= 180.0 / 3.14159;
-    pitch   *= 180.0 / 3.14159;
-}
+//void calcAngle() {
+//    float gx = finalAX;
+//    float gy = finalAY;
+//    float gz = finalAZ;
+//    
+//    roll    = atanf(gy / gz);
+//    pitch   = atanf(- gx / sqrt(gy*gy + gz*gz));
+//    
+//    roll    *= 180.0 / 3.14159;
+//    pitch   *= 180.0 / 3.14159;
+//}
 
 #define dt 0.01
 #define Sa 100.0
@@ -250,70 +246,82 @@ void kalman2(const float *A, const float *Q, const float *R, float *x, const flo
     mat_mul(tmp1, P_apriori, P, 2, 2, 2);
 }
 
+float invS[9] = {1.0098, 0.02385, 0.00744, -0.00619, 1.00095, 0.03252, -0.00405, -0.02073, 1.00135};
+float offset[3] = {25.7667, 7.58333, 83.66666};
+float tmp[3];
 
 void TIM7_IRQHandler(void) {
     TIM7->SR &= ~TIM_SR_UIF;
     
     getFinalData();
-    calcAngleRate(); 
-    calcAngle();
-       
-    Zroll[0] = roll;
-    Zroll[1] = eulerAngleRate[0];
-    Zpitch[0] = pitch;
-    Zpitch[1] = eulerAngleRate[1];
+//    calcAngleRate(); 
+//    calcAngle();
+//       
+//    Zroll[0] = roll;
+//    Zroll[1] = eulerAngleRate[0];
+//    Zpitch[0] = pitch;
+//    Zpitch[1] = eulerAngleRate[1];
+//    
+//    kalman2(A, Qroll, Rroll, Xroll, Zroll, Proll);
+//    kalman2(A, Qpitch, Rpitch, Xpitch, Zpitch, Ppitch);
+//    
+//    angle[0] = Xroll[0];
+//    angle[1] = Xpitch[0];
+//  
+//    researchIndex++;
+//    switch (research) {
+//        case IMPULSE_RESPONSE:
+//            if (researchIndex == 1) {
+//                F = 1.0;
+//                Motors_CalcPwm();
+//                Motors_Run();
+//            } else if (researchIndex == 50) {
+//                F = 0;
+//                Motors_CalcPwm();
+//                Motors_Stop();
+//                research = NO_RESEARCH;
+//            }
+//            break;
+//        case STEP_RESPONSE:
+//            if (researchIndex == 1) {
+//                F = 1.0;
+//                Motors_CalcPwm();
+//                Motors_Run();
+//            }
+//            break;
+//        case SINE_RESPONSE:
+//            F = researchAmplitude * sin(researchFrequency * researchIndex);
+//            Motors_CalcPwm();
+//            Motors_Run();
+//            break;
+//        case EXP_RESPONSE:
+//            F = researchAmplitude * exp(-researchFrequency * researchIndex);
+//            Motors_CalcPwm();
+//            Motors_Run();
+//            break;
+//        case PID_CONTROL:
+//            pid_control();
+//            break;
+//        default:
+//            researchIndex--;
+//            break;
+//    }
+//    
+//    message.angle = Xroll[0];
+//    message.angleRate = Xroll[1];
+//    message.pwm1 = pwm1;
+//    message.pwm2 = pwm2;
+//    message.freq1 = COUNT1;
+//    message.freq2 = COUNT2;
+
+//    mat_sub(final_a, offset, tmp, 3, 1);
+//    mat_mul(invS, tmp, final_a, 3, 1, 3);
     
-    kalman2(A, Qroll, Rroll, Xroll, Zroll, Proll);
-    kalman2(A, Qpitch, Rpitch, Xpitch, Zpitch, Ppitch);
-    
-    angle[0] = Xroll[0];
-    angle[1] = Xpitch[0];
-  
-    researchIndex++;
-    switch (research) {
-        case IMPULSE_RESPONSE:
-            if (researchIndex == 1) {
-                F = 1.0;
-                Motors_CalcPwm();
-                Motors_Run();
-            } else if (researchIndex == 50) {
-                F = 0;
-                Motors_CalcPwm();
-                Motors_Stop();
-                research = NO_RESEARCH;
-            }
-            break;
-        case STEP_RESPONSE:
-            if (researchIndex == 1) {
-                F = 1.0;
-                Motors_CalcPwm();
-                Motors_Run();
-            }
-            break;
-        case SINE_RESPONSE:
-            F = researchAmplitude * sin(researchFrequency * researchIndex);
-            Motors_CalcPwm();
-            Motors_Run();
-            break;
-        case EXP_RESPONSE:
-            F = researchAmplitude * exp(-researchFrequency * researchIndex);
-            Motors_CalcPwm();
-            Motors_Run();
-            break;
-        case PID_CONTROL:
-            pid_control();
-            break;
-        default:
-            researchIndex--;
-            break;
-    }
-    
-    message.angle = Xroll[0];
-    message.angleRate = Xroll[1];
-    message.pwm1 = pwm1;
-    message.pwm2 = pwm2;
-    message.freq1 = COUNT1;
-    message.freq2 = COUNT2;
+    message.ars1_x = ars_filteredData[0][0];
+    message.ars1_y = ars_filteredData[0][1];
+    message.ars2_x = ars_filteredData[1][0];
+    message.ars2_y = ars_filteredData[1][1];
+    message.ars3_z = filteredVel;
 
     SendTelemetry(&message); 
 }

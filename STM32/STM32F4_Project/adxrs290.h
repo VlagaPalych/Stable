@@ -10,14 +10,10 @@
 
 #define ADXRS290_NUMBER 2
 #define ADXRS290_DATA_SIZE 3
-#define ADXRS290_FILTER_SIZE 116
-
 
 #define SPI2_ACCEL_USING  ADXRS290_NUMBER
 #define SPI2_NOONE_USING (ADXRS290_NUMBER + 1)
 extern uint8_t SPI2_curUsing;
-
-extern float adxrs290_filterCfs[ADXRS290_FILTER_SIZE];
 
 extern uint8_t ars_spiIndex[ADXRS290_NUMBER];
 extern uint8_t ars_rawData[ADXRS290_NUMBER][ADXRS290_DATA_SIZE*2];
@@ -32,7 +28,7 @@ extern uint32_t ars_calibrNumber[ADXRS290_NUMBER];
 extern float ars_offset[ADXRS290_NUMBER][ADXRS290_DATA_SIZE-1];
 extern float ars_sum[ADXRS290_NUMBER][ADXRS290_DATA_SIZE-1];
 
-extern int16_t ars_history[ADXRS290_NUMBER][ADXRS290_DATA_SIZE-1][HISTORY_SIZE];
+extern float ars_history[ADXRS290_NUMBER][ADXRS290_DATA_SIZE-1][HISTORY_SIZE];
 extern uint16_t ars_historyIndex[ADXRS290_NUMBER];
 extern uint16_t ars_curHistoryIndex[ADXRS290_NUMBER];
 extern uint8_t ars_processIndex[ADXRS290_NUMBER];

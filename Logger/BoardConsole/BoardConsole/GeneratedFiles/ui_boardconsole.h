@@ -110,18 +110,18 @@ public:
     QGroupBox *groupBox_4;
     QHBoxLayout *horizontalLayout_12;
     QwtPlot *plot1;
-    QGroupBox *groupBox_6;
-    QHBoxLayout *horizontalLayout_13;
-    QwtPlot *plot3;
     QGroupBox *groupBox_7;
     QHBoxLayout *horizontalLayout_14;
     QwtPlot *plot2;
+    QGroupBox *groupBox_6;
+    QHBoxLayout *horizontalLayout_13;
+    QwtPlot *plot3;
 
     void setupUi(QWidget *BoardConsoleClass)
     {
         if (BoardConsoleClass->objectName().isEmpty())
             BoardConsoleClass->setObjectName(QStringLiteral("BoardConsoleClass"));
-        BoardConsoleClass->resize(650, 827);
+        BoardConsoleClass->resize(839, 1227);
         horizontalLayout_6 = new QHBoxLayout(BoardConsoleClass);
         horizontalLayout_6->setSpacing(6);
         horizontalLayout_6->setContentsMargins(11, 11, 11, 11);
@@ -650,24 +650,6 @@ public:
 
         verticalLayout_10->addWidget(groupBox_4);
 
-        groupBox_6 = new QGroupBox(BoardConsoleClass);
-        groupBox_6->setObjectName(QStringLiteral("groupBox_6"));
-        sizePolicy1.setHeightForWidth(groupBox_6->sizePolicy().hasHeightForWidth());
-        groupBox_6->setSizePolicy(sizePolicy1);
-        horizontalLayout_13 = new QHBoxLayout(groupBox_6);
-        horizontalLayout_13->setSpacing(6);
-        horizontalLayout_13->setContentsMargins(11, 11, 11, 11);
-        horizontalLayout_13->setObjectName(QStringLiteral("horizontalLayout_13"));
-        plot3 = new QwtPlot(groupBox_6);
-        plot3->setObjectName(QStringLiteral("plot3"));
-        sizePolicy2.setHeightForWidth(plot3->sizePolicy().hasHeightForWidth());
-        plot3->setSizePolicy(sizePolicy2);
-
-        horizontalLayout_13->addWidget(plot3);
-
-
-        verticalLayout_10->addWidget(groupBox_6);
-
         groupBox_7 = new QGroupBox(BoardConsoleClass);
         groupBox_7->setObjectName(QStringLiteral("groupBox_7"));
         sizePolicy1.setHeightForWidth(groupBox_7->sizePolicy().hasHeightForWidth());
@@ -685,6 +667,24 @@ public:
 
 
         verticalLayout_10->addWidget(groupBox_7);
+
+        groupBox_6 = new QGroupBox(BoardConsoleClass);
+        groupBox_6->setObjectName(QStringLiteral("groupBox_6"));
+        sizePolicy1.setHeightForWidth(groupBox_6->sizePolicy().hasHeightForWidth());
+        groupBox_6->setSizePolicy(sizePolicy1);
+        horizontalLayout_13 = new QHBoxLayout(groupBox_6);
+        horizontalLayout_13->setSpacing(6);
+        horizontalLayout_13->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout_13->setObjectName(QStringLiteral("horizontalLayout_13"));
+        plot3 = new QwtPlot(groupBox_6);
+        plot3->setObjectName(QStringLiteral("plot3"));
+        sizePolicy2.setHeightForWidth(plot3->sizePolicy().hasHeightForWidth());
+        plot3->setSizePolicy(sizePolicy2);
+
+        horizontalLayout_13->addWidget(plot3);
+
+
+        verticalLayout_10->addWidget(groupBox_6);
 
 
         horizontalLayout_6->addLayout(verticalLayout_10);
@@ -745,8 +745,8 @@ public:
         iButton->setText(QApplication::translate("BoardConsoleClass", "I", 0));
         dButton->setText(QApplication::translate("BoardConsoleClass", "D", 0));
         groupBox_4->setTitle(QApplication::translate("BoardConsoleClass", "Plots", 0));
-        groupBox_6->setTitle(QApplication::translate("BoardConsoleClass", "GroupBox", 0));
         groupBox_7->setTitle(QApplication::translate("BoardConsoleClass", "GroupBox", 0));
+        groupBox_6->setTitle(QApplication::translate("BoardConsoleClass", "GroupBox", 0));
     } // retranslateUi
 
 };

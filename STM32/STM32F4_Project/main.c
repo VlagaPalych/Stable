@@ -8,6 +8,8 @@
 #include "adxrs290.h"
 #include "quaternion.h"
 
+#include "filters.h"
+
 /*
 
 Several interrupts and their priorities used in the program.
@@ -70,10 +72,24 @@ void checkCalibrationFinish() {
     }
 }
 
+//void nelder_mead(float (*f)(float *, uint8_t), uint8_t n, float *x_init, float *step, float e, float *x_min);
+
+//float rosenbrock(float *x, uint8_t n) {
+//    return (1 - x[0])*(1 - x[0]) + 10*(x[1] - x[0]*x[0])*(x[1] - x[0]*x[0]);
+//}
+
+//float x_init[2] = {0, 0};
+//float step[2] = {2, 2};
+//float x_min[2];
+
+
+
 int main() {
     uint8_t i = 0, j = 0;
     
     RCC_Init();   
+    
+    //nelder_mead(rosenbrock, 2, x_init, step, 1e-6, x_min);
     
     GPIOB->MODER |= 0 << 8*2;
     GPIOC->MODER |= 1;
@@ -83,7 +99,7 @@ int main() {
     
     Message_Size = sizeof(Message);
     
-    Accel_VDD_Init();
+//    Accel_VDD_Init();
     Accel_NSS_Init();
     Accel_NSS_High();
     
@@ -96,12 +112,13 @@ int main() {
     
     ADXL345_Init();
     Accel_EXTI_Init();
-    ADXL345_Calibr();
+    //ADXL345_Calibr();
 
-    for (i = 0; i < ADXRS290_NUMBER; i++) {
+    for (i = 0; i < 1; i++) {
         ADXRS290_Init(i);
         ADXRS290_EXTI_Init(i);
         //ADXRS290_Calibr(i);
+        arm_fir_decimate_init_f32(&adxrs290_lpf[i], ADXRS290_NUM_TAPS, ADXRS290_DECIMATION, adxrs290_lpf_cf, ars_state[i], ADXRS290_DECIMATION); 
     }
 //    ADXRS290_Init(2);
 //    ADXRS290_EXTI_Init(2);
@@ -109,14 +126,15 @@ int main() {
 //    
     SPI3_Init();
     ADXRS_TIM_Init();
-    ADXRS_Calibr();
-  
-    EXTI->SWIER |= EXTI_SWIER_SWIER13;
+//    ADXRS_Calibr();
+     
+    EXTI->SWIER |= EXTI_SWIER_SWIER15;
 
-    Motors_Init();
+//    Motors_Init();
     USART_Init();
+    Processing_TIM_Init();
 
-    while(ENGRDY != 1) {};   
+//    while(ENGRDY != 1) {};   
 
     while(1) { 
         
@@ -124,57 +142,58 @@ int main() {
             doAdxrsProcess = 0;
             filteredVel = lowpass(adxrsHistory, adxrsCurHistoryIndex, adxrs_b, ADXRS_FILTER_SIZE);
                      
-            if (adxrs_CalibrationOn) {
-                adxrs_Sum += filteredVel;
-            
-                if (adxrs_CalibrIndex == 0) {
-                    adxrs_Sum = 0;
-                }
-                adxrs_CalibrIndex++;
-                
-                if (adxrs_CalibrIndex == adxrs_CalibrNumber) {
-                    adxrs_Offset = adxrs_Sum / adxrs_CalibrNumber;
-                    adxrs_CalibrationOn = 0;
-                    checkCalibrationFinish();
-                }
-            }
-            filteredVel -= adxrs_Offset;
+//            if (adxrs_CalibrationOn) {
+//                adxrs_Sum += filteredVel;
+//            
+//                if (adxrs_CalibrIndex == 0) {
+//                    adxrs_Sum = 0;
+//                }
+//                adxrs_CalibrIndex++;
+//                
+//                if (adxrs_CalibrIndex == adxrs_CalibrNumber) {
+//                    adxrs_Offset = adxrs_Sum / adxrs_CalibrNumber;
+//                    adxrs_CalibrationOn = 0;
+//                    checkCalibrationFinish();
+//                }
+//            }
+//            filteredVel -= adxrs_Offset;
         }
-        // Lowpass filtering of accelerations
-        if (doAccelProcess) {           
-            filteredAX = filterScale * lowpass(axHistory, axCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE);
-            filteredAZ = filterScale * lowpass(azHistory, azCurHistoryIndex, accel_b, ACCEL_FILTER_SIZE); 
-            doAccelProcess = 0;
-
-        } 
-      
-        
-        for (i = 0; i < ADXRS290_NUMBER; i++) {
+//        // Lowpass filtering of accelerations
+//        if (doAccelProcess) { 
+//            for (i = 0; i < 3; i++) {
+//                filtered_a[i] = filterScale * lowpass(accel_history[i], accel_curHistoryIndex[i], accel_b, ACCEL_FILTER_SIZE);
+//            }
+//            doAccelProcess = 0;
+//        } 
+//      
+//        
+        for (i = 0; i < 1; i++) {
             if (ars_doProcess[i]) {
                 ars_doProcess[i] = 0;
                 GPIOA->BSRRL |= 1 << 2;
                 for (j = 0; j < ADXRS290_DATA_SIZE-1; j++) {
-                    ars_filteredData[i][j] = ars_termoData[i][j]; 
-                    //ars_filteredData[i][i] = lowpass(ars_history[0][i], ars_curHistoryIndex[0], adxrs290_filterCfs, ADXRS290_FILTER_SIZE);
+                    //ars_filteredData[i][j] = ars_termoData[i][j]; 
+                    //ars_filteredData[i][j] = lowpass(ars_history[i][j], ars_curHistoryIndex[i], adxrs290_filterCfs, ADXRS290_FILTER_SIZE);
+                    arm_fir_decimate_f32(&adxrs290_lpf[j], &ars_history[i][j][ars_curHistoryIndex[i]-ADXRS290_NUM_TAPS], &ars_filteredData[i][j], ADXRS290_DECIMATION);
                 }
                 
-                if (ars_calibrationOn[i]) {
-                    for (j = 0; j < ADXRS290_DATA_SIZE-1; j++) {
-                        ars_sum[i][j] += ars_filteredData[i][j];
-                    }
-                    ars_calibrIndex[i]++;          
-                    if (ars_calibrIndex[i] == ars_calibrNumber[i]) {
-                        for (j = 0; j < ADXRS290_DATA_SIZE-1; j++) {
-                            ars_offset[i][j] = ars_sum[i][j] / ars_calibrNumber[i];
-                        }
-                        ars_calibrationOn[i] = 0;
-                        checkCalibrationFinish();
-                    }
-                }
-                
-                for (j = 0; j < ADXRS290_DATA_SIZE-1; j++) {
-                    ars_filteredData[i][j] -= ars_offset[i][j];
-                }
+//                if (ars_calibrationOn[i]) {
+//                    for (j = 0; j < ADXRS290_DATA_SIZE-1; j++) {
+//                        ars_sum[i][j] += ars_filteredData[i][j];
+//                    }
+//                    ars_calibrIndex[i]++;          
+//                    if (ars_calibrIndex[i] == ars_calibrNumber[i]) {
+//                        for (j = 0; j < ADXRS290_DATA_SIZE-1; j++) {
+//                            ars_offset[i][j] = ars_sum[i][j] / ars_calibrNumber[i];
+//                        }
+//                        ars_calibrationOn[i] = 0;
+//                        checkCalibrationFinish();
+//                    }
+//                }
+//                
+//                for (j = 0; j < ADXRS290_DATA_SIZE-1; j++) {
+//                    ars_filteredData[i][j] -= ars_offset[i][j];
+//                }
                 GPIOA->BSRRH |= 1 << 2;
             }
         }

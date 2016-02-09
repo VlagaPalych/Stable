@@ -4,12 +4,11 @@
 #include "stdint.h"
 
 typedef struct {
-	float angle;
-	float angleRate;
-	uint16_t pwm1;
-	uint16_t pwm2;
-	uint16_t freq1;
-	uint16_t freq2;
+    float ars1_x;
+    float ars1_y;
+    float ars2_x;
+    float ars2_y;
+    float ars3_z;
 } Message;
 
 extern Message message;
