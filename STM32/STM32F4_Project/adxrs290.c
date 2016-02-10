@@ -177,7 +177,7 @@ void SPI2_IRQHandler() {
                     termoDataCollected = 0;
                     for (i = 0; i < 2; i++) {
                         adxrs290_history[i][adxrs290_history_index] = (ars_termoData[0][i] - ars_termoData[1][i]) / 2;
-                        adxrs290_history[i][adxrs290_history_index] /= 200.0; // translation to graduses
+                        adxrs290_history[i][adxrs290_history_index] /= 200.0f; // translation to graduses
                     }
                     adxrs290_history_index++;          
                         

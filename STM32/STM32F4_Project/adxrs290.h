@@ -38,6 +38,6 @@ void ADXRS290_NSS_Low(uint8_t i);
 void ADXRS290_NSS_High(uint8_t i);
 void ADXRS290_EXTI_Init(uint8_t i);
 void ADXRS290_Init(uint8_t i);
-void ADXRS290_Calibr();
+void ADXRS290_Calibr(void);
 
 #endif

@@ -318,8 +318,8 @@ void TIM7_IRQHandler(void) {
 //    mat_sub(final_a, offset, tmp, 3, 1);
 //    mat_mul(invS, tmp, final_a, 3, 1, 3);
 
-    phi_x += calibrated_ar[0]*0.01;
-    phi_y += calibrated_ar[1]*0.01;
+    phi_x += calibrated_ar[0]*0.01f;
+    phi_y += calibrated_ar[1]*0.01f;
     message.arx = calibrated_ar[0];
     message.ary = calibrated_ar[1];
     message.phi_x = phi_x;

@@ -40,8 +40,14 @@ extern uint8_t freshFreq;
 extern uint8_t curFreq;
 extern float curDT;
 
+#define ACCEL_CALIBR_SAMPLES 3000
+extern uint8_t accel_calibr_on;
+extern uint32_t accel_calibr_index;
+extern uint32_t accel_calibr_number;
+extern float accel_sum[3];
+extern float accel_offset[3];
 extern int16_t a[3];
-extern uint8_t accelCalibrationOn;
+extern float calibrated_a[3];
 
 void Delay(void);
 

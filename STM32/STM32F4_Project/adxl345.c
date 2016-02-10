@@ -18,11 +18,13 @@ uint8_t ACCEL_VDD   = 11;   // PB
 int16_t accelRegisters[6] = {0xB200, 0xB300, 0xB400, 0xB500, 0xB600, 0xB700};
 int16_t accel[6];
 
-uint8_t accelCalibrationOn = 0;
-uint32_t accelCalibrIndex = 0;
-uint32_t accelCalibrNumber = 0;
-float a_sum[3] = {0, 0, 0};
+uint8_t accel_calibr_on = 0;
+uint32_t accel_calibr_index = 0;
+uint32_t accel_calibr_number = 0;
+float accel_sum[3] = {0, 0, 0};
+float accel_offset[3] = {0, 0, 0};
 int16_t a[3];
+float calibrated_a[3];
 
 int16_t a_offset[3] = {0, 0, 0};
 
@@ -152,10 +154,11 @@ void ADXL345_GetAccel(int16_t *x, int16_t *y, int16_t *z) {
 }
 
 void ADXL345_Calibr() {
-    a_sum[0] = 0; a_sum[1] = 0; a_sum[2] = 0;
-    accelCalibrIndex = 0;
-    accelCalibrNumber = 1600;
-    accelCalibrationOn = 1;
+    uint8_t i = 0;
+    for (i = 0; i < 3; i++) { accel_sum[i] = 0; }
+    accel_calibr_index = 0;
+    accel_calibr_number = ACCEL_CALIBR_SAMPLES;
+    accel_calibr_on = 1;
 }
 
 void Accel_EXTI_Init() {   
@@ -248,30 +251,9 @@ void DMA1_Stream3_IRQHandler() {
         ((uint8_t *)(&a[1]))[0] = (uint8_t)(accel[2] & 0xFF);
         ((uint8_t *)(&a[1]))[1] = (uint8_t)(accel[3] & 0xFF);
         ((uint8_t *)(&a[2]))[0] = (uint8_t)(accel[4] & 0xFF);
-        ((uint8_t *)(&a[2]))[1] = (uint8_t)(accel[5] & 0xFF);
-        
-    
-        
-//        if (accelCalibrationOn) {
-//            accel_xSum += ax;
-//            accel_ySum += ay;
-//            accel_zSum += az;  
-//            
-//            accelCalibrIndex++;
-//            
-//            if (accelCalibrIndex == accelCalibrNumber) {
-//                xOffset = (int16_t)(accel_xSum / accelCalibrNumber);
-//                yOffset = (int16_t)(accel_ySum / accelCalibrNumber);
-//                zOffset = (int16_t)(accel_zSum / accelCalibrNumber) - 0xFF;
-//                accelCalibrationOn = 0;
-//                checkCalibrationFinish();
-//            }
-//        }
-//        
-//        ax -= xOffset;
-//        ay -= yOffset;
-//        az -= zOffset;     
-
+        ((uint8_t *)(&a[2]))[1] = (uint8_t)(accel[5] & 0xFF);  
+   
+        // record data for future filtering
         for (i = 0; i < 3; i++) {
             accel_history[i][accel_history_index] = a[i];   
         }

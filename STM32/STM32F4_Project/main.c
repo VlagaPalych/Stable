@@ -73,11 +73,11 @@ void RCC_Init() {
                     RCC_APB1ENR_TIM5EN | RCC_APB1ENR_TIM7EN | RCC_APB1ENR_SPI3EN;
 }
 
-void checkCalibrationFinish() {
-    if ((adxrs_CalibrationOn /*| ars_calibrationOn[0] | ars_calibrationOn[1]*/ | accelCalibrationOn) == 0) {
-        Processing_TIM_Init();
-    }
-}
+//void checkCalibrationFinish() {
+//    if ((adxrs_CalibrationOn /*| ars_calibrationOn[0] | ars_calibrationOn[1]*/ | accelCalibrationOn) == 0) {
+//        Processing_TIM_Init();
+//    }
+//}
 
 //void nelder_mead(float (*f)(float *, uint8_t), uint8_t n, float *x_init, float *step, float e, float *x_min);
 
@@ -173,15 +173,23 @@ int main() {
 //            }
 //            filteredVel -= adxrs_Offset;
         }
-//        // Lowpass filtering of accelerations
+        // Lowpass filtering of accelerations
         if (doAccelProcess) { 
-            //GPIOD->BSRRL |= 1 << 15;
+            doAccelProcess = 0;
             for (i = 0; i < 3; i++) {
-                //filtered_a[i] = filterScale * lowpass(accel_history[i], accel_curHistoryIndex[i], accel_b, ACCEL_FILTER_SIZE);
                 arm_fir_decimate_f32(&accel_lpf[i], accel_history[i] + accel_history_filter_index - ACCEL_FILTER_SIZE, &filtered_a[i], ACCEL_DECIMATION);
             }
-            doAccelProcess = 0;
-            //GPIOD->BSRRH |= 1 << 15;
+            if (accel_calibr_on) {
+                for (i = 0; i < 3; i++) { accel_sum[i] += filtered_a[i]; }
+                accel_calibr_index++;
+                if (accel_calibr_index == accel_calibr_number) {
+                    for (i = 0; i < 3; i++) { accel_offset[i] = accel_sum[i] / accel_calibr_number; }
+                    accel_calibr_on = 0;
+                    //checkCalibrationFinish();
+                }
+            }
+            for (i = 0; i < 3; i++) { calibrated_a[i] = filtered_a[i] - accel_offset[i]; } 
+            calibrated_a[2] += 280;
         } 
       
         

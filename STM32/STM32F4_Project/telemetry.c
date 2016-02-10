@@ -142,7 +142,7 @@ void USART1_IRQHandler() {
                         research = NO_RESEARCH;
                         Motors_Stop();
                         
-                        //ADXL345_Calibr();
+                        ADXL345_Calibr();
                         ADXRS290_Calibr();
                         //Gyro_Calibr();
                         
