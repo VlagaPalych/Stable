@@ -250,11 +250,13 @@ float tmp[3];
 float phi_x = 0;
 float phi_y = 0;
 
+#define QUASISTATIC_THRESHOLD 14.0f
+float detector = 0;
+
 void TIM7_IRQHandler(void) {
     TIM7->SR &= ~TIM_SR_UIF;
     
     getFinalData();
-    GPIOD->ODR ^= 1 << 15;
 //    calcAngleRate(); 
 //    calcAngle();
 //       
@@ -307,16 +309,50 @@ void TIM7_IRQHandler(void) {
 //            researchIndex--;
 //            break;
 //    }
-//    
-//    message.angle = Xroll[0];
-//    message.angleRate = Xroll[1];
-//    message.pwm1 = pwm1;
-//    message.pwm2 = pwm2;
-//    message.freq1 = COUNT1;
-//    message.freq2 = COUNT2;
-
 //    mat_sub(final_a, offset, tmp, 3, 1);
 //    mat_mul(invS, tmp, final_a, 3, 1, 3);
+
+    // calculate ax^2 + ay^2 + az^2
+    accel_modulo_history[accel_modulo_history_index] = sqrt(
+        calibrated_a[0]*calibrated_a[0] +
+        calibrated_a[1]*calibrated_a[1] +
+        calibrated_a[2]*calibrated_a[2]);
+    accel_modulo_history_index++;
+    
+    if (accel_modulo_history_index >= 2*QUASISTATIC_HPF_SIZE) {
+        // transition to beginning of array required
+        memcpy(accel_modulo_history, &accel_modulo_history[QUASISTATIC_HPF_SIZE], QUASISTATIC_HPF_SIZE*sizeof(float)); 
+        accel_modulo_history_index = QUASISTATIC_HPF_SIZE;
+    }
+    if (accel_modulo_history_index >= QUASISTATIC_HPF_SIZE) {
+        // high-pass filter
+        arm_fir_f32(&quasistatic_hpf, 
+                    accel_modulo_history + accel_modulo_history_index - QUASISTATIC_HPF_SIZE,
+                    &accel_modulo_highpassed_history[accel_modulo_highpassed_history_index],
+                    1
+        ); 
+        // rectifier (abs)
+        accel_modulo_highpassed_history[accel_modulo_highpassed_history_index] = fabs(accel_modulo_highpassed_history[accel_modulo_highpassed_history_index]);
+        accel_modulo_highpassed_history_index++;
+        
+        if (accel_modulo_highpassed_history_index >= 2*QUASISTATIC_LPF_SIZE) {
+            // transition to beginning of array required
+            memcpy(accel_modulo_highpassed_history, &accel_modulo_highpassed_history[QUASISTATIC_LPF_SIZE], QUASISTATIC_LPF_SIZE*sizeof(float)); 
+            accel_modulo_highpassed_history_index = QUASISTATIC_LPF_SIZE;
+        }
+        if (accel_modulo_highpassed_history_index >= QUASISTATIC_LPF_SIZE) {
+            // low-pass filter
+            arm_fir_f32(&quasistatic_lpf,
+                        accel_modulo_highpassed_history + accel_modulo_highpassed_history_index - QUASISTATIC_LPF_SIZE,
+                        &detector, 
+                        1
+            );
+            if (detector < QUASISTATIC_THRESHOLD) {
+                // quasistatic moment
+                // angle can be resetted
+            }
+        }
+    }
 
     phi_x += calibrated_ar[0]*0.01f;
     phi_y += calibrated_ar[1]*0.01f;
@@ -324,6 +360,7 @@ void TIM7_IRQHandler(void) {
     message.ary = calibrated_ar[1];
     message.phi_x = phi_x;
     message.phi_y = phi_y;
+    message.detector = detector;
     SendTelemetry(&message); 
 }
 

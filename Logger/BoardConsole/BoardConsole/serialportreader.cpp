@@ -111,8 +111,8 @@ void SerialPortReader::handleReadyRead()
 					<< msg.angleRate << ' '
 					<< msg.pwm1 << ' ' << msg.pwm2
 					<< msg.freq1 << ' ' << msg.freq2 << endl;*/
-				(*logStream) << msg.arx << ' ' << msg.ary << ' ' << msg.phi_x << ' ' << msg.phi_y << endl;
-				qDebug() << msg.arx << ' ' << msg.ary << ' ' << msg.phi_x << ' ' << msg.phi_y << endl;
+				(*logStream) << msg.arx << ' ' << msg.ary << ' ' << msg.phi_x << ' ' << msg.phi_y << ' ' << msg.detector << endl;
+				qDebug() << msg.arx << ' ' << msg.ary << ' ' << msg.phi_x << ' ' << msg.phi_y << ' ' << msg.detector << endl;
 				if (msg.ary < -1) {
 					qDebug() << "fail";
 				}

@@ -378,15 +378,15 @@ void BoardConsole::handleFreshMessage(Message msg) {
 		plot2_curves[1]->setSamples(pwm2X, pwm2Y);
 	}
 
-	/*if (ui.count1CheckBox->isChecked()) {
+	if (ui.count1CheckBox->isChecked()) {
 		if (count1X.size() == maxSize) {
 			count1X.pop_front();
 			count1Y.pop_front();
 		}
 		count1X.append(time);
-		count1Y.append(msg.az);
+		count1Y.append(msg.detector);
 		plot3_curves[0]->setSamples(count1X, count1Y);
-	}*/
+	}
 	/*if (ui.count2CheckBox->isChecked()) {
 		if (count2X.size() == maxSize) {
 			count2X.pop_front();

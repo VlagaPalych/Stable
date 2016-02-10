@@ -73,11 +73,11 @@ void RCC_Init() {
                     RCC_APB1ENR_TIM5EN | RCC_APB1ENR_TIM7EN | RCC_APB1ENR_SPI3EN;
 }
 
-//void checkCalibrationFinish() {
-//    if ((adxrs_CalibrationOn /*| ars_calibrationOn[0] | ars_calibrationOn[1]*/ | accelCalibrationOn) == 0) {
-//        Processing_TIM_Init();
-//    }
-//}
+void checkCalibrationFinish() {
+    if ((adxrs290_calibr_on | accel_calibr_on) == 0) {
+        Processing_TIM_Init();
+    }
+}
 
 //void nelder_mead(float (*f)(float *, uint8_t), uint8_t n, float *x_init, float *step, float e, float *x_min);
 
@@ -117,6 +117,10 @@ int main() {
     for (i = 0; i < 2; i++) {
         arm_fir_decimate_init_f32(&adxrs290_lpf[i], ADXRS290_FILTER_SIZE, ADXRS290_DECIMATION, accel_lpf_coeffs, adxrs290_lpf_state[i], ADXRS290_DECIMATION);
     }
+    // Quasistatic High-pass
+    arm_fir_init_f32(&quasistatic_hpf, QUASISTATIC_HPF_SIZE, quasistatic_hpf_coeffs, quasistatic_hpf_state, 1);
+    // Quasistatic Low-pass
+    arm_fir_init_f32(&quasistatic_lpf, QUASISTATIC_LPF_SIZE, quasistatic_lpf_coeffs, quasistatic_lpf_state, 1);
     
     Accel_VDD_Init();
     Accel_NSS_Init();
@@ -131,13 +135,13 @@ int main() {
     
     ADXL345_Init();
     Accel_EXTI_Init();
-    //ADXL345_Calibr();
+    ADXL345_Calibr();
 
     for (i = 0; i < 2; i++) {
         ADXRS290_Init(i);
         ADXRS290_EXTI_Init(i);
-        //ADXRS290_Calibr(i);
     }
+    ADXRS290_Calibr();
    
     SPI3_Init();
     ADXRS_TIM_Init();
@@ -147,7 +151,7 @@ int main() {
 
 //    Motors_Init();
     USART_Init();
-    Processing_TIM_Init();
+//    Processing_TIM_Init();
 
 //    while(ENGRDY != 1) {};   
 
@@ -185,7 +189,7 @@ int main() {
                 if (accel_calibr_index == accel_calibr_number) {
                     for (i = 0; i < 3; i++) { accel_offset[i] = accel_sum[i] / accel_calibr_number; }
                     accel_calibr_on = 0;
-                    //checkCalibrationFinish();
+                    checkCalibrationFinish();
                 }
             }
             for (i = 0; i < 3; i++) { calibrated_a[i] = filtered_a[i] - accel_offset[i]; } 
@@ -205,7 +209,7 @@ int main() {
                 if (adxrs290_calibr_index == adxrs290_calibr_number) {
                     for (i = 0; i < 2; i++) { adxrs290_offset[i] = adxrs290_sum[i] / adxrs290_calibr_number; }
                     adxrs290_calibr_on = 0;
-                    //checkCalibrationFinish();
+                    checkCalibrationFinish();
                     phi_x = 0;
                     phi_y = 0;
                 }

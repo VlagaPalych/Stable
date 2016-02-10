@@ -44,4 +44,22 @@ extern uint8_t adxrs290_lowpass_ready;
 extern uint8_t adxrs290_process_index;
 extern uint8_t adxrs290_do_process;
 
+
+#define QUASISTATIC_HPF_SIZE 101
+
+extern arm_fir_instance_f32 quasistatic_hpf;
+extern float quasistatic_hpf_state[QUASISTATIC_HPF_SIZE];
+extern float quasistatic_hpf_coeffs[QUASISTATIC_HPF_SIZE];
+extern float accel_modulo_history[2*QUASISTATIC_HPF_SIZE];
+extern uint8_t accel_modulo_history_index;
+
+
+#define QUASISTATIC_LPF_SIZE 120
+
+extern arm_fir_instance_f32 quasistatic_lpf;
+extern float quasistatic_lpf_state[QUASISTATIC_LPF_SIZE];
+extern float quasistatic_lpf_coeffs[QUASISTATIC_LPF_SIZE];
+extern float accel_modulo_highpassed_history[2*QUASISTATIC_LPF_SIZE];
+extern uint8_t accel_modulo_highpassed_history_index;
+
 #endif

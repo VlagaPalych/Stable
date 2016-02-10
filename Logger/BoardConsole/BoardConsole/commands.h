@@ -71,6 +71,7 @@ typedef struct {
 	float ary;
 	float phi_x;
 	float phi_y;
+	float detector;
 } Message;
 
 extern uint8_t Message_Size;
