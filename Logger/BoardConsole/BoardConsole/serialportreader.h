@@ -49,6 +49,7 @@
 #include <QByteArray>
 #include <QObject>
 #include <QFile>
+#include "commands.h"
 
 QT_USE_NAMESPACE
 
@@ -83,6 +84,7 @@ private:
 
 Q_SIGNALS:
 	void freshLine(QString &);
+	void freshMessage(Message);
 };
 
 #endif

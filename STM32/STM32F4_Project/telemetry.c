@@ -4,19 +4,54 @@
 
 #include "telemetry.h"
 #include "adxl345.h"
+#include "gyro.h"
 #include "motors.h"
 #include "processing.h"
+#include "commands.h"
+#include "adxrs453.h"
+#include "adxrs290.h"
 
-uint8_t UART2_TX = 2;    // PA2
-uint8_t UART2_RX = 3;    // PA3
+uint8_t UART1_TX = 9;    // PA
+uint8_t UART1_RX = 10;    // PA
 
 typedef enum { WAITING_FOR_COMMAND, WAITING_FOR_INT, WAITING_FOR_FLOAT } waiting;
 
-typedef enum { WAITING_FOR_PWM1, WAITING_FOR_PWM2, INT_NONE } waitingForInt;
+typedef enum { WAITING_FOR_PWM1, WAITING_FOR_PWM2, WAITING_FOR_MIN_PWM, WAITING_FOR_MAX_PWM, 
+                WAITING_FOR_TRANQUILITY_TIME, WAITING_FOR_PWM_STEP, WAITING_FOR_EVERY_N, INT_NONE } waitingForInt;
 
-typedef enum { WAITING_FOR_K1, WAITING_FOR_K2, FLOAT_NONE } waitingForFloat;
+typedef enum { WAITING_FOR_KP, WAITING_FOR_KD, WAITING_FOR_KI, WAITING_FOR_RESEARCH_AMPL, WAITING_FOR_RESEARCH_FREQ, 
+WAITING_FOR_MAX_ANGLE, WAITING_FOR_ACCEL_DEVIATION, WAITING_FOR_BOUNDARY_ANGLE, WAITING_FOR_MAX_ANGVEL, FLOAT_NONE } waitingForFloat;
 
-typedef enum { FULL, MOVE_DESCRIPTION, AX, AY, AZ} telemetryMode;
+
+Message message;
+
+uint8_t Message_Size = 0;
+#define MESSAGE_HEADER  0x21
+
+void Message_ToByteArray(Message *message, uint8_t *a) {
+    uint8_t i = 0, crc = 0;
+    memcpy(a+1, (uint8_t *)message, Message_Size);
+    a[0] = MESSAGE_HEADER;
+    crc = a[0];
+    for (i = 1; i < Message_Size+1; i++) {
+        crc ^= a[i];
+    }
+    a[Message_Size+1] = crc;
+}
+
+uint8_t Message_FromByteArray(uint8_t *a, uint8_t n, Message *message) {
+    uint8_t i = 0, crc = 0;
+    
+    crc = a[0];
+    for (i = 1; i < Message_Size+1; i++) {
+        crc ^= a[i];
+    }
+    if ((a[0] == MESSAGE_HEADER) && (a[Message_Size+1] == crc)) {
+        memcpy((uint8_t *)message, a+1, Message_Size);
+        return 1;
+    } 
+    return 0;
+}
 
 uint8_t received;
 char str[100];
@@ -28,52 +63,48 @@ int intValue;
 
 // reading float variables
 int k;
-double my_pow;
-double d_st;
-double floatValue;
+float my_pow;
+float d_st;
+float floatValue;
 
 waiting                 curWaiting          = WAITING_FOR_COMMAND;
 waitingForInt           curWaitingForInt    = INT_NONE;
 waitingForFloat         curWaitingForFloat  = FLOAT_NONE;
 
 uint8_t telemetryOn = 0;
-telemetryMode curTelemetryMode = FULL;
 
-uint8_t curFreq = HZ100;
-uint8_t freshFreq = 0;
+uint8_t recalibrate = 0;
+uint8_t turnUselessOn = 0;
+uint8_t gyroRecalibrationOn = 0;
 
 
-uint8_t displayAngle            = 1;
-uint8_t displayAngularVelocity  = 1;
-uint8_t displayF                = 1;
-uint8_t displayPwm              = 1;
+uint8_t tele[100];
+uint8_t len = 0, j;
 
 void USART_Init(void) {
-    GPIOA->MODER    |= (2 << UART2_TX*2) | (2 << UART2_RX*2);
-    GPIOA->OTYPER   &= ~((1 << UART2_TX) | (1 << UART2_RX));
-    GPIOA->OSPEEDR  |= (3 << UART2_TX*2) | (3 << UART2_RX*2);
-    GPIOA->PUPDR    |= (1 << UART2_TX*2) | (1 << UART2_RX*2);
-    GPIOA->AFR[0]   |= (7 << UART2_TX*4) | (7 << UART2_RX*4);
+    GPIOA->MODER    |= (2 << UART1_TX*2) | (2 << UART1_RX*2);
+    GPIOA->OTYPER   &= ~((1 << UART1_TX) | (1 << UART1_RX));
+    GPIOA->OSPEEDR  |= (3 << UART1_TX*2) | (3 << UART1_RX*2);
+    GPIOA->PUPDR    |= (1 << UART1_TX*2) | (1 << UART1_RX*2);
+    GPIOA->AFR[1]   |= (7 << (UART1_TX-8)*4) | (7 << (UART1_RX-8)*4);
 
-    USART2->BRR     = 0x341; 
-    USART2->CR1     |= USART_CR1_UE | USART_CR1_RE | USART_CR1_TE | USART_CR1_RXNEIE; 
-    NVIC_SetPriority(USART2_IRQn, 0x02);
-    NVIC_EnableIRQ(USART2_IRQn);
-}
-
-void Telemetry_TIM_Init() {
-    TIM7->PSC = 7;
-    TIM7->ARR = 5000;
-    TIM7->DIER |= 1;
-    NVIC_SetPriority(TIM7_IRQn, 0xFF);
-    NVIC_EnableIRQ(TIM7_IRQn);
+    USART1->BRR     = 0x22c; //0x45;//0x341; 
+    USART1->CR3     |= USART_CR3_DMAT;
+    //USART1->CR2     |= USART_CR2_STOP_1;
+    USART1->CR1     |= USART_CR1_UE /*| USART_CR1_M | USART_CR1_PCE*/ | USART_CR1_RE | USART_CR1_TE | USART_CR1_RXNEIE; 
+    NVIC_SetPriority(USART1_IRQn, 0x02);
+    NVIC_EnableIRQ(USART1_IRQn);
     
-    TIM7->CR1 |= TIM_CR1_CEN;
-}
 
-void TIM7_IRQHandler(void) {
-    TIM7->SR &= ~TIM_SR_UIF;
-    SendTelemetry();
+//    sprintf(tele, "123456789");while (1) {
+//        
+//        len = strlen(tele);
+////        for (j = 0; j < len; j++) {
+////            send_to_uart(tele[j]);
+////        }
+//        Telemetry_DMA_Init();
+//    }
+    
 }
 
 void initWaitingForInt() {
@@ -91,88 +122,212 @@ void initWaitingForFloat() {
     floatValue = 0;
 }
 
-
-void USART2_IRQHandler() {
-    if (USART2->SR & USART_SR_RXNE) {
-        USART2->SR &= ~USART_SR_RXNE;
-        received = USART2->DR;
+int rst = 0;  // reset purposes
+void USART1_IRQHandler() {
+    if (USART1->SR & USART_SR_RXNE) {
+        USART1->SR &= ~USART_SR_RXNE;
+        received = USART1->DR;
 
         switch (curWaiting) {
             case WAITING_FOR_COMMAND:
                 switch (received) {
-                    case 'a':
-                        stabilizationOn     = 0;
+                    case TURN_EVERYTHING_OFF:
                         telemetryOn         = 0;
-                        kalmanOn            = 0;
-                        averagingOn         = 0;                                  
+                        research = NO_RESEARCH;
                         break;
-                    case 'e':   
-                        if (stabilizationOn) {
-                            stabilizationOn = 0;
-                            Motors_Stop();
-                        } else {
-                            Motors_InitForStab();
-                            stabilizationOn = 1; 
-                        }
-                        break;
-                    case 'd':
-                        stabilizationOn = 0;
+                    case STOP_MOTORS:   
                         Motors_Stop();
-                        ADXL345_Calibr();
                         break;
-                    case 'h':
+                    case CALIBRATION:
+                        research = NO_RESEARCH;
+                        Motors_Stop();
+                        
+                        ADXL345_Calibr();
+                        ADXRS_Calibr();
+                        //Gyro_Calibr();
+                        
+                        break;
+                    case LOWPASS:
+                        lowpassOn ^= 1;
+                        break;
+                    case TELEMETRY:
                         telemetryOn ^= 1;
                         break;
-                    case 'i':
-                        curTelemetryMode = FULL;
-                        break;
-                    case 'k':
-                        curTelemetryMode = MOVE_DESCRIPTION;
-                        break;
-                    case 'l':
-                        curTelemetryMode = AX;
-                        break;
-                    case 'q':
-                        curTelemetryMode = AY;
-                        break;
-                    case 'r':
-                        curTelemetryMode = AZ;
-                        break;
-                    case 'm':
+                    
+                    case PWM1:
                         initWaitingForInt();
                         curWaitingForInt = WAITING_FOR_PWM1;
                         break;
-                    case 'n':
+                    case PWM2:
                         initWaitingForInt();
                         curWaitingForInt = WAITING_FOR_PWM2;
                         break;
-                    case 'o':
+                    
+                    case MIN_PWM:
+                        initWaitingForInt();
+                        curWaitingForInt = WAITING_FOR_MIN_PWM;
+                        break;
+                    case MAX_PWM:
+                        initWaitingForInt();
+                        curWaitingForInt = WAITING_FOR_MAX_PWM;
+                        break;
+                    
+                    case KP:
                         initWaitingForFloat();
-                        curWaitingForFloat = WAITING_FOR_K1;
+                        curWaitingForFloat = WAITING_FOR_KP;
                         break;
-                    case 'p':
+                    case KI:
                         initWaitingForFloat();
-                        curWaitingForFloat = WAITING_FOR_K2;
+                        curWaitingForFloat = WAITING_FOR_KI;
                         break;
-                    case 's':
-                        kalmanOn ^= 1;
+                    case KD:
+                        initWaitingForFloat();
+                        curWaitingForFloat = WAITING_FOR_KD;
                         break;
-                    case 't':
-                        averagingOn ^= 1;
+                    
+                    case TURN_USELESS:
+                        turnUselessOn ^= 1;
                         break;
-                    case 'A':
+                    case GYRO_RECALIBRATION:
+                        gyroRecalibrationOn ^= 1;
+                        break;
+                    case TRANQUILITY_TIME:
+                        initWaitingForInt();
+                        curWaitingForInt = WAITING_FOR_TRANQUILITY_TIME;
+                        break;
+                    case PWM_STEP:
+                        initWaitingForInt();
+                        curWaitingForInt = WAITING_FOR_PWM_STEP;
+                        break;
+                    case EVERY_N:
+                        initWaitingForInt();
+                        curWaitingForInt = WAITING_FOR_EVERY_N;
+                        break;
+                        
+                    case ACCEL_FREQ_HZ25:
+                        freshFreq = 1;
+                        curFreq = HZ25;
+                        curDT = 0.04;
+                        break;
+                    case ACCEL_FREQ_HZ50:
+                        freshFreq = 1;
+                        curFreq = HZ50;
+                        curDT = 0.02;
+                        break;    
+                    case ACCEL_FREQ_HZ100:
                         freshFreq = 1;
                         curFreq = HZ100;
+                        curDT = 0.01;
                         break;
-                    case 'B':
+                    case ACCEL_FREQ_HZ800:
                         freshFreq = 1;
                         curFreq = HZ800;
+                        curDT = 0.00125;
+                        break;
+                    case ACCEL_FREQ_HZ1600:
+                        freshFreq = 1;
+                        curFreq = HZ1600;
+                        curDT = 0.000625;
+                        break;
+                    case ACCEL_FREQ_HZ3200:
+                        freshFreq = 1;
+                        curFreq = HZ3200;
+                        curDT = 0.0003125;
+                        break;
+                    
+                    
+                   /* case GYRO_FREQ_HZ100:
+                        gyroFreshFreq = 1;
+                        gyroCurFreq = GYRO_HZ100;
+                        gyroCurDT = 0.01;
+                        break;
+                    case GYRO_FREQ_HZ250:
+                        gyroFreshFreq = 1;
+                        gyroCurFreq = GYRO_HZ250;
+                        gyroCurDT = 0.004;
+                        break;
+                    case GYRO_FREQ_HZ500:
+                        gyroFreshFreq = 1;
+                        gyroCurFreq = GYRO_HZ500;
+                        gyroCurDT = 0.002;
+                        break;
+                    case GYRO_FREQ_HZ1000:
+                        gyroFreshFreq = 1;
+                        gyroCurFreq = GYRO_HZ1000;
+                        gyroCurDT = 0.001;
+                        break;*/
+                    
+                    case MAX_ANGLE:
+                        curWaitingForFloat = WAITING_FOR_MAX_ANGLE;
+                        initWaitingForFloat();
+                        break;
+                    case ACCEL_DEVIATION:
+                        curWaitingForFloat = WAITING_FOR_ACCEL_DEVIATION;
+                        initWaitingForFloat();
+                        break;
+                    case BOUNDARY_ANGLE:
+                        curWaitingForFloat = WAITING_FOR_BOUNDARY_ANGLE;
+                        initWaitingForFloat();
+                        break;
+                    case MAX_ANGVEL:
+                        curWaitingForFloat = WAITING_FOR_MAX_ANGVEL;
+                        initWaitingForFloat();
+                        break;
+                    
+                    case IMPULSE:
+                        research = IMPULSE_RESPONSE;
+                        researchIndex = 0;
+                        break;
+                    case STEP:
+                        research = STEP_RESPONSE;
+                        researchIndex = 0;
+                        break;
+                    case SINE:
+                        curWaiting = WAITING_FOR_FLOAT;
+                        curWaitingForFloat = WAITING_FOR_RESEARCH_AMPL;
+                        initWaitingForFloat();
+                        research = SINE_RESPONSE;
+                        break;
+                    case EXP:
+                        curWaiting = WAITING_FOR_FLOAT;
+                        curWaitingForFloat = WAITING_FOR_RESEARCH_AMPL;
+                        initWaitingForFloat();
+                        research = EXP_RESPONSE;
+                        break;
+                    case NO_RESEARCH_SYMBOL:
+                        research = NO_RESEARCH;
+                        Motors_Stop();
+                        researchIndex = 0;
+                        break;
+                    case SIMPLE:
+                        research = SIMPLE_CONTROL;
+                        Kp = (maxPwm - minPwm) / maxAngle;
+                        break;
+                    case PID:
+                        research = PID_CONTROL;
+                        break;
+                    case OPERATOR:
+                        research = OPERATOR_CONTROL;
+                        break;
+                    case ADJUST:
+                        research = ADJUST_CONTROL;
+                        pwm1 = minPwm;
+                        pwm2 = minPwm;
+                        break;
+                    
+                    case PROGRAMMING_MODE:
+                        GPIOB->MODER |= 1 << 8*2;
+                        GPIOB->BSRRL |= 1 << 8;
+                        for (rst = 0; rst < 100000; rst++) {
+                            __nop();
+                        }
+                        SCB->AIRCR = (0x5fa << 16) | (1 << 2);
                         break;
                 }
                 break;
             case WAITING_FOR_INT:
                 switch (received) {
-                    case 'b':   
+                    case NUMBER_END:   
                         curWaiting = WAITING_FOR_COMMAND;
                         while (i >= 0) {
                             intValue += (str[i--] - '0') * st;
@@ -180,14 +335,32 @@ void USART2_IRQHandler() {
                         }         
                         switch (curWaitingForInt) {
                             case WAITING_FOR_PWM1:
-                                minPwm = intValue;
-//                                pwm1 = intValue;
-//                                TIM4->CCR1 = pwm1;
+                                if (research == OPERATOR_CONTROL) {
+                                    pwm1 = intValue;
+                                    TIM4->CCR1 = pwm1;
+                                }
                                 break;
                             case WAITING_FOR_PWM2:
-                                pwm2 = intValue;
-                                TIM4->CCR3 	= pwm2;
+                                if (research == OPERATOR_CONTROL) {
+                                    pwm2 = intValue;
+                                    TIM4->CCR3 	= pwm2;
+                                }
                                 break;
+                            case WAITING_FOR_MIN_PWM:
+                                minPwm = intValue;
+                                break;
+                            case WAITING_FOR_MAX_PWM:
+                                maxPwm = intValue;
+                                break;
+//                            case WAITING_FOR_TRANQUILITY_TIME:
+//                                tranquilityTime = intValue / 10;
+//                                break;
+//                            case WAITING_FOR_PWM_STEP:
+//                                pwmStep = intValue;
+//                                break;
+//                            case WAITING_FOR_EVERY_N:
+//                                everyN = intValue;
+//                                break;
                             default:
                                 break;
                         }
@@ -207,11 +380,37 @@ void USART2_IRQHandler() {
                             d_st *= my_pow; 
                         }
                         switch (curWaitingForFloat) {
-                            case WAITING_FOR_K1:
-                                k1 = floatValue;
+                            case WAITING_FOR_KP:
+                                Kp = floatValue;
                                 break;
-                            case WAITING_FOR_K2:
-                                k2 = floatValue;
+                            case WAITING_FOR_KD:
+                                Kd = floatValue;
+                                break;
+                            case WAITING_FOR_KI:
+                                Ki = floatValue;
+                                break;
+                            case WAITING_FOR_RESEARCH_AMPL:
+                                researchAmplitude = floatValue;
+                                curWaiting = WAITING_FOR_FLOAT;
+                                curWaitingForFloat = WAITING_FOR_RESEARCH_FREQ;
+                                initWaitingForFloat();
+                                break;
+                            case WAITING_FOR_RESEARCH_FREQ:
+                                researchFrequency = floatValue;
+                                researchIndex = 0;
+                                break;
+                            case WAITING_FOR_MAX_ANGLE:
+                                maxAngle = floatValue;
+                                break;
+                            case WAITING_FOR_ACCEL_DEVIATION:
+                                accelDeviation = floatValue;
+                                break;
+//                            case WAITING_FOR_BOUNDARY_ANGLE:
+//                                boundaryAngle = floatValue;
+//                                break;
+                            case WAITING_FOR_MAX_ANGVEL:
+                                maxAngVel = floatValue;
+                                Kd = (maxPwm - minPwm) / maxAngVel;
                                 break;
                             default:
                                 break;
@@ -235,57 +434,41 @@ void USART2_IRQHandler() {
 }
 
 void send_to_uart(uint8_t data) {
-    while(!(USART2->SR & USART_SR_TC)); 
-    USART2->DR = data; 
+    while((USART1->SR & USART_SR_TC)==0); 
+    USART1->DR = data; 
 }
 
-void SendTelemetry() {
-    char tele[100] = "";
-//    char angleStr[5];
-//    char angulVelStr[5];
-//    char fStr[5];
-//    char pwmStr[10];
-    uint8_t len = 0, j;
-    
+uint8_t USART_DMA_transferComleted = 1;
+void SendTelemetry(Message *msg) {
     if (telemetryOn) {
-        switch (curTelemetryMode) {
-            case FULL:
-                sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %.2f %.2f\n", angle, angularVelocity, F, ax, ay, az, pwm1, pwm2, k1, k2);
-                break;
-            case MOVE_DESCRIPTION:
-//                if (displayAngle) {
-//                    sprintf(angleStr, "%.2f ", angle);
-//                    strcat(tele, angleStr);
-//                }
-//                if (displayAngularVelocity) {
-//                    sprintf(angulVelStr, "%.2f ", angularVelocity);
-//                    strcat(tele, angulVelStr);
-//                }
-//                if (displayF) {
-//                    sprintf(fStr, "%.2f ", F);
-//                    strcat(tele, fStr);
-//                } 
-//                if (displayPwm) {
-//                    sprintf(pwmStr, "%d %d", pwm1, pwm2);
-//                    strcat(tele, pwmStr);
-//                }
-//                strcat(tele, "\n");
-                sprintf(tele, "%.2f %.2f %.2f %d %d\n", angle, angularVelocity, F, pwm1, pwm2);
-                break;
-            case AX:
-                sprintf(tele, "%hd %.2f\n", ax, Ax);
-                break;
-            case AY:
-                sprintf(tele, "%hd %.2f\n", ay, Ay);
-                break;
-            case AZ:
-                sprintf(tele, "%hd %.2f\n", az, Az);
-                break;
+        if (USART_DMA_transferComleted) {
+            Message_ToByteArray(msg, tele);
+            len = Message_Size+2;
+
+            Telemetry_DMA_Init();
         }
-        len = strlen(tele);
+    }
+    
+}
+
+
+void Telemetry_DMA_Init() {
+    //if (USART_DMA_transferComleted) {
+        USART_DMA_transferComleted = 0;
+        NVIC_EnableIRQ(DMA2_Stream7_IRQn);
         
-        for (j = 0; j < len; j++) {
-            send_to_uart(tele[j]);
-        }
+        DMA2_Stream7->CR    = 0;
+        DMA2_Stream7->PAR   = (uint32_t)&(USART1->DR);
+        DMA2_Stream7->M0AR  = (uint32_t)tele;     
+        DMA2_Stream7->NDTR  = len;
+        DMA2_Stream7->CR    |= DMA_SxCR_CHSEL_2 | DMA_SxCR_MINC /*| DMA_SxCR_PSIZE_0 | DMA_SxCR_MSIZE_0 */| 
+                                    DMA_SxCR_TCIE | DMA_SxCR_DIR_0  | DMA_SxCR_PL | DMA_SxCR_EN;
+    //}
+}
+
+void DMA2_Stream7_IRQHandler() {
+    if (DMA2->HISR & DMA_HISR_TCIF7) {
+        DMA2->HIFCR = DMA_HIFCR_CTCIF7;
+        USART_DMA_transferComleted = 1;
     }
 }

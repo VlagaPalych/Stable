@@ -4,4 +4,4 @@ STM32/STM32F4_Project/Objects/
 Logger/BoardConsole/Win32/
 Logger/build*/
 
-Logger/BoardConsole/BoardConsole/log*.txt
+Logger/BoardConsole/BoardConsole/*.txt

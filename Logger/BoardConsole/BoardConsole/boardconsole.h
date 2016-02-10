@@ -24,6 +24,7 @@ private:
 
 	QVector<QwtPlotCurve *> plot1_curves;
 	QVector<QwtPlotCurve *> plot2_curves;
+	QVector<QwtPlotCurve *> plot3_curves;
 
 	QVector<double> angleX;
 	QVector<double> angleY;
@@ -40,6 +41,12 @@ private:
 	QVector<double> pwm2X;
 	QVector<double> pwm2Y;
 
+	QVector<double> count1X;
+	QVector<double> count1Y;
+
+	QVector<double> count2X;
+	QVector<double> count2Y;
+
 	QString defineLogFile();
 
 	bool firstMeasurement;
@@ -47,30 +54,54 @@ private:
 	qint64 startTime;
 
 	void STM_Init();
+	QByteArray command(const char c);
+	QByteArray number_command(const char c, QString number);
+	QByteArray double_number_command(const char c, QString num1, QString num2);
 
 private Q_SLOTS:
+void handleProgramButton();
 	void handleConnectButton();
-	void handleStabToggleButton();
+	void handleStopMotorsButton();
 	void handleCalibrButton();
-	void handleTelemetryButtons();
+	void handleClearTelemetryButton();
 	void handleTelemetryToggleButton();
-	void handleAccelButtons();
+	//void handleAccelButtons();
+	//void handleGyroButtons();
 
 	void handleFreshLine(QString &line);
 
-	void handleNoFilterCheckBox();
-	void handleKalmanFilterCheckBox();
-	void handleAveragingCheckBox();
+	void handleLowpassFilterCheckBox();
 
 	void handleSaveToFileCheckBox();
 
-	void handleK1Button();
-	void handleK2Button();
+	void handlePButton();
+	void handleDButton();
+	void handleIButton();
 
 	void handleTelemetryDisplayButtons();
 
 	void handlePwm1SpinBox(int);
 	void handlePwm2SpinBox(int);
+
+	void handlePwm1Slider(int);
+	void handlePwm2Slider(int);
+
+	void handleResearchButtons();
+
+	//void handleMaxAngleButton();
+	//void handleAccelDeviationButton();
+	//void handleTurnoffAngleButton();
+	//void handleMaxVelButton();
+
+	void handleTurnUselessCheckBox();
+	//void handleGyroRecalibrationCheckBox();
+	//void handleTranquilityButton();
+
+	//void handlePwmStepButton();
+	//void handleEveryNButton();
+	void handleFreshMessage(Message);
+
+
 };
 
 #endif // BOARDCONSOLE_H

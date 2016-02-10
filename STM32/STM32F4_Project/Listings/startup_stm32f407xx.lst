@@ -85,38 +85,38 @@ ARM Macro Assembler    Page 2
    45 00000000         ;   <o> Stack Size (in Bytes) <0x0-0xFFFFFFFF:8>
    46 00000000         ; </h>
    47 00000000         
-   48 00000000 00000400 
+   48 00000000 00000800 
                        Stack_Size
-                               EQU              0x00000400
+                               EQU              0x00000800
    49 00000000         
    50 00000000                 AREA             STACK, NOINIT, READWRITE, ALIGN
 =3
    51 00000000         Stack_Mem
                                SPACE            Stack_Size
-   52 00000400         __initial_sp
-   53 00000400         
-   54 00000400         
-   55 00000400         ; <h> Heap Configuration
-   56 00000400         ;   <o>  Heap Size (in Bytes) <0x0-0xFFFFFFFF:8>
-   57 00000400         ; </h>
-   58 00000400         
-   59 00000400 00000200 
+   52 00000800         __initial_sp
+   53 00000800         
+   54 00000800         
+   55 00000800         ; <h> Heap Configuration
+   56 00000800         ;   <o>  Heap Size (in Bytes) <0x0-0xFFFFFFFF:8>
+   57 00000800         ; </h>
+   58 00000800         
+   59 00000800 00000400 
                        Heap_Size
-                               EQU              0x00000200
-   60 00000400         
-   61 00000400                 AREA             HEAP, NOINIT, READWRITE, ALIGN=
+                               EQU              0x00000400
+   60 00000800         
+   61 00000800                 AREA             HEAP, NOINIT, READWRITE, ALIGN=
 3
    62 00000000         __heap_base
    63 00000000         Heap_Mem
                                SPACE            Heap_Size
-   64 00000200         __heap_limit
-   65 00000200         
-   66 00000200                 PRESERVE8
-   67 00000200                 THUMB
-   68 00000200         
-   69 00000200         
-   70 00000200         ; Vector Table Mapped to Address 0 at Reset
-   71 00000200                 AREA             RESET, DATA, READONLY
+   64 00000400         __heap_limit
+   65 00000400         
+   66 00000400                 PRESERVE8
+   67 00000400                 THUMB
+   68 00000400         
+   69 00000400         
+   70 00000400         ; Vector Table Mapped to Address 0 at Reset
+   71 00000400                 AREA             RESET, DATA, READONLY
    72 00000000                 EXPORT           __Vectors
    73 00000000                 EXPORT           __Vectors_End
    74 00000000                 EXPORT           __Vectors_Size
@@ -877,17 +877,16 @@ ARM Macro Assembler    Page 14
               00000000 
               00000000 
               00000000 
+              00000800 
               00000400 
-              00000200 
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
 erwork --depend=.\objects\startup_stm32f407xx.d -o.\objects\startup_stm32f407xx
 .o -ID:\Vlad\Projects\Stable\STM32\STM32F4_Project\RTE -IC:\Keil_v5\ARM\PACK\AR
 M\CMSIS\4.2.0\CMSIS\Include -IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.3.0\Driv
-ers\CMSIS\Device\ST\STM32F4xx\Include --predefine="__EVAL SETA 1" --predefine="
-__UVISION_VERSION SETA 514" --predefine="_RTE_ SETA 1" --predefine="STM32F407xx
- SETA 1" --list=.\listings\startup_stm32f407xx.lst RTE\Device\STM32F407VGTx\sta
-rtup_stm32f407xx.s
+ers\CMSIS\Device\ST\STM32F4xx\Include --predefine="__UVISION_VERSION SETA 514" 
+--predefine="_RTE_ SETA 1" --predefine="STM32F407xx SETA 1" --list=.\listings\s
+tartup_stm32f407xx.lst RTE\Device\STM32F407VGTx\startup_stm32f407xx.s
 
 
 
@@ -911,7 +910,7 @@ Symbol: Stack_Mem
       At line 429 in file RTE\Device\STM32F407VGTx\startup_stm32f407xx.s
       At line 431 in file RTE\Device\STM32F407VGTx\startup_stm32f407xx.s
 
-__initial_sp 00000400
+__initial_sp 00000800
 
 Symbol: __initial_sp
    Definitions
@@ -951,7 +950,7 @@ Symbol: __heap_base
    Uses
       None
 Comment: __heap_base unused
-__heap_limit 00000200
+__heap_limit 00000400
 
 Symbol: __heap_limit
    Definitions
@@ -1933,7 +1932,7 @@ Comment: __user_initial_stackheap used once
 ARM Macro Assembler    Page 1 Alphabetic symbol ordering
 Absolute symbols
 
-Heap_Size 00000200
+Heap_Size 00000400
 
 Symbol: Heap_Size
    Definitions
@@ -1942,7 +1941,7 @@ Symbol: Heap_Size
       At line 63 in file RTE\Device\STM32F407VGTx\startup_stm32f407xx.s
       At line 430 in file RTE\Device\STM32F407VGTx\startup_stm32f407xx.s
 
-Stack_Size 00000400
+Stack_Size 00000800
 
 Symbol: Stack_Size
    Definitions
@@ -1991,4 +1990,4 @@ Symbol: __use_two_region_memory
       None
 Comment: __use_two_region_memory unused
 3 symbols
-449 symbols in table
+448 symbols in table
