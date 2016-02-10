@@ -35,6 +35,8 @@ extern uint8_t stabilizationOn;
 extern float phi_x;
 extern float phi_y;
 
+extern float lpf_rect_hpf_a[3];
+extern uint8_t quasistatic_new_a;
 
 #define HISTORY_SIZE 256
 #define ADXRS_FILTER_SIZE 90
@@ -81,7 +83,9 @@ void Processing_TIM_Init(void);
 float lowpass(int16_t *history, uint8_t lowpassIndex, float *fir, int firSize);
 
 void transformGyroData(void);
-void checkCalibrationFinish(void);                
+void checkCalibrationFinish(void);      
+
+void lpf_rect_hpf(void);                
 
 
 #define MEASUREMENT_TIME 0.01

@@ -156,6 +156,11 @@ int main() {
 //    while(ENGRDY != 1) {};   
 
     while(1) { 
+        if (quasistatic_new_a) {
+            quasistatic_new_a = 0;
+            lpf_rect_hpf();
+        }
+        
         if (doAdxrsProcess) {
             doAdxrsProcess = 0;
             filtered_arz = lowpass(adxrsHistory, adxrsCurHistoryIndex, adxrs_b, ADXRS_FILTER_SIZE);

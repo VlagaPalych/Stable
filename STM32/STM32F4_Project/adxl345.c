@@ -271,6 +271,15 @@ void DMA1_Stream3_IRQHandler() {
         }
         
         processCounter++;
+        if ((processCounter % 4) == 0) {
+            for (i = 0; i < 3; i++) {
+                lpf_rect_hpf_a[i] = (accel_history[i][accel_history_index-1] + 
+                                        accel_history[i][accel_history_index-2] + 
+                                        accel_history[i][accel_history_index-3] +
+                                        accel_history[i][accel_history_index-4]) / 4;
+                quasistatic_new_a = 1;
+            }
+        }
         if (processCounter == ACCEL_DECIMATION) {
             processCounter = 0;
             if (lowpassOn && accelLowpassReady) {
