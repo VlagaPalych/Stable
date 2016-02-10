@@ -27,19 +27,13 @@ float ars_termoData[ADXRS290_NUMBER][ADXRS290_DATA_SIZE-1];
 float ars_filteredData[ADXRS290_NUMBER][ADXRS290_DATA_SIZE-1];
 float ars_angleRate[ADXRS290_NUMBER][ADXRS290_DATA_SIZE-1];
 
-uint8_t ars_calibrationOn[ADXRS290_NUMBER];
-uint32_t ars_calibrIndex[ADXRS290_NUMBER];
-uint32_t ars_calibrNumber[ADXRS290_NUMBER];
-float ars_offset[ADXRS290_NUMBER][ADXRS290_DATA_SIZE-1];
-float ars_sum[ADXRS290_NUMBER][ADXRS290_DATA_SIZE-1];
+uint8_t adxrs290_calibr_on = 0;
+uint32_t adxrs290_calibr_index = 0;
+uint32_t adxrs290_calibr_number = 0;
+float adxrs290_offset[2] = {0, 0};
+float adxrs290_sum[2] = {0, 0};
+float calibrated_ar[2];
 
-float ars_history[ADXRS290_NUMBER][ADXRS290_DATA_SIZE-1][HISTORY_SIZE];
-uint16_t ars_historyIndex[ADXRS290_NUMBER];
-uint16_t ars_curHistoryIndex[ADXRS290_NUMBER];
-uint8_t ars_processIndex[ADXRS290_NUMBER];
-uint8_t ars_processNumber = 42;
-uint8_t ars_lowpassReady[ADXRS290_NUMBER];
-uint8_t ars_doProcess[ADXRS290_NUMBER];
 
 float ars_termoCf[ADXRS290_NUMBER][ADXRS290_DATA_SIZE-1] = {{-0.04946, -1.761}, {0.2236, -1.309}};
 
@@ -101,14 +95,12 @@ void ADXRS290_Init(uint8_t i) {
     NVIC_EnableIRQ(SPI2_IRQn);
 }
 
-void ADXRS290_Calibr(uint8_t i) {
+void ADXRS290_Calibr() {
     uint8_t j = 0;
-    for (j = 0; j < ADXRS290_DATA_SIZE; j++) {
-        ars_sum[i][j] = 0;
-    }
-    ars_calibrIndex[i] = 0;
-    ars_calibrNumber[i] = 100; // TODO: make number of calibration samples clear
-    ars_calibrationOn[i] = 1;
+    for (j = 0; j < 2; j++) { adxrs290_sum[j] = 0; }
+    adxrs290_calibr_index = 0;
+    adxrs290_calibr_number = ADXRS290_CALIBR_SAMPLES;
+    adxrs290_calibr_on = 1;
 }
 
 void ARS_GetData(uint8_t i) {  
@@ -185,6 +177,7 @@ void SPI2_IRQHandler() {
                     termoDataCollected = 0;
                     for (i = 0; i < 2; i++) {
                         adxrs290_history[i][adxrs290_history_index] = (ars_termoData[0][i] - ars_termoData[1][i]) / 2;
+                        adxrs290_history[i][adxrs290_history_index] /= 200.0; // translation to graduses
                     }
                     adxrs290_history_index++;          
                         

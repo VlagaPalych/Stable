@@ -187,29 +187,22 @@ int main() {
         
         if (adxrs290_do_process) {
             adxrs290_do_process = 0;
-              //GPIOD->BSRRL |= 1 << 15;
+            
             for (i = 0; i < 2; i++) {
                 arm_fir_decimate_f32(&adxrs290_lpf[i], adxrs290_history[i] + adxrs290_history_filter_index - ADXRS290_FILTER_SIZE, &filtered_ar[i], ADXRS290_DECIMATION);
-                
-//                if (ars_calibrationOn[i]) {
-//                    for (j = 0; j < ADXRS290_DATA_SIZE-1; j++) {
-//                        ars_sum[i][j] += ars_filteredData[i][j];
-//                    }
-//                    ars_calibrIndex[i]++;          
-//                    if (ars_calibrIndex[i] == ars_calibrNumber[i]) {
-//                        for (j = 0; j < ADXRS290_DATA_SIZE-1; j++) {
-//                            ars_offset[i][j] = ars_sum[i][j] / ars_calibrNumber[i];
-//                        }
-//                        ars_calibrationOn[i] = 0;
-//                        checkCalibrationFinish();
-//                    }
-//                }
-//                
-//                for (j = 0; j < ADXRS290_DATA_SIZE-1; j++) {
-//                    ars_filteredData[i][j] -= ars_offset[i][j];
-//                }
             }
-            //GPIOD->BSRRH |= 1 << 15;
+            if (adxrs290_calibr_on) {
+                for (i = 0; i < 2; i++) { adxrs290_sum[i] += filtered_ar[i]; }
+                adxrs290_calibr_index++; 
+                if (adxrs290_calibr_index == adxrs290_calibr_number) {
+                    for (i = 0; i < 2; i++) { adxrs290_offset[i] = adxrs290_sum[i] / adxrs290_calibr_number; }
+                    adxrs290_calibr_on = 0;
+                    //checkCalibrationFinish();
+                    phi_x = 0;
+                    phi_y = 0;
+                }
+            }
+            for (i = 0; i < 2; i++) { calibrated_ar[i] = filtered_ar[i] - adxrs290_offset[i];    }      
         }
         
     }

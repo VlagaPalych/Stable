@@ -349,15 +349,15 @@ void BoardConsole::handleFreshMessage(Message msg) {
 		angleY.append(msg.arx);
 		plot1_curves[0]->setSamples(angleX, angleY);
 	}
-	/*if (ui.angVelCheckBox->isChecked()) {
+	if (ui.angVelCheckBox->isChecked()) {
 		if (angVelX.size() == maxSize) {
 			angVelX.pop_front();
 			angVelY.pop_front();
 		}
 		angVelX.append(time);
-		angVelY.append(msg.angleRate);
+		angVelY.append(msg.phi_x);
 		plot1_curves[1]->setSamples(angVelX, angVelY);
-	}*/
+	}
 
 	if (ui.pwm1CheckBox->isChecked()) {
 		if (pwm1X.size() == maxSize) {
@@ -368,15 +368,15 @@ void BoardConsole::handleFreshMessage(Message msg) {
 		pwm1Y.append(msg.ary);
 		plot2_curves[0]->setSamples(pwm1X, pwm1Y);
 	}
-	/*if (ui.pwm2CheckBox->isChecked()) {
+	if (ui.pwm2CheckBox->isChecked()) {
 		if (pwm2X.size() == maxSize) {
 			pwm2X.pop_front();
 			pwm2Y.pop_front();
 		}
 		pwm2X.append(time);
-		pwm2Y.append(msg.pwm2);
+		pwm2Y.append(msg.phi_y);
 		plot2_curves[1]->setSamples(pwm2X, pwm2Y);
-	}*/
+	}
 
 	/*if (ui.count1CheckBox->isChecked()) {
 		if (count1X.size() == maxSize) {

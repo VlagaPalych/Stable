@@ -69,6 +69,8 @@ typedef quint16 uint16_t;
 typedef struct {
 	float arx;
 	float ary;
+	float phi_x;
+	float phi_y;
 } Message;
 
 extern uint8_t Message_Size;

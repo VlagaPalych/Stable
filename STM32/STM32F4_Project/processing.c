@@ -247,6 +247,9 @@ float invS[9] = {1.0098, 0.02385, 0.00744, -0.00619, 1.00095, 0.03252, -0.00405,
 float offset[3] = {25.7667, 7.58333, 83.66666};
 float tmp[3];
 
+float phi_x = 0;
+float phi_y = 0;
+
 void TIM7_IRQHandler(void) {
     TIM7->SR &= ~TIM_SR_UIF;
     
@@ -314,9 +317,13 @@ void TIM7_IRQHandler(void) {
 
 //    mat_sub(final_a, offset, tmp, 3, 1);
 //    mat_mul(invS, tmp, final_a, 3, 1, 3);
-    
-    message.arx = filtered_ar[0] / 200.0;
-    message.ary = filtered_ar[1] / 200.0;
+
+    phi_x += calibrated_ar[0]*0.01;
+    phi_y += calibrated_ar[1]*0.01;
+    message.arx = calibrated_ar[0];
+    message.ary = calibrated_ar[1];
+    message.phi_x = phi_x;
+    message.phi_y = phi_y;
     SendTelemetry(&message); 
 }
 

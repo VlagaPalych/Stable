@@ -32,6 +32,9 @@ extern float Ki;
 
 extern uint8_t stabilizationOn;
 
+extern float phi_x;
+extern float phi_y;
+
 
 #define HISTORY_SIZE 256
 #define ADXRS_FILTER_SIZE 90

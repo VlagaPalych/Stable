@@ -1,7 +1,21 @@
-﻿Build started 09.02.2016 19:58:37.
+﻿Build started 10.02.2016 15:11:00.
      1>Project "D:\Vlad\Projects\Stable\Logger\BoardConsole\BoardConsole\BoardConsole.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I.\GeneratedFiles /I. /ID:\Qt\5.5\msvc2013\include /I"C:\Qwt-6.1.2\include" /I.\GeneratedFiles\Debug /ID:\Qt\5.5\msvc2013\include\QtCore /ID:\Qt\5.5\msvc2013\include\QtGui /ID:\Qt\5.5\msvc2013\include\QtWidgets /Zi /nologo /W1 /WX- /Od /Oy- /D UNICODE /D WIN32 /D WIN64 /D QT_DLL /D QT_CORE_LIB /D QT_GUI_LIB /D QT_WIDGETS_LIB /Gm- /EHsc /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt boardconsole.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I.\GeneratedFiles /I. /ID:\Qt\5.5\msvc2013\include /I"C:\Qwt-6.1.2\include" /I.\GeneratedFiles\Debug /ID:\Qt\5.5\msvc2013\include\QtCore /ID:\Qt\5.5\msvc2013\include\QtGui /ID:\Qt\5.5\msvc2013\include\QtWidgets /Zi /nologo /W1 /WX- /Od /Oy- /D UNICODE /D WIN32 /D WIN64 /D QT_DLL /D QT_CORE_LIB /D QT_GUI_LIB /D QT_WIDGETS_LIB /Gm- /EHsc /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt GeneratedFiles\Debug\moc_boardconsole.cpp GeneratedFiles\Debug\moc_serialportreader.cpp boardconsole.cpp main.cpp serialportreader.cpp
+         moc_boardconsole.cpp
+     1>C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\xutility(2798): warning C4996: 'std::_Equal1': Function call with parameters that may be unsafe - this call relies on the caller to check that the passed values are correct. To disable this warning, use -D_SCL_SECURE_NO_WARNINGS. See documentation on how to use Visual C++ 'Checked Iterators'
+                 C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\xutility(2783) : see declaration of 'std::_Equal1'
+                 D:\Qt\5.5\msvc2013\include\QtCore/qvector.h(728) : see reference to function template instantiation 'bool std::equal<const T*,const T*>(_InIt1,_InIt1,_InIt2)' being compiled
+                 with
+                 [
+                     T=qreal
+         ,            _InIt1=const qreal *
+         ,            _InIt2=const qreal *
+                 ]
+                 D:\Qt\5.5\msvc2013\include\QtCore/qvector.h(720) : while compiling class template member function 'bool QVector<qreal>::operator ==(const QVector<qreal> &) const'
+                 c:\qwt-6.1.2\include\qwt_samples.h(118) : see reference to function template instantiation 'bool QVector<qreal>::operator ==(const QVector<qreal> &) const' being compiled
+                 c:\qwt-6.1.2\include\qwt_samples.h(91) : see reference to class template instantiation 'QVector<qreal>' being compiled
+         moc_serialportreader.cpp
          boardconsole.cpp
      1>C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\xutility(2798): warning C4996: 'std::_Equal1': Function call with parameters that may be unsafe - this call relies on the caller to check that the passed values are correct. To disable this warning, use -D_SCL_SECURE_NO_WARNINGS. See documentation on how to use Visual C++ 'Checked Iterators'
                  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\xutility(2783) : see declaration of 'std::_Equal1'
@@ -15,6 +29,21 @@
                  D:\Qt\5.5\msvc2013\include\QtCore/qvector.h(720) : while compiling class template member function 'bool QVector<qreal>::operator ==(const QVector<qreal> &) const'
                  c:\qwt-6.1.2\include\qwt_samples.h(118) : see reference to function template instantiation 'bool QVector<qreal>::operator ==(const QVector<qreal> &) const' being compiled
                  c:\qwt-6.1.2\include\qwt_samples.h(91) : see reference to class template instantiation 'QVector<qreal>' being compiled
+         main.cpp
+     1>C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\xutility(2798): warning C4996: 'std::_Equal1': Function call with parameters that may be unsafe - this call relies on the caller to check that the passed values are correct. To disable this warning, use -D_SCL_SECURE_NO_WARNINGS. See documentation on how to use Visual C++ 'Checked Iterators'
+                 C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\xutility(2783) : see declaration of 'std::_Equal1'
+                 D:\Qt\5.5\msvc2013\include\QtCore/qvector.h(728) : see reference to function template instantiation 'bool std::equal<const T*,const T*>(_InIt1,_InIt1,_InIt2)' being compiled
+                 with
+                 [
+                     T=qreal
+         ,            _InIt1=const qreal *
+         ,            _InIt2=const qreal *
+                 ]
+                 D:\Qt\5.5\msvc2013\include\QtCore/qvector.h(720) : while compiling class template member function 'bool QVector<qreal>::operator ==(const QVector<qreal> &) const'
+                 c:\qwt-6.1.2\include\qwt_samples.h(118) : see reference to function template instantiation 'bool QVector<qreal>::operator ==(const QVector<qreal> &) const' being compiled
+                 c:\qwt-6.1.2\include\qwt_samples.h(91) : see reference to class template instantiation 'QVector<qreal>' being compiled
+         serialportreader.cpp
+         Generating Code...
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\Vlad\Projects\Stable\Logger\BoardConsole\Win32\Debug\\BoardConsole.exe" /NOLOGO /LIBPATH:D:\Qt\5.5\msvc2013\lib /LIBPATH:"C:\Qwt-6.1.2\lib" qtmaind.lib qwtd.lib Qt5SerialPortd.lib Qt5Cored.lib Qt5Guid.lib Qt5Widgetsd.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:\Vlad\Projects\Stable\Logger\BoardConsole\Win32\Debug\BoardConsole.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\Vlad\Projects\Stable\Logger\BoardConsole\Win32\Debug\BoardConsole.lib" /MACHINE:X86 /SAFESEH Debug\boardconsole.obj
          Debug\moc_boardconsole.obj
@@ -27,4 +56,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.61
+Time Elapsed 00:00:05.33

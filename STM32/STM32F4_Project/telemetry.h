@@ -6,6 +6,8 @@
 typedef struct {
     float arx;
     float ary;
+    float phi_x;
+    float phi_y;
 } Message;
 
 extern Message message;
