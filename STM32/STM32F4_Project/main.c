@@ -158,7 +158,9 @@ int main() {
     while(1) { 
         if (quasistatic_new_a) {
             quasistatic_new_a = 0;
+            GPIOD->BSRRL |= 1 << 15;
             lpf_rect_hpf();
+            GPIOD->BSRRH |= 1 << 15;
         }
         
         if (doAdxrsProcess) {
