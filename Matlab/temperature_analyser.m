@@ -1,3 +1,5 @@
+% Температурные зависимости дусов
+
 logName1 = 'D:\Vlad\Projects\Stable\Logs\temperature5.txt';
 
 logFile1 = fopen(logName1, 'r');

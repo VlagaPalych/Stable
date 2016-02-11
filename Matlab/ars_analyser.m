@@ -1,3 +1,6 @@
+% Анализ данных от дуса
+% Температурные зависимости
+
 logName1 = 'D:\Vlad\Projects\Stable\Logs\uhod2.txt';
 
 logFile1 = fopen(logName1, 'r');

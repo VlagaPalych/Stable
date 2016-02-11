@@ -1,3 +1,5 @@
+% Расчет bias'ов для дусов
+
 logName = 'D:\Vlad\Projects\Stable\Logger\BoardConsole\BoardConsole\log538.txt';
 
 logFile = fopen(logName, 'r');

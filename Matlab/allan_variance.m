@@ -1,3 +1,6 @@
+% Cтроит график allan-variance, показывающий время за которое происходит
+% перемена bias'ов в гироскопе
+
 logName = 'D:\Vlad\Projects\Stable\Logger\BoardConsole\BoardConsole\log615.txt';
 
 logFile = fopen(logName, 'r');
