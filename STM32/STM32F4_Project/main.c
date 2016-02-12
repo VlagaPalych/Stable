@@ -149,11 +149,11 @@ int main() {
      
     EXTI->SWIER |= EXTI_SWIER_SWIER15;
 
-//    Motors_Init();
+    Motors_Init();
     USART_Init();
 //    Processing_TIM_Init();
 
-//    while(ENGRDY != 1) {};   
+    while(ENGRDY != 1) {};   
 
     while(1) { 
 //        if (quasistatic_new_a) {
@@ -217,8 +217,8 @@ int main() {
                     for (i = 0; i < 2; i++) { adxrs290_offset[i] = adxrs290_sum[i] / adxrs290_calibr_number; }
                     adxrs290_calibr_on = 0;
                     checkCalibrationFinish();
-                    phi_x = 0;
-                    phi_y = 0;
+                    roll = 0;
+                    pitch = 0;
                 }
             }
             for (i = 0; i < 2; i++) { calibrated_ar[i] = filtered_ar[i] - adxrs290_offset[i];    }      

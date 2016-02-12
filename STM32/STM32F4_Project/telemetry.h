@@ -4,11 +4,12 @@
 #include "stdint.h"
 
 typedef struct {
-    float arx;
-    float ary;
-    float phi_x;
-    float phi_y;
-    float detector;
+    float accelRoll;
+    float gyroRoll;
+    float complementaryRoll;
+    float accelPitch;
+    float gyroPitch;
+    float complementaryPitch;
 } Message;
 
 extern Message message;

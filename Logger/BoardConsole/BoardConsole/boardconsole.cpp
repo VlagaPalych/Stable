@@ -346,7 +346,7 @@ void BoardConsole::handleFreshMessage(Message msg) {
 			angleY.pop_front();
 		}
 		angleX.append(time);
-		angleY.append(msg.arx);
+		angleY.append(msg.gyroRoll);
 		plot1_curves[0]->setSamples(angleX, angleY);
 	}
 	if (ui.angVelCheckBox->isChecked()) {
@@ -355,7 +355,7 @@ void BoardConsole::handleFreshMessage(Message msg) {
 			angVelY.pop_front();
 		}
 		angVelX.append(time);
-		angVelY.append(msg.phi_x);
+		angVelY.append(msg.accelRoll);
 		plot1_curves[1]->setSamples(angVelX, angVelY);
 	}
 
@@ -365,7 +365,7 @@ void BoardConsole::handleFreshMessage(Message msg) {
 			pwm1Y.pop_front();
 		}
 		pwm1X.append(time);
-		pwm1Y.append(msg.ary);
+		pwm1Y.append(msg.gyroPitch);
 		plot2_curves[0]->setSamples(pwm1X, pwm1Y);
 	}
 	if (ui.pwm2CheckBox->isChecked()) {
@@ -374,7 +374,7 @@ void BoardConsole::handleFreshMessage(Message msg) {
 			pwm2Y.pop_front();
 		}
 		pwm2X.append(time);
-		pwm2Y.append(msg.phi_y);
+		pwm2Y.append(msg.accelPitch);
 		plot2_curves[1]->setSamples(pwm2X, pwm2Y);
 	}
 
@@ -384,18 +384,18 @@ void BoardConsole::handleFreshMessage(Message msg) {
 			count1Y.pop_front();
 		}
 		count1X.append(time);
-		count1Y.append(msg.detector);
+		count1Y.append(msg.complementaryRoll);
 		plot3_curves[0]->setSamples(count1X, count1Y);
 	}
-	/*if (ui.count2CheckBox->isChecked()) {
+	if (ui.count2CheckBox->isChecked()) {
 		if (count2X.size() == maxSize) {
 			count2X.pop_front();
 			count2Y.pop_front();
 		}
 		count2X.append(time);
-		count2Y.append(msg.freq2);
+		count2Y.append(msg.complementaryPitch);
 		plot3_curves[1]->setSamples(count2X, count2Y);
-	}*/
+	}
 
 	ui.plot1->replot();
 	ui.plot2->replot();

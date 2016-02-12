@@ -34,12 +34,6 @@ uint8_t adxrsHistoryIndex = 0;
 uint8_t adxrsCurHistoryIndex = 0;
 float filteredVel = 0;
     
- 
-//int16_t accel_history[3][HISTORY_SIZE];
-//uint8_t accel_historyIndex[3];
-//uint8_t accel_curHistoryIndex[3];
-//int16_t filtered_a[3];
-float final_a[3];
     
 uint8_t doAccelProcess = 0;
 uint8_t doGyroProcess = 0;
@@ -166,34 +160,8 @@ void Processing_TIM_Init() {
     TIM7->CR1 |= TIM_CR1_CEN;
 }
 
-void getFinalData() {
-    uint8_t i = 0;
-    if (lowpassOn) {
-        for (i = 0; i < 3; i++) {
-            final_a[i] = filtered_a[i];
-        }
-    } else {
-        for (i = 0; i < 3; i++) {
-            final_a[i] = a[i];
-        }
-    }
-}
-
-
 float roll = 0;
 float pitch = 0;
-
-//void calcAngle() {
-//    float gx = finalAX;
-//    float gy = finalAY;
-//    float gz = finalAZ;
-//    
-//    roll    = atanf(gy / gz);
-//    pitch   = atanf(- gx / sqrt(gy*gy + gz*gz));
-//    
-//    roll    *= 180.0 / 3.14159;
-//    pitch   *= 180.0 / 3.14159;
-//}
 
 #define dt 0.01
 #define Sa 100.0
@@ -243,12 +211,161 @@ void kalman2(const float *A, const float *Q, const float *R, float *x, const flo
     mat_mul(tmp1, P_apriori, P, 2, 2, 2);
 }
 
-float invS[9] = {1.0098, 0.02385, 0.00744, -0.00619, 1.00095, 0.03252, -0.00405, -0.02073, 1.00135};
-float offset[3] = {25.7667, 7.58333, 83.66666};
-float tmp[3];
 
-float phi_x = 0;
-float phi_y = 0;
+//*********************************************************
+//
+// accData, gyrData - arrays with 3 values
+// roll, pitch - pointers to keep angle values
+//
+//*********************************************************
+
+#define REASONABLE_ACCEL_MAGNITUDE 560 // 2g
+
+void complementary_filter(float *accData, float *gyrData, float *roll, float *pitch) {
+    float pitchAcc, rollAcc; 
+    float accMagnitude;
+    
+    *pitch += gyrData[1] * dt;
+    *roll += gyrData[0] * dt;
+    
+    accMagnitude = sqrt(accData[0]*accData[0] + accData[1]*accData[1] + accData[2]*accData[2]);
+    if (accMagnitude < REASONABLE_ACCEL_MAGNITUDE) {
+        pitchAcc = atan2f(accData[0], accData[2]) * 180 / 3.14159;
+        *pitch = *pitch * 0.98 + pitchAcc * 0.02;
+        
+        rollAcc = atan2f(accData[1], accData[2]) * 180 / 3.14159;
+        *roll = *roll * 0.98 + rollAcc * 0.02;
+    }
+}
+
+float pitchGyr = 0, rollGyr = 0;
+
+void TIM7_IRQHandler(void) {
+    float pitchAcc, rollAcc; 
+    float accMagnitude;
+    //float mean_detector = 0;
+    TIM7->SR &= ~TIM_SR_UIF;
+    
+    complementary_filter(calibrated_a, calibrated_ar, &roll, &pitch);
+
+    message.accelRoll = 0;
+    message.accelPitch = 0;
+    message.complementaryPitch = 0;
+    message.complementaryRoll = 0;
+    
+    pitch += calibrated_ar[1] * dt;
+    pitchGyr += calibrated_ar[1] * dt;
+    roll += calibrated_ar[0] * dt;
+    rollGyr += calibrated_ar[0] * dt;
+    
+    message.gyroPitch = pitchGyr;
+    message.gyroRoll = rollGyr;
+    
+    accMagnitude = sqrt(calibrated_a[0]*calibrated_a[0] + calibrated_a[1]*calibrated_a[1] + calibrated_a[2]*calibrated_a[2]);
+    if (accMagnitude < REASONABLE_ACCEL_MAGNITUDE) {
+        pitchAcc = atan2f(calibrated_a[0], calibrated_a[2]) * 180 / 3.14159;
+        message.accelPitch = pitchAcc;
+        pitch = pitch * 0.98 + pitchAcc * 0.02;
+        message.complementaryPitch = pitch;
+        
+        rollAcc = atan2f(calibrated_a[1], calibrated_a[2]) * 180 / 3.14159;
+        message.accelRoll = rollAcc;
+        roll = roll * 0.98 + rollAcc * 0.02;
+        message.complementaryRoll = roll;
+    }
+    
+//    calcAngleRate(); 
+//    calcAngle();
+//       
+//    Zroll[0] = roll;
+//    Zroll[1] = eulerAngleRate[0];
+//    Zpitch[0] = pitch;
+//    Zpitch[1] = eulerAngleRate[1];
+//    
+//    kalman2(A, Qroll, Rroll, Xroll, Zroll, Proll);
+//    kalman2(A, Qpitch, Rpitch, Xpitch, Zpitch, Ppitch);
+//    
+//    angle[0] = Xroll[0];
+//    angle[1] = Xpitch[0];
+//  
+//    researchIndex++;
+//    switch (research) {
+//        case IMPULSE_RESPONSE:
+//            if (researchIndex == 1) {
+//                F = 1.0;
+//                Motors_CalcPwm();
+//                Motors_Run();
+//            } else if (researchIndex == 50) {
+//                F = 0;
+//                Motors_CalcPwm();
+//                Motors_Stop();
+//                research = NO_RESEARCH;
+//            }
+//            break;
+//        case STEP_RESPONSE:
+//            if (researchIndex == 1) {
+//                F = 1.0;
+//                Motors_CalcPwm();
+//                Motors_Run();
+//            }
+//            break;
+//        case SINE_RESPONSE:
+//            F = researchAmplitude * sin(researchFrequency * researchIndex);
+//            Motors_CalcPwm();
+//            Motors_Run();
+//            break;
+//        case EXP_RESPONSE:
+//            F = researchAmplitude * exp(-researchFrequency * researchIndex);
+//            Motors_CalcPwm();
+//            Motors_Run();
+//            break;
+//        case PID_CONTROL:
+//            pid_control();
+//            break;
+//        default:
+//            researchIndex--;
+//            break;
+//    }
+
+
+//    arm_mean_f32(detector, ACCEL_DECIMATION, &mean_detector);
+//    message.detector = mean_detector;
+    SendTelemetry(&message); 
+}
+
+
+//void identify() {
+//        // Identification block
+//        if (anglesAccumulated < 2) {
+//            y[anglesAccumulated] = angle;
+//            u[anglesAccumulated] = F;
+//        } else {
+//            y[2] = angle;
+//            u[2] = F;
+//            
+//            row = anglesAccumulated - 2;
+//            Afull[row*3 + 0] = (y[2] - y[1]) / ((float)DT);
+//            Afull[row*3 + 1] = y[2];
+//            Afull[row*3 + 2] = -u[2];
+//            
+//            Bfull[row] = (2*y[1] - y[2] - y[0]) / ((float)DT) / ((float)DT);
+//            
+//            y[0] = y[1];
+//            y[1] = y[2];
+//            u[0] = u[1];
+//            u[1] = u[2];
+//            
+//            if (anglesAccumulated == 11) {
+//                identificationReady = 1;         
+//                anglesAccumulated = 1;
+//            }      
+//            
+//            if (identificationReady) {
+//                system_solve(Afull, Bfull, w, 10, 3);
+//            }
+//        } 
+//        anglesAccumulated++; 
+//}
 
 //#define QUASISTATIC_THRESHOLD 14.0f
 //float detector[ACCEL_DECIMATION];
@@ -314,107 +431,18 @@ float phi_y = 0;
 //    }
 //}
 
-void TIM7_IRQHandler(void) {
-    float mean_detector = 0;
-    TIM7->SR &= ~TIM_SR_UIF;
-    
-    getFinalData();
-//    calcAngleRate(); 
-//    calcAngle();
-//       
-//    Zroll[0] = roll;
-//    Zroll[1] = eulerAngleRate[0];
-//    Zpitch[0] = pitch;
-//    Zpitch[1] = eulerAngleRate[1];
-//    
-//    kalman2(A, Qroll, Rroll, Xroll, Zroll, Proll);
-//    kalman2(A, Qpitch, Rpitch, Xpitch, Zpitch, Ppitch);
-//    
-//    angle[0] = Xroll[0];
-//    angle[1] = Xpitch[0];
-//  
-//    researchIndex++;
-//    switch (research) {
-//        case IMPULSE_RESPONSE:
-//            if (researchIndex == 1) {
-//                F = 1.0;
-//                Motors_CalcPwm();
-//                Motors_Run();
-//            } else if (researchIndex == 50) {
-//                F = 0;
-//                Motors_CalcPwm();
-//                Motors_Stop();
-//                research = NO_RESEARCH;
-//            }
-//            break;
-//        case STEP_RESPONSE:
-//            if (researchIndex == 1) {
-//                F = 1.0;
-//                Motors_CalcPwm();
-//                Motors_Run();
-//            }
-//            break;
-//        case SINE_RESPONSE:
-//            F = researchAmplitude * sin(researchFrequency * researchIndex);
-//            Motors_CalcPwm();
-//            Motors_Run();
-//            break;
-//        case EXP_RESPONSE:
-//            F = researchAmplitude * exp(-researchFrequency * researchIndex);
-//            Motors_CalcPwm();
-//            Motors_Run();
-//            break;
-//        case PID_CONTROL:
-//            pid_control();
-//            break;
-//        default:
-//            researchIndex--;
-//            break;
-//    }
-//    mat_sub(final_a, offset, tmp, 3, 1);
-//    mat_mul(invS, tmp, final_a, 3, 1, 3);
 
-    phi_x += calibrated_ar[0]*0.01f;
-    phi_y += calibrated_ar[1]*0.01f;
-    message.arx = calibrated_ar[0];
-    message.ary = calibrated_ar[1];
-    message.phi_x = phi_x;
-    message.phi_y = phi_y;
-//    arm_mean_f32(detector, ACCEL_DECIMATION, &mean_detector);
-//    message.detector = mean_detector;
-    SendTelemetry(&message); 
-}
+//***************************************************
+//
+// Calibration of accelerometer using error model:
+// A_meas = S * A_meas + o
+//
+//***************************************************
 
-
-//void identify() {
-//        // Identification block
-//        if (anglesAccumulated < 2) {
-//            y[anglesAccumulated] = angle;
-//            u[anglesAccumulated] = F;
-//        } else {
-//            y[2] = angle;
-//            u[2] = F;
-//            
-//            row = anglesAccumulated - 2;
-//            Afull[row*3 + 0] = (y[2] - y[1]) / ((float)DT);
-//            Afull[row*3 + 1] = y[2];
-//            Afull[row*3 + 2] = -u[2];
-//            
-//            Bfull[row] = (2*y[1] - y[2] - y[0]) / ((float)DT) / ((float)DT);
-//            
-//            y[0] = y[1];
-//            y[1] = y[2];
-//            u[0] = u[1];
-//            u[1] = u[2];
-//            
-//            if (anglesAccumulated == 11) {
-//                identificationReady = 1;         
-//                anglesAccumulated = 1;
-//            }      
-//            
-//            if (identificationReady) {
-//                system_solve(Afull, Bfull, w, 10, 3);
-//            }
-//        } 
-//        anglesAccumulated++; 
+//void linear_model_accel_calibr() {
+//    static float invS[9] = {1.0098, 0.02385, 0.00744, -0.00619, 1.00095, 0.03252, -0.00405, -0.02073, 1.00135};
+//    static float offset[3] = {25.7667, 7.58333, 83.66666};
+//    float tmp[3];
+//    mat_sub(filtered_a, offset, tmp, 3, 1);
+//    mat_mul(invS, tmp, calibrated_a, 3, 1, 3);
 //}
