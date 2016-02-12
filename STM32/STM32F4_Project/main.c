@@ -117,10 +117,10 @@ int main() {
     for (i = 0; i < 2; i++) {
         arm_fir_decimate_init_f32(&adxrs290_lpf[i], ADXRS290_FILTER_SIZE, ADXRS290_DECIMATION, accel_lpf_coeffs, adxrs290_lpf_state[i], ADXRS290_DECIMATION);
     }
-    // Quasistatic High-pass
-    arm_fir_init_f32(&quasistatic_hpf, QUASISTATIC_HPF_SIZE, quasistatic_hpf_coeffs, quasistatic_hpf_state, 1);
-    // Quasistatic Low-pass
-    arm_fir_init_f32(&quasistatic_lpf, QUASISTATIC_LPF_SIZE, quasistatic_lpf_coeffs, quasistatic_lpf_state, 1);
+//    // Quasistatic High-pass
+//    arm_fir_init_f32(&quasistatic_hpf, QUASISTATIC_HPF_SIZE, quasistatic_hpf_coeffs, quasistatic_hpf_state, 1);
+//    // Quasistatic Low-pass
+//    arm_fir_init_f32(&quasistatic_lpf, QUASISTATIC_LPF_SIZE, quasistatic_lpf_coeffs, quasistatic_lpf_state, 1);
     
     Accel_VDD_Init();
     Accel_NSS_Init();
@@ -156,12 +156,12 @@ int main() {
 //    while(ENGRDY != 1) {};   
 
     while(1) { 
-        if (quasistatic_new_a) {
-            quasistatic_new_a = 0;
-            GPIOD->BSRRL |= 1 << 15;
-            lpf_rect_hpf();
-            GPIOD->BSRRH |= 1 << 15;
-        }
+//        if (quasistatic_new_a) {
+//            quasistatic_new_a = 0;
+//            GPIOD->BSRRL |= 1 << 15;
+//            lpf_rect_hpf();
+//            GPIOD->BSRRH |= 1 << 15;
+//        }
         
         if (doAdxrsProcess) {
             doAdxrsProcess = 0;

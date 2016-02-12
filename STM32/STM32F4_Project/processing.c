@@ -250,69 +250,69 @@ float tmp[3];
 float phi_x = 0;
 float phi_y = 0;
 
-#define QUASISTATIC_THRESHOLD 14.0f
-float detector[ACCEL_DECIMATION];
-uint8_t detector_index = 0;
-float lpf_rect_hpf_a[3];
-uint8_t quasistatic_new_a = 0;
-uint8_t quasistatic_moment = 0;
+//#define QUASISTATIC_THRESHOLD 14.0f
+//float detector[ACCEL_DECIMATION];
+//uint8_t detector_index = 0;
+//float lpf_rect_hpf_a[3];
+//uint8_t quasistatic_new_a = 0;
+//uint8_t quasistatic_moment = 0;
 
 
-void lpf_rect_hpf() {
-    uint8_t i = 0;
-    // calculate ax^2 + ay^2 + az^2
-    accel_modulo_history[accel_modulo_history_index] = sqrt(
-        lpf_rect_hpf_a[0]*lpf_rect_hpf_a[0] +
-        lpf_rect_hpf_a[1]*lpf_rect_hpf_a[1] +
-        lpf_rect_hpf_a[2]*lpf_rect_hpf_a[2]
-    );
-    accel_modulo_history_index++;
-    
-    if (accel_modulo_history_index >= 2*QUASISTATIC_HPF_SIZE) {
-        // transition to beginning of array required
-        memcpy(accel_modulo_history, &accel_modulo_history[QUASISTATIC_HPF_SIZE], QUASISTATIC_HPF_SIZE*sizeof(float)); 
-        accel_modulo_history_index = QUASISTATIC_HPF_SIZE;
-    }
-    if (accel_modulo_history_index >= QUASISTATIC_HPF_SIZE) {
-        // high-pass filter
-        arm_fir_f32(&quasistatic_hpf, 
-                    accel_modulo_history + accel_modulo_history_index - QUASISTATIC_HPF_SIZE,
-                    &accel_modulo_highpassed_history[accel_modulo_highpassed_history_index],
-                    1
-        ); 
-        // rectifier (abs)
-        accel_modulo_highpassed_history[accel_modulo_highpassed_history_index] = fabs(accel_modulo_highpassed_history[accel_modulo_highpassed_history_index]);
-        accel_modulo_highpassed_history_index++;
-        
-        if (accel_modulo_highpassed_history_index >= 2*QUASISTATIC_LPF_SIZE) {
-            // transition to beginning of array required
-            memcpy(accel_modulo_highpassed_history, &accel_modulo_highpassed_history[QUASISTATIC_LPF_SIZE], QUASISTATIC_LPF_SIZE*sizeof(float)); 
-            accel_modulo_highpassed_history_index = QUASISTATIC_LPF_SIZE;
-        }
-        if (accel_modulo_highpassed_history_index >= QUASISTATIC_LPF_SIZE) {
-            // low-pass filter
-            arm_fir_f32(&quasistatic_lpf,
-                        accel_modulo_highpassed_history + accel_modulo_highpassed_history_index - QUASISTATIC_LPF_SIZE,
-                        &detector[detector_index], 
-                        1
-            );
-            detector_index++;
-            if (detector_index == ACCEL_DECIMATION) {
-                detector_index = 0;
-            }
-            quasistatic_moment = 1;
-            for (i = 0; i < ACCEL_DECIMATION; i++) {
-                if (detector[i] > QUASISTATIC_THRESHOLD) {
-                    quasistatic_moment = 0;
-                }
-            }
-            if (quasistatic_moment) {
-                // quasistatic moment
-                // angle can be resetted
-            }
-        }
-    }
-}
+//void lpf_rect_hpf() {
+//    uint8_t i = 0;
+//    // calculate ax^2 + ay^2 + az^2
+//    accel_modulo_history[accel_modulo_history_index] = sqrt(
+//        lpf_rect_hpf_a[0]*lpf_rect_hpf_a[0] +
+//        lpf_rect_hpf_a[1]*lpf_rect_hpf_a[1] +
+//        lpf_rect_hpf_a[2]*lpf_rect_hpf_a[2]
+//    );
+//    accel_modulo_history_index++;
+//    
+//    if (accel_modulo_history_index >= 2*QUASISTATIC_HPF_SIZE) {
+//        // transition to beginning of array required
+//        memcpy(accel_modulo_history, &accel_modulo_history[QUASISTATIC_HPF_SIZE], QUASISTATIC_HPF_SIZE*sizeof(float)); 
+//        accel_modulo_history_index = QUASISTATIC_HPF_SIZE;
+//    }
+//    if (accel_modulo_history_index >= QUASISTATIC_HPF_SIZE) {
+//        // high-pass filter
+//        arm_fir_f32(&quasistatic_hpf, 
+//                    accel_modulo_history + accel_modulo_history_index - QUASISTATIC_HPF_SIZE,
+//                    &accel_modulo_highpassed_history[accel_modulo_highpassed_history_index],
+//                    1
+//        ); 
+//        // rectifier (abs)
+//        accel_modulo_highpassed_history[accel_modulo_highpassed_history_index] = fabs(accel_modulo_highpassed_history[accel_modulo_highpassed_history_index]);
+//        accel_modulo_highpassed_history_index++;
+//        
+//        if (accel_modulo_highpassed_history_index >= 2*QUASISTATIC_LPF_SIZE) {
+//            // transition to beginning of array required
+//            memcpy(accel_modulo_highpassed_history, &accel_modulo_highpassed_history[QUASISTATIC_LPF_SIZE], QUASISTATIC_LPF_SIZE*sizeof(float)); 
+//            accel_modulo_highpassed_history_index = QUASISTATIC_LPF_SIZE;
+//        }
+//        if (accel_modulo_highpassed_history_index >= QUASISTATIC_LPF_SIZE) {
+//            // low-pass filter
+//            arm_fir_f32(&quasistatic_lpf,
+//                        accel_modulo_highpassed_history + accel_modulo_highpassed_history_index - QUASISTATIC_LPF_SIZE,
+//                        &detector[detector_index], 
+//                        1
+//            );
+//            detector_index++;
+//            if (detector_index == ACCEL_DECIMATION) {
+//                detector_index = 0;
+//            }
+//            quasistatic_moment = 1;
+//            for (i = 0; i < ACCEL_DECIMATION; i++) {
+//                if (detector[i] > QUASISTATIC_THRESHOLD) {
+//                    quasistatic_moment = 0;
+//                }
+//            }
+//            if (quasistatic_moment) {
+//                // quasistatic moment
+//                // angle can be resetted
+//            }
+//        }
+//    }
+//}
 
 void TIM7_IRQHandler(void) {
     float mean_detector = 0;
@@ -380,8 +380,8 @@ void TIM7_IRQHandler(void) {
     message.ary = calibrated_ar[1];
     message.phi_x = phi_x;
     message.phi_y = phi_y;
-    arm_mean_f32(detector, ACCEL_DECIMATION, &mean_detector);
-    message.detector = mean_detector;
+//    arm_mean_f32(detector, ACCEL_DECIMATION, &mean_detector);
+//    message.detector = mean_detector;
     SendTelemetry(&message); 
 }
 
