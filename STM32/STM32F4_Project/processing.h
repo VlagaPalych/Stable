@@ -32,6 +32,7 @@ extern float Ki;
 
 extern uint8_t stabilizationOn;
 
+extern float pitchGyr, rollGyr;
 extern float phi_x;
 extern float phi_y;
 

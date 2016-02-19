@@ -4,12 +4,14 @@
 #include "stdint.h"
 
 typedef struct {
-    float accelRoll;
-    float gyroRoll;
-    float complementaryRoll;
-    float accelPitch;
-    float gyroPitch;
-    float complementaryPitch;
+//    float accelRoll;
+//    float gyroRoll;
+//    float complementaryRoll;
+//    float accelPitch;
+//    float gyroPitch;
+//    float complementaryPitch;
+    float ax, ay, az;
+    float angle;
 } Message;
 
 extern Message message;

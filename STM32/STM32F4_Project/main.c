@@ -219,6 +219,8 @@ int main() {
                     checkCalibrationFinish();
                     roll = 0;
                     pitch = 0;
+                    pitchGyr = 0;
+                    rollGyr = 0;
                 }
             }
             for (i = 0; i < 2; i++) { calibrated_ar[i] = filtered_ar[i] - adxrs290_offset[i];    }      

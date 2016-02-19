@@ -102,15 +102,8 @@ void SerialPortReader::handleReadyRead()
 		Message msg;
 		if (Message_FromByteArray((uint8_t *)msgByteArray.data(), Message_Size + 2, &msg)) {	
 			if (logStream) {
-				/*(*logStream) << msg.angle << ' '
-							<< msg.angleRate << ' ' 
-							<< msg.pwm1 << ' ' << msg.pwm2 
-							<< msg.freq1 << ' ' << msg.freq2 << endl;
-
-				qDebug() << msg.angle << ' '
-					<< msg.angleRate << ' '
-					<< msg.pwm1 << ' ' << msg.pwm2
-					<< msg.freq1 << ' ' << msg.freq2 << endl;*/
+				//(*logStream) << msg.ax << ' ' << msg.ay << ' ' << msg.az << ' ' << msg.angle << endl;
+				//qDebug() << msg.ax << ' ' << msg.ay << ' ' << msg.az << ' ' << msg.angle  << endl;
 				(*logStream) << msg.gyroRoll << ' ' << msg.accelRoll << ' ' << msg.complementaryRoll << ' ' << msg.gyroPitch << ' ' << msg.accelPitch << ' ' << msg.complementaryPitch << endl;
 				qDebug() << msg.gyroRoll << ' ' << msg.accelRoll << ' ' << msg.complementaryRoll << ' ' << msg.gyroPitch << ' ' << msg.accelPitch << ' ' << msg.complementaryPitch << endl;
 			}

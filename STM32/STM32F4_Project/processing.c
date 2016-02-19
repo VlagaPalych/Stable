@@ -246,33 +246,33 @@ void TIM7_IRQHandler(void) {
     //float mean_detector = 0;
     TIM7->SR &= ~TIM_SR_UIF;
     
-    complementary_filter(calibrated_a, calibrated_ar, &roll, &pitch);
+//    complementary_filter(calibrated_a, calibrated_ar, &roll, &pitch);
 
-    message.accelRoll = 0;
-    message.accelPitch = 0;
-    message.complementaryPitch = 0;
-    message.complementaryRoll = 0;
-    
-    pitch += calibrated_ar[1] * dt;
-    pitchGyr += calibrated_ar[1] * dt;
-    roll += calibrated_ar[0] * dt;
-    rollGyr += calibrated_ar[0] * dt;
-    
-    message.gyroPitch = pitchGyr;
-    message.gyroRoll = rollGyr;
-    
-    accMagnitude = sqrt(calibrated_a[0]*calibrated_a[0] + calibrated_a[1]*calibrated_a[1] + calibrated_a[2]*calibrated_a[2]);
-    if (accMagnitude < REASONABLE_ACCEL_MAGNITUDE) {
-        pitchAcc = atan2f(calibrated_a[0], calibrated_a[2]) * 180 / 3.14159;
-        message.accelPitch = pitchAcc;
-        pitch = pitch * 0.98 + pitchAcc * 0.02;
-        message.complementaryPitch = pitch;
-        
-        rollAcc = atan2f(calibrated_a[1], calibrated_a[2]) * 180 / 3.14159;
-        message.accelRoll = rollAcc;
-        roll = roll * 0.98 + rollAcc * 0.02;
-        message.complementaryRoll = roll;
-    }
+//    message.accelRoll = 0;
+//    message.accelPitch = 0;
+//    message.complementaryPitch = 0;
+//    message.complementaryRoll = 0;
+//    
+//    pitch += calibrated_ar[1] * dt;
+//    pitchGyr += calibrated_ar[1] * dt;
+//    roll += calibrated_ar[0] * dt;
+//    rollGyr += calibrated_ar[0] * dt;
+//    
+//    message.gyroPitch = pitchGyr;
+//    message.gyroRoll = rollGyr;
+//    
+//    accMagnitude = sqrt(calibrated_a[0]*calibrated_a[0] + calibrated_a[1]*calibrated_a[1] + calibrated_a[2]*calibrated_a[2]);
+//    if (accMagnitude < REASONABLE_ACCEL_MAGNITUDE) {
+//        pitchAcc = atan2f(calibrated_a[0], calibrated_a[2]) * 180 / 3.14159;
+//        message.accelPitch = pitchAcc;
+//        pitch = pitch * 0.98 + pitchAcc * 0.02;
+//        message.complementaryPitch = pitch;
+//        
+//        rollAcc = atan2f(calibrated_a[1], calibrated_a[2]) * 180 / 3.14159;
+//        message.accelRoll = rollAcc;
+//        roll = roll * 0.98 + rollAcc * 0.02;
+//        message.complementaryRoll = roll;
+//    }
     
 //    calcAngleRate(); 
 //    calcAngle();
@@ -330,6 +330,10 @@ void TIM7_IRQHandler(void) {
 
 //    arm_mean_f32(detector, ACCEL_DECIMATION, &mean_detector);
 //    message.detector = mean_detector;
+    message.ax = calibrated_a[0];
+    message.ay = calibrated_a[1];
+    message.az = calibrated_a[2];
+    message.angle = atan2f(calibrated_a[1], calibrated_a[2]);
     SendTelemetry(&message); 
 }
 

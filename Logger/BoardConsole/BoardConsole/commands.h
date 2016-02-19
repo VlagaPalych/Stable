@@ -73,6 +73,8 @@ typedef struct {
 	float accelPitch;
 	float gyroPitch;
 	float complementaryPitch;
+	//float ax, ay, az;
+	//float angle;
 } Message;
 
 extern uint8_t Message_Size;
