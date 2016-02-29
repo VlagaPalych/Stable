@@ -20,7 +20,7 @@ uint8_t GYRO_INT2   = 1; // PE
 #define GYRO_SENSITIVITY 8.75e-3 // mdps per lsb
 
 uint8_t gyro_data[7];
-float gyro_angleRate[3];
+float angleRate[3];
 
 uint16_t gyro_dma_tx[4] = {0xe700, 0x0000, 0x0000, 0x0000};
 uint16_t gyro_dma_rx[4];
@@ -150,7 +150,7 @@ void Gyro_GetData() {
     
     for (i = 0; i < 3; i++) {
         tmp = (gyro_data[2*i+2] << 8) | gyro_data[2*i+1];
-        gyro_angleRate[i] = tmp * GYRO_SENSITIVITY;
+        angleRate[i] = tmp * GYRO_SENSITIVITY;
     }
 }
 
@@ -196,7 +196,7 @@ void DMA1_Channel2_IRQHandler() {
         
         for (i = 0; i < 3; i++) {
             tmp = (gyro_data[2*i+2] << 8) | gyro_data[2*i+1];
-            gyro_angleRate[i] = tmp * GYRO_SENSITIVITY;
+            angleRate[i] = tmp * GYRO_SENSITIVITY;
         }
     }
 }

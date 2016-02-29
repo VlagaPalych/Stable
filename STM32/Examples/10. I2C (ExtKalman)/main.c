@@ -24,5 +24,6 @@ int main() {
     EXTI->SWIER |= EXTI_SWIER_SWIER4;
     
     while (1) {
+        //answer = AM_SingleRead(AM_MAG, 0x03);
     }
 }
