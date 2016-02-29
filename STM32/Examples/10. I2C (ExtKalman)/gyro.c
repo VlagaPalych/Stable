@@ -1,4 +1,4 @@
-#include "stm32f30x.h"
+#include "stm32f3xx.h"
 #include "gyro.h"
 
 uint8_t SPI1_SCK    = 5; // PA
@@ -39,11 +39,11 @@ void SPI1_GPIO_Init() {
 }
 
 void Gyro_NSS_Low() {
-    GPIOE->BSRR |= (1 << GYRO_NSS) << 16;
+    GPIOE->BSRRH |= (1 << GYRO_NSS);
 }
 
 void Gyro_NSS_High() {
-    GPIOE->BSRR |= (1 << GYRO_NSS);
+    GPIOE->BSRRL |= (1 << GYRO_NSS);
 }
 
 void SPI1_Init() {

@@ -1,0 +1,10 @@
+--cpu Cortex-M4.fp
+".\accel_magne.o"
+".\gyro.o"
+".\main.o"
+".\startup_stm32f303xc.o"
+".\system_stm32f3xx.o"
+--strict --scatter ".\ExtKalman.sct"
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list ".\ExtKalman.map" -o .\ExtKalman.axf

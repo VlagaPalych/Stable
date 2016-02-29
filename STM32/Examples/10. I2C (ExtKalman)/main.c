@@ -1,5 +1,6 @@
-#include "stm32f30x.h"
+#include "stm32f3xx.h"
 #include "gyro.h"
+#include "accel_magne.h"
 
 void RCC_Init() {
     RCC->AHBENR     |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOEEN | RCC_AHBENR_DMA1EN;
@@ -16,6 +17,9 @@ int main() {
     
     EXTI->SWIER |= EXTI_SWIER_SWIER1;
     
+    AM_Init();
+    
     while (1) {
+        answer = AM_SingleRead(0x20);
     }
 }

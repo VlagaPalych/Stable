@@ -1,0 +1,46 @@
+Dependencies for Project 'ExtKalman', Target 'STM32': (DO NOT MODIFY !)
+F (.\accel_magne.c)(0x56D359DB)(-c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I "\\Mac\Home\Dev\MyProjects\Stable\STM32\Examples\10. I2C (ExtKalman)\RTE"-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.3.0\Device\Include-D__UVISION_VERSION="517" -D_RTE_ -DSTM32F303xC-o .\accel_magne.o --omf_browse .\accel_magne.crf --depend .\accel_magne.d)
+I (C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.3.0\Device\Include\stm32f3xx.h)(0x54E1B05C)
+I (C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.3.0\Device\Include\stm32f303xc.h)(0x54E1B05C)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cm4.h)(0x5625FD5C)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x55DB71D0)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cmInstr.h)(0x5625E9A0)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\cmsis_armcc.h)(0x5625E9A0)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cmFunc.h)(0x5625E9A0)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cmSimd.h)(0x5625E9A0)
+I (C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.3.0\Device\Include\system_stm32f3xx.h)(0x54E1B05C)
+F (.\gyro.c)(0x56D20311)(-c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I "\\Mac\Home\Dev\MyProjects\Stable\STM32\Examples\10. I2C (ExtKalman)\RTE"-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.3.0\Device\Include-D__UVISION_VERSION="517" -D_RTE_ -DSTM32F303xC-o .\gyro.o --omf_browse .\gyro.crf --depend .\gyro.d)
+I (C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.3.0\Device\Include\stm32f3xx.h)(0x54E1B05C)
+I (C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.3.0\Device\Include\stm32f303xc.h)(0x54E1B05C)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cm4.h)(0x5625FD5C)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x55DB71D0)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cmInstr.h)(0x5625E9A0)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\cmsis_armcc.h)(0x5625E9A0)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cmFunc.h)(0x5625E9A0)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cmSimd.h)(0x5625E9A0)
+I (C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.3.0\Device\Include\system_stm32f3xx.h)(0x54E1B05C)
+I (gyro.h)(0x56D20242)
+F (.\main.c)(0x56D35300)(-c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I "\\Mac\Home\Dev\MyProjects\Stable\STM32\Examples\10. I2C (ExtKalman)\RTE"-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.3.0\Device\Include-D__UVISION_VERSION="517" -D_RTE_ -DSTM32F303xC-o .\main.o --omf_browse .\main.crf --depend .\main.d)
+I (C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.3.0\Device\Include\stm32f3xx.h)(0x54E1B05C)
+I (C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.3.0\Device\Include\stm32f303xc.h)(0x54E1B05C)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cm4.h)(0x5625FD5C)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x55DB71D0)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cmInstr.h)(0x5625E9A0)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\cmsis_armcc.h)(0x5625E9A0)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cmFunc.h)(0x5625E9A0)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cmSimd.h)(0x5625E9A0)
+I (C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.3.0\Device\Include\system_stm32f3xx.h)(0x54E1B05C)
+I (gyro.h)(0x56D20242)
+I (accel_magne.h)(0x56D352DF)
+F (.\gyro.h)(0x56D20242)()
+F (RTE\Device\STM32F303VC\startup_stm32f303xc.s)(0x56D20242)(--cpu Cortex-M4.fp -g --apcs=interwork -I "\\Mac\Home\Dev\MyProjects\Stable\STM32\Examples\10. I2C (ExtKalman)\RTE"-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.3.0\Device\Include--pd "__UVISION_VERSION SETA 517" --pd "_RTE_ SETA 1" --pd "STM32F303xC SETA 1"--list .\startup_stm32f303xc.lst --xref -o .\startup_stm32f303xc.o --depend .\startup_stm32f303xc.d)
+F (RTE\Device\STM32F303VC\system_stm32f3xx.c)(0x54E1B05C)(-c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I "\\Mac\Home\Dev\MyProjects\Stable\STM32\Examples\10. I2C (ExtKalman)\RTE"-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.3.0\Device\Include-D__UVISION_VERSION="517" -D_RTE_ -DSTM32F303xC-o .\system_stm32f3xx.o --omf_browse .\system_stm32f3xx.crf --depend .\system_stm32f3xx.d)
+I (C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.3.0\Device\Include\stm32f3xx.h)(0x54E1B05C)
+I (C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.3.0\Device\Include\stm32f303xc.h)(0x54E1B05C)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cm4.h)(0x5625FD5C)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x55DB71D0)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cmInstr.h)(0x5625E9A0)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\cmsis_armcc.h)(0x5625E9A0)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cmFunc.h)(0x5625E9A0)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cmSimd.h)(0x5625E9A0)
+I (C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.3.0\Device\Include\system_stm32f3xx.h)(0x54E1B05C)
