@@ -3,7 +3,7 @@
 ".\gyro.o"
 ".\main.o"
 ".\startup_stm32f303xc.o"
-".\system_stm32f3xx.o"
+".\system_stm32f30x.o"
 --strict --scatter ".\ExtKalman.sct"
 --summary_stderr --info summarysizes --map --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

@@ -3,66 +3,65 @@
 <pre>
 <h1>µVision Build Log</h1>
 <h2>Tool Versions:</h2>
-IDE-Version: µVision V5.17.0.0
+IDE-Version: µVision V5.14.0.0
 Copyright (C) 2015 ARM Ltd and ARM Germany GmbH. All rights reserved.
-License Information: Vasya Pupkin, Autex, LIC=----
+License Information: Vlad Agiyevich, MIPT, LIC=AK130-BHCLA-23UM4-FI5TI-37TGT-PDR3S
  
 Tool Versions:
-Toolchain:       MDK-ARM Professional  Version: 5.17
+Toolchain:       MDK-ARM Professional  Version: 5.14.0.0
 Toolchain Path:  C:\Keil_v5\ARM\ARMCC\Bin
-C Compiler:      Armcc.exe V5.06 update 1 (build 61)
-Assembler:       Armasm.exe V5.06 update 1 (build 61)
-Linker/Locator:  ArmLink.exe V5.06 update 1 (build 61)
-Library Manager: ArmAr.exe V5.06 update 1 (build 61)
-Hex Converter:   FromElf.exe V5.06 update 1 (build 61)
-CPU DLL:         SARMCM3.DLL V5.17
-Dialog DLL:      DCM.DLL V1.13.4.0
-Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V2.0.18.0
-Dialog DLL:      TCM.DLL V1.14.6.0
+C Compiler:      Armcc.exe V5.05 update 1 (build 106)
+Assembler:       Armasm.exe V5.05 update 1 (build 106)
+Linker/Locator:  ArmLink.exe V5.05 update 1 (build 106)
+Library Manager: ArmAr.exe V5.05 update 1 (build 106)
+Hex Converter:   FromElf.exe V5.05 update 1 (build 106)
+CPU DLL:         SARMCM3.DLL V5.14.0.0
+Dialog DLL:      DCM.DLL V1.13.1.0
+Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V2.0.14.0_KEIL
+Dialog DLL:      TCM.DLL V1.14.4.0
  
 <h2>Project:</h2>
-\\Mac\Home\Dev\MyProjects\Stable\STM32\Examples\10. I2C (ExtKalman)\ExtKalman.uvprojx
-Project File Date:  02/28/2016
+D:\Vlad\Projects\Stable\STM32\Examples\10. I2C (ExtKalman)\ExtKalman.uvprojx
+Project File Date:  02/29/2016
 
 <h2>Output:</h2>
-*** Using Compiler 'V5.06 update 1 (build 61)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'STM32'
 compiling accel_magne.c...
-accel_magne.c(94): warning:  #1-D: last line of file ends without a newline
-  }
+accel_magne.c(74): warning:  #177-D: variable "i" was declared but never referenced
+      uint8_t i = 0;
 accel_magne.c: 1 warning, 0 errors
 linking...
-Program Size: Code=2932 RO-data=424 RW-data=40 ZI-data=1648  
+Program Size: Code=3704 RO-data=424 RW-data=48 ZI-data=1656  
 ".\ExtKalman.axf" - 0 Error(s), 1 Warning(s).
 
 <h2>Software Packages used:</h2>
 
 Package Vendor: ARM
-                http://www.keil.com/pack/ARM.CMSIS.4.5.0.pack
-                ARM::CMSIS:CORE:4.3.0
+                http://www.keil.com/pack/ARM.CMSIS.4.2.0.pack
+                ARM::CMSIS:CORE:3.40.0
                 CMSIS (Cortex Microcontroller Software Interface Standard)
-   * Component: CORE Version: 4.3.0
+   * Component: CORE Version: 3.40.0
 
 Package Vendor: Keil
-                http://www.keil.com/pack/Keil.STM32F3xx_DFP.1.3.0.pack
-                Keil::Device:Startup:1.3.0
+                http://www.keil.com/pack/Keil.STM32F3xx_DFP.1.2.0.pack
+                Keil::Device:Startup:1.2.0
                 STMicroelectronics STM32F3 Series Device Support and Examples
-   * Component: Startup Version: 1.3.0
+   * Component: Startup Version: 1.2.0
 
 <h2>Collection of Component include folders:</h2>
-  \\Mac\Home\Dev\MyProjects\Stable\STM32\Examples\10. I2C (ExtKalman)\RTE
-  C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include
-  C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.3.0\Device\Include
+  D:\Vlad\Projects\Stable\STM32\Examples\10. I2C (ExtKalman)\RTE
+  C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include
+  C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.2.0\Device\Include
 
 <h2>Collection of Component Files used:</h2>
 
-   * Component: ARM::CMSIS:CORE:4.3.0
+   * Component: ARM::CMSIS:CORE:3.40.0
+      Source file:   CMSIS\UserCodeTemplates\ARM\ITM_Retarget.c
 
-   * Component: Keil::Device:Startup:1.3.0
+   * Component: Keil::Device:Startup:1.2.0
       Source file:   Device\Source\ARM\startup_stm32f303xc.s
-      Source file:   Device\Source\system_stm32f3xx.c
+      Source file:   Device\Source\system_stm32f30x.c
       Source file:   Device\Source\ARM\STM32F3xx_OPT.s
-Build Time Elapsed:  00:00:01
 </pre>
 </body>
 </html>

@@ -1,4 +1,4 @@
-#include "stm32f3xx.h"
+#include "stm32f30x.h"
 #include "gyro.h"
 #include "accel_magne.h"
 
@@ -17,9 +17,12 @@ int main() {
     
     EXTI->SWIER |= EXTI_SWIER_SWIER1;
     
+    
     AM_Init();
+    AM_EXTI_Init();
+    
+    EXTI->SWIER |= EXTI_SWIER_SWIER4;
     
     while (1) {
-        answer = AM_SingleRead(0x20);
     }
 }
