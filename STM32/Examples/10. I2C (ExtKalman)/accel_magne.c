@@ -1,5 +1,7 @@
 #include "stm32f30x.h"
 #include "accel_magne.h"
+#include "extra_math.h"
+#include "string.h"
 
 uint8_t I2C1_SCL    = 6; // PB
 uint8_t I2C1_SDA    = 7; // PB
@@ -33,6 +35,11 @@ float accel[3];
 uint8_t mag_data[6];
 float magField[3];
 
+extern float w1[VECT_SIZE], w2[VECT_SIZE];
+extern float v1[VECT_SIZE], v2[VECT_SIZE];
+
+uint8_t meas1 = 1;
+uint8_t quest_run = 0;
 
 void I2C1_SetDevice(device dvc) {
     I2C1->CR2 &= ~I2C_CR2_SADD;
@@ -220,6 +227,22 @@ void DMA1_Channel7_IRQHandler() {
             for (i = 0; i < 3; i++) {
                 tmp = (mag_data[2*i] << 8) | mag_data[2*i+1];
                 magField[i] = tmp / MAG_SENSITIVITY; 
+            }
+            
+            if (meas1) {
+                meas1 = 0;
+                memcpy(w1, accel, VECT_SIZE*sizeof(float));
+                memcpy(w2, magField, VECT_SIZE*sizeof(float));
+                
+                Vect_Norm(w1);
+                Vect_Norm(w2);
+            } else {
+                quest_run = 1;
+                memcpy(v1, accel, VECT_SIZE*sizeof(float));
+                memcpy(v2, magField, VECT_SIZE*sizeof(float));
+                
+                Vect_Norm(v1);
+                Vect_Norm(v2);
             }
         }
     }

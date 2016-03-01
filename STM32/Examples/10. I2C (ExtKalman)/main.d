@@ -8,3 +8,4 @@
 .\main.o: C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.2.0\Device\Include\system_stm32f30x.h
 .\main.o: gyro.h
 .\main.o: accel_magne.h
+.\main.o: extra_math.h

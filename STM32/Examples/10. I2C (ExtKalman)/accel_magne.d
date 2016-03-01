@@ -7,3 +7,5 @@
 .\accel_magne.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmSimd.h
 .\accel_magne.o: C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.2.0\Device\Include\system_stm32f30x.h
 .\accel_magne.o: accel_magne.h
+.\accel_magne.o: extra_math.h
+.\accel_magne.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h

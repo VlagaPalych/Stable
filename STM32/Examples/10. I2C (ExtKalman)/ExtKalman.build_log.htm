@@ -26,10 +26,6 @@ Project File Date:  02/29/2016
 
 <h2>Output:</h2>
 Build target 'STM32'
-compiling accel_magne.c...
-compiling gyro.c...
-linking...
-Program Size: Code=3952 RO-data=424 RW-data=52 ZI-data=1668  
 ".\ExtKalman.axf" - 0 Error(s), 0 Warning(s).
 
 <h2>Software Packages used:</h2>
@@ -39,6 +35,7 @@ Package Vendor: ARM
                 ARM::CMSIS:CORE:3.40.0
                 CMSIS (Cortex Microcontroller Software Interface Standard)
    * Component: CORE Version: 3.40.0
+   * Component: DSP Version: 1.4.2
 
 Package Vendor: Keil
                 http://www.keil.com/pack/Keil.STM32F3xx_DFP.1.2.0.pack
@@ -55,6 +52,10 @@ Package Vendor: Keil
 
    * Component: ARM::CMSIS:CORE:3.40.0
       Source file:   CMSIS\UserCodeTemplates\ARM\ITM_Retarget.c
+
+   * Component: ARM::CMSIS:DSP:1.4.2
+      Include file:  CMSIS\Include\arm_math.h
+      Library file:  CMSIS\Lib\ARM\arm_cortexM4lf_math.lib
 
    * Component: Keil::Device:Startup:1.2.0
       Source file:   Device\Source\ARM\startup_stm32f303xc.s
