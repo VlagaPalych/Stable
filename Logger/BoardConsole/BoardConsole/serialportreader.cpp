@@ -104,8 +104,11 @@ void SerialPortReader::handleReadyRead()
 			if (logStream) {
 				//(*logStream) << msg.ax << ' ' << msg.ay << ' ' << msg.az << ' ' << msg.angle << endl;
 				//qDebug() << msg.ax << ' ' << msg.ay << ' ' << msg.az << ' ' << msg.angle  << endl;
-				(*logStream) << msg.gyroRoll << ' ' << msg.accelRoll << ' ' << msg.complementaryRoll << ' ' << msg.gyroPitch << ' ' << msg.accelPitch << ' ' << msg.complementaryPitch << endl;
-				qDebug() << msg.gyroRoll << ' ' << msg.accelRoll << ' ' << msg.complementaryRoll << ' ' << msg.gyroPitch << ' ' << msg.accelPitch << ' ' << msg.complementaryPitch << endl;
+				//(*logStream) << msg.gyroRoll << ' ' << msg.accelRoll << ' ' << msg.complementaryRoll << ' ' << msg.gyroPitch << ' ' << msg.accelPitch << ' ' << msg.complementaryPitch << endl;
+				//qDebug() << msg.gyroRoll << ' ' << msg.accelRoll << ' ' << msg.complementaryRoll << ' ' << msg.gyroPitch << ' ' << msg.accelPitch << ' ' << msg.complementaryPitch << endl;
+				qDebug() << msg.accel[0] << ' ' << msg.accel[1] << ' ' << msg.accel[2] << ' ' << msg.magField[0] << ' ' << msg.magField[1] << ' ' << msg.magField[2] << endl;
+				(*logStream) << msg.accel[0] << ' ' << msg.accel[1] << ' ' << msg.accel[2] << ' ' << msg.magField[0] << ' ' << msg.magField[1] << ' ' << msg.magField[2] << endl;
+
 			}
 			Q_EMIT freshMessage(msg);
 			m_readData = m_readData.remove(0, Message_Size+2);
