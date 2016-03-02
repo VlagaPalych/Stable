@@ -60,4 +60,28 @@
 
 #define NUMBER_END 'b'
 
+#include <QtGlobal>
+
+typedef qint16 int16_t;
+typedef quint8 uint8_t;
+typedef quint16 uint16_t;
+
+typedef struct {
+	float accelRoll;
+	float gyroRoll;
+	float complementaryRoll;
+	float accelPitch;
+	float gyroPitch;
+	float complementaryPitch;
+	//float ax, ay, az;
+	//float angle;
+} Message;
+
+extern uint8_t Message_Size;
+#define MESSAGE_HEADER  0x21
+
+void Message_ToByteArray(Message *message, uint8_t *a);
+
+uint8_t Message_FromByteArray(uint8_t *a, uint8_t n, Message *message); 
+
 #endif

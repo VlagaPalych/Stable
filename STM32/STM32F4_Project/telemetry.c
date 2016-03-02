@@ -9,6 +9,7 @@
 #include "processing.h"
 #include "commands.h"
 #include "adxrs453.h"
+#include "adxrs290.h"
 
 uint8_t UART1_TX = 9;    // PA
 uint8_t UART1_RX = 10;    // PA
@@ -21,6 +22,36 @@ typedef enum { WAITING_FOR_PWM1, WAITING_FOR_PWM2, WAITING_FOR_MIN_PWM, WAITING_
 typedef enum { WAITING_FOR_KP, WAITING_FOR_KD, WAITING_FOR_KI, WAITING_FOR_RESEARCH_AMPL, WAITING_FOR_RESEARCH_FREQ, 
 WAITING_FOR_MAX_ANGLE, WAITING_FOR_ACCEL_DEVIATION, WAITING_FOR_BOUNDARY_ANGLE, WAITING_FOR_MAX_ANGVEL, FLOAT_NONE } waitingForFloat;
 
+
+Message message;
+
+uint8_t Message_Size = 0;
+#define MESSAGE_HEADER  0x21
+
+void Message_ToByteArray(Message *message, uint8_t *a) {
+    uint8_t i = 0, crc = 0;
+    memcpy(a+1, (uint8_t *)message, Message_Size);
+    a[0] = MESSAGE_HEADER;
+    crc = a[0];
+    for (i = 1; i < Message_Size+1; i++) {
+        crc ^= a[i];
+    }
+    a[Message_Size+1] = crc;
+}
+
+uint8_t Message_FromByteArray(uint8_t *a, uint8_t n, Message *message) {
+    uint8_t i = 0, crc = 0;
+    
+    crc = a[0];
+    for (i = 1; i < Message_Size+1; i++) {
+        crc ^= a[i];
+    }
+    if ((a[0] == MESSAGE_HEADER) && (a[Message_Size+1] == crc)) {
+        memcpy((uint8_t *)message, a+1, Message_Size);
+        return 1;
+    } 
+    return 0;
+}
 
 uint8_t received;
 char str[100];
@@ -47,7 +78,7 @@ uint8_t turnUselessOn = 0;
 uint8_t gyroRecalibrationOn = 0;
 
 
-char tele[100] = "";
+uint8_t tele[100];
 uint8_t len = 0, j;
 
 void USART_Init(void) {
@@ -57,16 +88,14 @@ void USART_Init(void) {
     GPIOA->PUPDR    |= (1 << UART1_TX*2) | (1 << UART1_RX*2);
     GPIOA->AFR[1]   |= (7 << (UART1_TX-8)*4) | (7 << (UART1_RX-8)*4);
 
-    USART1->BRR     = 0x45;//0x341; 
+    USART1->BRR     = 0x22c; //0x45;//0x341; 
     USART1->CR3     |= USART_CR3_DMAT;
-    USART1->CR1     |= USART_CR1_UE | USART_CR1_M | USART_CR1_PCE | USART_CR1_RE | USART_CR1_TE | USART_CR1_RXNEIE; 
+    //USART1->CR2     |= USART_CR2_STOP_1;
+    USART1->CR1     |= USART_CR1_UE /*| USART_CR1_M | USART_CR1_PCE*/ | USART_CR1_RE | USART_CR1_TE | USART_CR1_RXNEIE; 
     NVIC_SetPriority(USART1_IRQn, 0x02);
     NVIC_EnableIRQ(USART1_IRQn);
     
-//    GPIOA->MODER &= ~(3UL << 15*2);
-//    GPIOA->MODER |= 1 << (15*2);GPIOA->BSRRH |= 1 << 15;
-////    GPIOA->BSRRL |= 1 << 15;
-//    
+
 //    sprintf(tele, "123456789");while (1) {
 //        
 //        len = strlen(tele);
@@ -93,7 +122,7 @@ void initWaitingForFloat() {
     floatValue = 0;
 }
 
-int rst = 0;
+int rst = 0;  // reset purposes
 void USART1_IRQHandler() {
     if (USART1->SR & USART_SR_RXNE) {
         USART1->SR &= ~USART_SR_RXNE;
@@ -114,7 +143,7 @@ void USART1_IRQHandler() {
                         Motors_Stop();
                         
                         ADXL345_Calibr();
-                        ADXRS_Calibr();
+                        ADXRS290_Calibr();
                         //Gyro_Calibr();
                         
                         break;
@@ -207,7 +236,7 @@ void USART1_IRQHandler() {
                         break;
                     
                     
-                    case GYRO_FREQ_HZ100:
+                   /* case GYRO_FREQ_HZ100:
                         gyroFreshFreq = 1;
                         gyroCurFreq = GYRO_HZ100;
                         gyroCurDT = 0.01;
@@ -226,7 +255,7 @@ void USART1_IRQHandler() {
                         gyroFreshFreq = 1;
                         gyroCurFreq = GYRO_HZ1000;
                         gyroCurDT = 0.001;
-                        break;
+                        break;*/
                     
                     case MAX_ANGLE:
                         curWaitingForFloat = WAITING_FOR_MAX_ANGLE;
@@ -323,15 +352,15 @@ void USART1_IRQHandler() {
                             case WAITING_FOR_MAX_PWM:
                                 maxPwm = intValue;
                                 break;
-                            case WAITING_FOR_TRANQUILITY_TIME:
-                                tranquilityTime = intValue / 10;
-                                break;
-                            case WAITING_FOR_PWM_STEP:
-                                pwmStep = intValue;
-                                break;
-                            case WAITING_FOR_EVERY_N:
-                                everyN = intValue;
-                                break;
+//                            case WAITING_FOR_TRANQUILITY_TIME:
+//                                tranquilityTime = intValue / 10;
+//                                break;
+//                            case WAITING_FOR_PWM_STEP:
+//                                pwmStep = intValue;
+//                                break;
+//                            case WAITING_FOR_EVERY_N:
+//                                everyN = intValue;
+//                                break;
                             default:
                                 break;
                         }
@@ -376,9 +405,9 @@ void USART1_IRQHandler() {
                             case WAITING_FOR_ACCEL_DEVIATION:
                                 accelDeviation = floatValue;
                                 break;
-                            case WAITING_FOR_BOUNDARY_ANGLE:
-                                boundaryAngle = floatValue;
-                                break;
+//                            case WAITING_FOR_BOUNDARY_ANGLE:
+//                                boundaryAngle = floatValue;
+//                                break;
                             case WAITING_FOR_MAX_ANGVEL:
                                 maxAngVel = floatValue;
                                 Kd = (maxPwm - minPwm) / maxAngVel;
@@ -409,31 +438,22 @@ void send_to_uart(uint8_t data) {
     USART1->DR = data; 
 }
 
-void SendRaw() {
-    sprintf(tele, "r%hd\n", azHistory[azHistoryIndex]);
-    len = strlen(tele);
-    Telemetry_DMA_Init();
-}
-
-void SendRawAndProcessed() {
-    sprintf(tele, "%hd\n", az);
-    len = strlen(tele);
-    Telemetry_DMA_Init();
-}
-
-void SendTelemetry() {
-    if (telemetryOn) {
-        sprintf(tele, "%.2f %.2f %.2f %hd %hd %hd %d %d %d %d %.2f %.2f %.2f %d\n", 
-                    angle, angularVelocity, angleAcceleration, finalAX, finalAY, finalAZ, pwm1, pwm2, COUNT1, COUNT2, Kp, Ki, Kd, angleFromAccel, Edes);
-
-        len = strlen(tele);
-        Telemetry_DMA_Init();
-    }
-}
-
 uint8_t USART_DMA_transferComleted = 1;
+void SendTelemetry(Message *msg) {
+    if (telemetryOn) {
+        if (USART_DMA_transferComleted) {
+            Message_ToByteArray(msg, tele);
+            len = Message_Size+2;
+
+            Telemetry_DMA_Init();
+        }
+    }
+    
+}
+
+
 void Telemetry_DMA_Init() {
-    if (USART_DMA_transferComleted) {
+    //if (USART_DMA_transferComleted) {
         USART_DMA_transferComleted = 0;
         NVIC_EnableIRQ(DMA2_Stream7_IRQn);
         
@@ -443,7 +463,7 @@ void Telemetry_DMA_Init() {
         DMA2_Stream7->NDTR  = len;
         DMA2_Stream7->CR    |= DMA_SxCR_CHSEL_2 | DMA_SxCR_MINC /*| DMA_SxCR_PSIZE_0 | DMA_SxCR_MSIZE_0 */| 
                                     DMA_SxCR_TCIE | DMA_SxCR_DIR_0  | DMA_SxCR_PL | DMA_SxCR_EN;
-    }
+    //}
 }
 
 void DMA2_Stream7_IRQHandler() {

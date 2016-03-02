@@ -33,35 +33,18 @@ QT_BEGIN_NAMESPACE
 class Ui_BoardConsoleClass
 {
 public:
-    QWidget *layoutWidget;
-    QHBoxLayout *horizontalLayout_12;
+    QHBoxLayout *horizontalLayout_6;
     QVBoxLayout *verticalLayout_12;
-    QHBoxLayout *horizontalLayout_2;
     QGroupBox *connectGroupBox;
-    QVBoxLayout *verticalLayout;
+    QHBoxLayout *horizontalLayout;
     QComboBox *serialComboBox;
     QPushButton *connectButton;
     QPushButton *programButton;
-    QGroupBox *accelgroupBox;
-    QVBoxLayout *verticalLayout_6;
-    QRadioButton *HZ25RadioButton;
-    QRadioButton *HZ50RadioButton;
-    QRadioButton *HZ100RadioButton;
-    QRadioButton *HZ800RadioButton;
-    QRadioButton *HZ1600RadioButton;
-    QRadioButton *HZ3200RadioButton;
-    QGroupBox *groupBox_4;
-    QVBoxLayout *verticalLayout_10;
-    QRadioButton *gyroHZ100RadioButton;
-    QRadioButton *gyroHZ250RadioButton;
-    QRadioButton *gyroHZ500RadioButton;
-    QRadioButton *gyroHZ1000RadioButton;
-    QHBoxLayout *horizontalLayout_6;
+    QHBoxLayout *horizontalLayout_3;
     QGroupBox *researchGroupBox;
     QVBoxLayout *verticalLayout_4;
     QCheckBox *lowpassFilterCheckBox;
     QCheckBox *turnUselessCheckBox;
-    QCheckBox *gyroRecalibrationCheckBox;
     QRadioButton *noResearchRadioButton;
     QRadioButton *operatorRadioButton;
     QRadioButton *adjustRadioButton;
@@ -75,12 +58,6 @@ public:
     QLineEdit *researchAmplLineEdit;
     QLabel *label_4;
     QLineEdit *researchFreqLineEdit;
-    QPushButton *tranquilityButton;
-    QLineEdit *tranquilityLineEdit;
-    QPushButton *pwmStepButton;
-    QLineEdit *pwmStepLineEdit;
-    QPushButton *everyNButton;
-    QLineEdit *everyNLineEdit;
     QGroupBox *stabGroupBox;
     QVBoxLayout *verticalLayout_2;
     QPushButton *stopMotorsButton;
@@ -99,27 +76,7 @@ public:
     QLabel *label_6;
     QLabel *pwm2Label;
     QSlider *pwm2Slider;
-    QPushButton *maxAngleButton;
-    QLineEdit *maxAngleLineEdit;
-    QPushButton *maxVelButton;
-    QLineEdit *maxVelLineEdit;
-    QPushButton *turnoffAngleButton;
-    QLineEdit *turnoffAngleLineEdit;
-    QPushButton *accelDeviationButton;
-    QLineEdit *accelDeviationLineEdit;
-    QGroupBox *groupBox;
-    QVBoxLayout *verticalLayout_8;
-    QHBoxLayout *horizontalLayout_7;
-    QPushButton *pButton;
-    QLineEdit *pLineEdit;
-    QHBoxLayout *horizontalLayout_9;
-    QPushButton *iButton;
-    QLineEdit *iLineEdit;
-    QHBoxLayout *horizontalLayout_8;
-    QPushButton *dButton;
-    QLineEdit *dLineEdit;
-    QVBoxLayout *verticalLayout_9;
-    QHBoxLayout *horizontalLayout_3;
+    QHBoxLayout *horizontalLayout_2;
     QGroupBox *telemetryGroupBox;
     QVBoxLayout *verticalLayout_11;
     QCheckBox *saveToFileCheckBox;
@@ -130,157 +87,87 @@ public:
     QCheckBox *angleCheckBox;
     QCheckBox *angVelCheckBox;
     QGroupBox *groupBox_3;
-    QHBoxLayout *horizontalLayout;
     QVBoxLayout *verticalLayout_3;
-    QRadioButton *fRadioButton;
     QCheckBox *fCheckBox;
     QCheckBox *pwm1CheckBox;
     QCheckBox *pwm2CheckBox;
+    QGroupBox *groupBox_5;
+    QVBoxLayout *verticalLayout_8;
+    QCheckBox *count1CheckBox;
+    QCheckBox *count2CheckBox;
+    QGroupBox *groupBox;
     QVBoxLayout *verticalLayout_5;
-    QRadioButton *gyroRadioButton;
-    QCheckBox *gxCheckBox;
-    QCheckBox *gyCheckBox;
-    QCheckBox *gzCheckBox;
+    QHBoxLayout *horizontalLayout_7;
+    QPushButton *pButton;
+    QLineEdit *pLineEdit;
+    QHBoxLayout *horizontalLayout_9;
+    QPushButton *iButton;
+    QLineEdit *iLineEdit;
+    QHBoxLayout *horizontalLayout_8;
+    QPushButton *dButton;
+    QLineEdit *dLineEdit;
+    QVBoxLayout *verticalLayout_10;
+    QGroupBox *groupBox_4;
+    QHBoxLayout *horizontalLayout_12;
     QwtPlot *plot1;
+    QGroupBox *groupBox_7;
+    QHBoxLayout *horizontalLayout_14;
     QwtPlot *plot2;
+    QGroupBox *groupBox_6;
+    QHBoxLayout *horizontalLayout_13;
+    QwtPlot *plot3;
 
     void setupUi(QWidget *BoardConsoleClass)
     {
         if (BoardConsoleClass->objectName().isEmpty())
             BoardConsoleClass->setObjectName(QStringLiteral("BoardConsoleClass"));
-        BoardConsoleClass->resize(785, 1019);
-        layoutWidget = new QWidget(BoardConsoleClass);
-        layoutWidget->setObjectName(QStringLiteral("layoutWidget"));
-        layoutWidget->setGeometry(QRect(11, 10, 769, 1003));
-        horizontalLayout_12 = new QHBoxLayout(layoutWidget);
-        horizontalLayout_12->setSpacing(6);
-        horizontalLayout_12->setContentsMargins(11, 11, 11, 11);
-        horizontalLayout_12->setObjectName(QStringLiteral("horizontalLayout_12"));
-        horizontalLayout_12->setContentsMargins(0, 0, 0, 0);
+        BoardConsoleClass->resize(839, 1227);
+        horizontalLayout_6 = new QHBoxLayout(BoardConsoleClass);
+        horizontalLayout_6->setSpacing(6);
+        horizontalLayout_6->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout_6->setObjectName(QStringLiteral("horizontalLayout_6"));
         verticalLayout_12 = new QVBoxLayout();
         verticalLayout_12->setSpacing(6);
         verticalLayout_12->setObjectName(QStringLiteral("verticalLayout_12"));
-        horizontalLayout_2 = new QHBoxLayout();
-        horizontalLayout_2->setSpacing(6);
-        horizontalLayout_2->setObjectName(QStringLiteral("horizontalLayout_2"));
-        connectGroupBox = new QGroupBox(layoutWidget);
+        connectGroupBox = new QGroupBox(BoardConsoleClass);
         connectGroupBox->setObjectName(QStringLiteral("connectGroupBox"));
         QSizePolicy sizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);
         sizePolicy.setHeightForWidth(connectGroupBox->sizePolicy().hasHeightForWidth());
         connectGroupBox->setSizePolicy(sizePolicy);
-        verticalLayout = new QVBoxLayout(connectGroupBox);
-        verticalLayout->setSpacing(6);
-        verticalLayout->setContentsMargins(11, 11, 11, 11);
-        verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
+        horizontalLayout = new QHBoxLayout(connectGroupBox);
+        horizontalLayout->setSpacing(6);
+        horizontalLayout->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
         serialComboBox = new QComboBox(connectGroupBox);
         serialComboBox->setObjectName(QStringLiteral("serialComboBox"));
         sizePolicy.setHeightForWidth(serialComboBox->sizePolicy().hasHeightForWidth());
         serialComboBox->setSizePolicy(sizePolicy);
 
-        verticalLayout->addWidget(serialComboBox);
+        horizontalLayout->addWidget(serialComboBox);
 
         connectButton = new QPushButton(connectGroupBox);
         connectButton->setObjectName(QStringLiteral("connectButton"));
         sizePolicy.setHeightForWidth(connectButton->sizePolicy().hasHeightForWidth());
         connectButton->setSizePolicy(sizePolicy);
 
-        verticalLayout->addWidget(connectButton);
+        horizontalLayout->addWidget(connectButton);
 
         programButton = new QPushButton(connectGroupBox);
         programButton->setObjectName(QStringLiteral("programButton"));
+        sizePolicy.setHeightForWidth(programButton->sizePolicy().hasHeightForWidth());
+        programButton->setSizePolicy(sizePolicy);
 
-        verticalLayout->addWidget(programButton);
-
-
-        horizontalLayout_2->addWidget(connectGroupBox);
-
-        accelgroupBox = new QGroupBox(layoutWidget);
-        accelgroupBox->setObjectName(QStringLiteral("accelgroupBox"));
-        sizePolicy.setHeightForWidth(accelgroupBox->sizePolicy().hasHeightForWidth());
-        accelgroupBox->setSizePolicy(sizePolicy);
-        verticalLayout_6 = new QVBoxLayout(accelgroupBox);
-        verticalLayout_6->setSpacing(6);
-        verticalLayout_6->setContentsMargins(11, 11, 11, 11);
-        verticalLayout_6->setObjectName(QStringLiteral("verticalLayout_6"));
-        HZ25RadioButton = new QRadioButton(accelgroupBox);
-        HZ25RadioButton->setObjectName(QStringLiteral("HZ25RadioButton"));
-
-        verticalLayout_6->addWidget(HZ25RadioButton);
-
-        HZ50RadioButton = new QRadioButton(accelgroupBox);
-        HZ50RadioButton->setObjectName(QStringLiteral("HZ50RadioButton"));
-
-        verticalLayout_6->addWidget(HZ50RadioButton);
-
-        HZ100RadioButton = new QRadioButton(accelgroupBox);
-        HZ100RadioButton->setObjectName(QStringLiteral("HZ100RadioButton"));
-        HZ100RadioButton->setChecked(false);
-
-        verticalLayout_6->addWidget(HZ100RadioButton);
-
-        HZ800RadioButton = new QRadioButton(accelgroupBox);
-        HZ800RadioButton->setObjectName(QStringLiteral("HZ800RadioButton"));
-        HZ800RadioButton->setChecked(false);
-
-        verticalLayout_6->addWidget(HZ800RadioButton);
-
-        HZ1600RadioButton = new QRadioButton(accelgroupBox);
-        HZ1600RadioButton->setObjectName(QStringLiteral("HZ1600RadioButton"));
-        HZ1600RadioButton->setChecked(true);
-
-        verticalLayout_6->addWidget(HZ1600RadioButton);
-
-        HZ3200RadioButton = new QRadioButton(accelgroupBox);
-        HZ3200RadioButton->setObjectName(QStringLiteral("HZ3200RadioButton"));
-
-        verticalLayout_6->addWidget(HZ3200RadioButton);
+        horizontalLayout->addWidget(programButton);
 
 
-        horizontalLayout_2->addWidget(accelgroupBox);
+        verticalLayout_12->addWidget(connectGroupBox);
 
-        groupBox_4 = new QGroupBox(layoutWidget);
-        groupBox_4->setObjectName(QStringLiteral("groupBox_4"));
-        sizePolicy.setHeightForWidth(groupBox_4->sizePolicy().hasHeightForWidth());
-        groupBox_4->setSizePolicy(sizePolicy);
-        verticalLayout_10 = new QVBoxLayout(groupBox_4);
-        verticalLayout_10->setSpacing(6);
-        verticalLayout_10->setContentsMargins(11, 11, 11, 11);
-        verticalLayout_10->setObjectName(QStringLiteral("verticalLayout_10"));
-        gyroHZ100RadioButton = new QRadioButton(groupBox_4);
-        gyroHZ100RadioButton->setObjectName(QStringLiteral("gyroHZ100RadioButton"));
-        gyroHZ100RadioButton->setChecked(false);
-
-        verticalLayout_10->addWidget(gyroHZ100RadioButton);
-
-        gyroHZ250RadioButton = new QRadioButton(groupBox_4);
-        gyroHZ250RadioButton->setObjectName(QStringLiteral("gyroHZ250RadioButton"));
-
-        verticalLayout_10->addWidget(gyroHZ250RadioButton);
-
-        gyroHZ500RadioButton = new QRadioButton(groupBox_4);
-        gyroHZ500RadioButton->setObjectName(QStringLiteral("gyroHZ500RadioButton"));
-        gyroHZ500RadioButton->setChecked(false);
-
-        verticalLayout_10->addWidget(gyroHZ500RadioButton);
-
-        gyroHZ1000RadioButton = new QRadioButton(groupBox_4);
-        gyroHZ1000RadioButton->setObjectName(QStringLiteral("gyroHZ1000RadioButton"));
-        gyroHZ1000RadioButton->setChecked(true);
-
-        verticalLayout_10->addWidget(gyroHZ1000RadioButton);
-
-
-        horizontalLayout_2->addWidget(groupBox_4);
-
-
-        verticalLayout_12->addLayout(horizontalLayout_2);
-
-        horizontalLayout_6 = new QHBoxLayout();
-        horizontalLayout_6->setSpacing(6);
-        horizontalLayout_6->setObjectName(QStringLiteral("horizontalLayout_6"));
-        researchGroupBox = new QGroupBox(layoutWidget);
+        horizontalLayout_3 = new QHBoxLayout();
+        horizontalLayout_3->setSpacing(6);
+        horizontalLayout_3->setObjectName(QStringLiteral("horizontalLayout_3"));
+        researchGroupBox = new QGroupBox(BoardConsoleClass);
         researchGroupBox->setObjectName(QStringLiteral("researchGroupBox"));
         sizePolicy.setHeightForWidth(researchGroupBox->sizePolicy().hasHeightForWidth());
         researchGroupBox->setSizePolicy(sizePolicy);
@@ -290,63 +177,80 @@ public:
         verticalLayout_4->setObjectName(QStringLiteral("verticalLayout_4"));
         lowpassFilterCheckBox = new QCheckBox(researchGroupBox);
         lowpassFilterCheckBox->setObjectName(QStringLiteral("lowpassFilterCheckBox"));
+        sizePolicy.setHeightForWidth(lowpassFilterCheckBox->sizePolicy().hasHeightForWidth());
+        lowpassFilterCheckBox->setSizePolicy(sizePolicy);
         lowpassFilterCheckBox->setChecked(true);
 
         verticalLayout_4->addWidget(lowpassFilterCheckBox);
 
         turnUselessCheckBox = new QCheckBox(researchGroupBox);
         turnUselessCheckBox->setObjectName(QStringLiteral("turnUselessCheckBox"));
+        sizePolicy.setHeightForWidth(turnUselessCheckBox->sizePolicy().hasHeightForWidth());
+        turnUselessCheckBox->setSizePolicy(sizePolicy);
 
         verticalLayout_4->addWidget(turnUselessCheckBox);
 
-        gyroRecalibrationCheckBox = new QCheckBox(researchGroupBox);
-        gyroRecalibrationCheckBox->setObjectName(QStringLiteral("gyroRecalibrationCheckBox"));
-
-        verticalLayout_4->addWidget(gyroRecalibrationCheckBox);
-
         noResearchRadioButton = new QRadioButton(researchGroupBox);
         noResearchRadioButton->setObjectName(QStringLiteral("noResearchRadioButton"));
+        sizePolicy.setHeightForWidth(noResearchRadioButton->sizePolicy().hasHeightForWidth());
+        noResearchRadioButton->setSizePolicy(sizePolicy);
         noResearchRadioButton->setChecked(true);
 
         verticalLayout_4->addWidget(noResearchRadioButton);
 
         operatorRadioButton = new QRadioButton(researchGroupBox);
         operatorRadioButton->setObjectName(QStringLiteral("operatorRadioButton"));
+        sizePolicy.setHeightForWidth(operatorRadioButton->sizePolicy().hasHeightForWidth());
+        operatorRadioButton->setSizePolicy(sizePolicy);
 
         verticalLayout_4->addWidget(operatorRadioButton);
 
         adjustRadioButton = new QRadioButton(researchGroupBox);
         adjustRadioButton->setObjectName(QStringLiteral("adjustRadioButton"));
+        sizePolicy.setHeightForWidth(adjustRadioButton->sizePolicy().hasHeightForWidth());
+        adjustRadioButton->setSizePolicy(sizePolicy);
 
         verticalLayout_4->addWidget(adjustRadioButton);
 
         simpleRadioButton = new QRadioButton(researchGroupBox);
         simpleRadioButton->setObjectName(QStringLiteral("simpleRadioButton"));
+        sizePolicy.setHeightForWidth(simpleRadioButton->sizePolicy().hasHeightForWidth());
+        simpleRadioButton->setSizePolicy(sizePolicy);
 
         verticalLayout_4->addWidget(simpleRadioButton);
 
         pidRadioButton = new QRadioButton(researchGroupBox);
         pidRadioButton->setObjectName(QStringLiteral("pidRadioButton"));
+        sizePolicy.setHeightForWidth(pidRadioButton->sizePolicy().hasHeightForWidth());
+        pidRadioButton->setSizePolicy(sizePolicy);
 
         verticalLayout_4->addWidget(pidRadioButton);
 
         impulseRadioButton = new QRadioButton(researchGroupBox);
         impulseRadioButton->setObjectName(QStringLiteral("impulseRadioButton"));
+        sizePolicy.setHeightForWidth(impulseRadioButton->sizePolicy().hasHeightForWidth());
+        impulseRadioButton->setSizePolicy(sizePolicy);
 
         verticalLayout_4->addWidget(impulseRadioButton);
 
         stepRadioButton = new QRadioButton(researchGroupBox);
         stepRadioButton->setObjectName(QStringLiteral("stepRadioButton"));
+        sizePolicy.setHeightForWidth(stepRadioButton->sizePolicy().hasHeightForWidth());
+        stepRadioButton->setSizePolicy(sizePolicy);
 
         verticalLayout_4->addWidget(stepRadioButton);
 
         sineRadioButton = new QRadioButton(researchGroupBox);
         sineRadioButton->setObjectName(QStringLiteral("sineRadioButton"));
+        sizePolicy.setHeightForWidth(sineRadioButton->sizePolicy().hasHeightForWidth());
+        sineRadioButton->setSizePolicy(sizePolicy);
 
         verticalLayout_4->addWidget(sineRadioButton);
 
         expRadioButton = new QRadioButton(researchGroupBox);
         expRadioButton->setObjectName(QStringLiteral("expRadioButton"));
+        sizePolicy.setHeightForWidth(expRadioButton->sizePolicy().hasHeightForWidth());
+        expRadioButton->setSizePolicy(sizePolicy);
 
         verticalLayout_4->addWidget(expRadioButton);
 
@@ -378,40 +282,10 @@ public:
 
         verticalLayout_4->addWidget(researchFreqLineEdit);
 
-        tranquilityButton = new QPushButton(researchGroupBox);
-        tranquilityButton->setObjectName(QStringLiteral("tranquilityButton"));
 
-        verticalLayout_4->addWidget(tranquilityButton);
+        horizontalLayout_3->addWidget(researchGroupBox);
 
-        tranquilityLineEdit = new QLineEdit(researchGroupBox);
-        tranquilityLineEdit->setObjectName(QStringLiteral("tranquilityLineEdit"));
-
-        verticalLayout_4->addWidget(tranquilityLineEdit);
-
-        pwmStepButton = new QPushButton(researchGroupBox);
-        pwmStepButton->setObjectName(QStringLiteral("pwmStepButton"));
-
-        verticalLayout_4->addWidget(pwmStepButton);
-
-        pwmStepLineEdit = new QLineEdit(researchGroupBox);
-        pwmStepLineEdit->setObjectName(QStringLiteral("pwmStepLineEdit"));
-
-        verticalLayout_4->addWidget(pwmStepLineEdit);
-
-        everyNButton = new QPushButton(researchGroupBox);
-        everyNButton->setObjectName(QStringLiteral("everyNButton"));
-
-        verticalLayout_4->addWidget(everyNButton);
-
-        everyNLineEdit = new QLineEdit(researchGroupBox);
-        everyNLineEdit->setObjectName(QStringLiteral("everyNLineEdit"));
-
-        verticalLayout_4->addWidget(everyNLineEdit);
-
-
-        horizontalLayout_6->addWidget(researchGroupBox);
-
-        stabGroupBox = new QGroupBox(layoutWidget);
+        stabGroupBox = new QGroupBox(BoardConsoleClass);
         stabGroupBox->setObjectName(QStringLiteral("stabGroupBox"));
         sizePolicy.setHeightForWidth(stabGroupBox->sizePolicy().hasHeightForWidth());
         stabGroupBox->setSizePolicy(sizePolicy);
@@ -503,6 +377,8 @@ public:
 
         pwm1Slider = new QSlider(stabGroupBox);
         pwm1Slider->setObjectName(QStringLiteral("pwm1Slider"));
+        sizePolicy.setHeightForWidth(pwm1Slider->sizePolicy().hasHeightForWidth());
+        pwm1Slider->setSizePolicy(sizePolicy);
         pwm1Slider->setMinimum(1000);
         pwm1Slider->setMaximum(2000);
         pwm1Slider->setOrientation(Qt::Horizontal);
@@ -531,69 +407,156 @@ public:
 
         pwm2Slider = new QSlider(stabGroupBox);
         pwm2Slider->setObjectName(QStringLiteral("pwm2Slider"));
+        sizePolicy.setHeightForWidth(pwm2Slider->sizePolicy().hasHeightForWidth());
+        pwm2Slider->setSizePolicy(sizePolicy);
         pwm2Slider->setMinimum(1000);
         pwm2Slider->setMaximum(2000);
         pwm2Slider->setOrientation(Qt::Horizontal);
 
         verticalLayout_2->addWidget(pwm2Slider);
 
-        maxAngleButton = new QPushButton(stabGroupBox);
-        maxAngleButton->setObjectName(QStringLiteral("maxAngleButton"));
 
-        verticalLayout_2->addWidget(maxAngleButton);
-
-        maxAngleLineEdit = new QLineEdit(stabGroupBox);
-        maxAngleLineEdit->setObjectName(QStringLiteral("maxAngleLineEdit"));
-
-        verticalLayout_2->addWidget(maxAngleLineEdit);
-
-        maxVelButton = new QPushButton(stabGroupBox);
-        maxVelButton->setObjectName(QStringLiteral("maxVelButton"));
-
-        verticalLayout_2->addWidget(maxVelButton);
-
-        maxVelLineEdit = new QLineEdit(stabGroupBox);
-        maxVelLineEdit->setObjectName(QStringLiteral("maxVelLineEdit"));
-
-        verticalLayout_2->addWidget(maxVelLineEdit);
-
-        turnoffAngleButton = new QPushButton(stabGroupBox);
-        turnoffAngleButton->setObjectName(QStringLiteral("turnoffAngleButton"));
-
-        verticalLayout_2->addWidget(turnoffAngleButton);
-
-        turnoffAngleLineEdit = new QLineEdit(stabGroupBox);
-        turnoffAngleLineEdit->setObjectName(QStringLiteral("turnoffAngleLineEdit"));
-
-        verticalLayout_2->addWidget(turnoffAngleLineEdit);
-
-        accelDeviationButton = new QPushButton(stabGroupBox);
-        accelDeviationButton->setObjectName(QStringLiteral("accelDeviationButton"));
-
-        verticalLayout_2->addWidget(accelDeviationButton);
-
-        accelDeviationLineEdit = new QLineEdit(stabGroupBox);
-        accelDeviationLineEdit->setObjectName(QStringLiteral("accelDeviationLineEdit"));
-
-        verticalLayout_2->addWidget(accelDeviationLineEdit);
+        horizontalLayout_3->addWidget(stabGroupBox);
 
 
-        horizontalLayout_6->addWidget(stabGroupBox);
+        verticalLayout_12->addLayout(horizontalLayout_3);
+
+        horizontalLayout_2 = new QHBoxLayout();
+        horizontalLayout_2->setSpacing(6);
+        horizontalLayout_2->setObjectName(QStringLiteral("horizontalLayout_2"));
+        telemetryGroupBox = new QGroupBox(BoardConsoleClass);
+        telemetryGroupBox->setObjectName(QStringLiteral("telemetryGroupBox"));
+        sizePolicy.setHeightForWidth(telemetryGroupBox->sizePolicy().hasHeightForWidth());
+        telemetryGroupBox->setSizePolicy(sizePolicy);
+        verticalLayout_11 = new QVBoxLayout(telemetryGroupBox);
+        verticalLayout_11->setSpacing(6);
+        verticalLayout_11->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_11->setObjectName(QStringLiteral("verticalLayout_11"));
+        saveToFileCheckBox = new QCheckBox(telemetryGroupBox);
+        saveToFileCheckBox->setObjectName(QStringLiteral("saveToFileCheckBox"));
+        sizePolicy.setHeightForWidth(saveToFileCheckBox->sizePolicy().hasHeightForWidth());
+        saveToFileCheckBox->setSizePolicy(sizePolicy);
+        saveToFileCheckBox->setChecked(true);
+
+        verticalLayout_11->addWidget(saveToFileCheckBox);
+
+        telemetryToggleButton = new QPushButton(telemetryGroupBox);
+        telemetryToggleButton->setObjectName(QStringLiteral("telemetryToggleButton"));
+        sizePolicy.setHeightForWidth(telemetryToggleButton->sizePolicy().hasHeightForWidth());
+        telemetryToggleButton->setSizePolicy(sizePolicy);
+
+        verticalLayout_11->addWidget(telemetryToggleButton);
+
+        clearTelemetryButton = new QPushButton(telemetryGroupBox);
+        clearTelemetryButton->setObjectName(QStringLiteral("clearTelemetryButton"));
+        sizePolicy.setHeightForWidth(clearTelemetryButton->sizePolicy().hasHeightForWidth());
+        clearTelemetryButton->setSizePolicy(sizePolicy);
+
+        verticalLayout_11->addWidget(clearTelemetryButton);
 
 
-        verticalLayout_12->addLayout(horizontalLayout_6);
+        horizontalLayout_2->addWidget(telemetryGroupBox);
 
-        groupBox = new QGroupBox(layoutWidget);
-        groupBox->setObjectName(QStringLiteral("groupBox"));
-        QSizePolicy sizePolicy1(QSizePolicy::Preferred, QSizePolicy::Fixed);
-        sizePolicy1.setHorizontalStretch(0);
-        sizePolicy1.setVerticalStretch(0);
-        sizePolicy1.setHeightForWidth(groupBox->sizePolicy().hasHeightForWidth());
-        groupBox->setSizePolicy(sizePolicy1);
-        verticalLayout_8 = new QVBoxLayout(groupBox);
+        groupBox_2 = new QGroupBox(BoardConsoleClass);
+        groupBox_2->setObjectName(QStringLiteral("groupBox_2"));
+        sizePolicy.setHeightForWidth(groupBox_2->sizePolicy().hasHeightForWidth());
+        groupBox_2->setSizePolicy(sizePolicy);
+        verticalLayout_7 = new QVBoxLayout(groupBox_2);
+        verticalLayout_7->setSpacing(6);
+        verticalLayout_7->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_7->setObjectName(QStringLiteral("verticalLayout_7"));
+        angleCheckBox = new QCheckBox(groupBox_2);
+        angleCheckBox->setObjectName(QStringLiteral("angleCheckBox"));
+        sizePolicy.setHeightForWidth(angleCheckBox->sizePolicy().hasHeightForWidth());
+        angleCheckBox->setSizePolicy(sizePolicy);
+        angleCheckBox->setChecked(true);
+
+        verticalLayout_7->addWidget(angleCheckBox);
+
+        angVelCheckBox = new QCheckBox(groupBox_2);
+        angVelCheckBox->setObjectName(QStringLiteral("angVelCheckBox"));
+        sizePolicy.setHeightForWidth(angVelCheckBox->sizePolicy().hasHeightForWidth());
+        angVelCheckBox->setSizePolicy(sizePolicy);
+        angVelCheckBox->setChecked(true);
+
+        verticalLayout_7->addWidget(angVelCheckBox);
+
+
+        horizontalLayout_2->addWidget(groupBox_2);
+
+        groupBox_3 = new QGroupBox(BoardConsoleClass);
+        groupBox_3->setObjectName(QStringLiteral("groupBox_3"));
+        sizePolicy.setHeightForWidth(groupBox_3->sizePolicy().hasHeightForWidth());
+        groupBox_3->setSizePolicy(sizePolicy);
+        verticalLayout_3 = new QVBoxLayout(groupBox_3);
+        verticalLayout_3->setSpacing(6);
+        verticalLayout_3->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_3->setObjectName(QStringLiteral("verticalLayout_3"));
+        fCheckBox = new QCheckBox(groupBox_3);
+        fCheckBox->setObjectName(QStringLiteral("fCheckBox"));
+        sizePolicy.setHeightForWidth(fCheckBox->sizePolicy().hasHeightForWidth());
+        fCheckBox->setSizePolicy(sizePolicy);
+        fCheckBox->setChecked(false);
+
+        verticalLayout_3->addWidget(fCheckBox);
+
+        pwm1CheckBox = new QCheckBox(groupBox_3);
+        pwm1CheckBox->setObjectName(QStringLiteral("pwm1CheckBox"));
+        sizePolicy.setHeightForWidth(pwm1CheckBox->sizePolicy().hasHeightForWidth());
+        pwm1CheckBox->setSizePolicy(sizePolicy);
+        pwm1CheckBox->setChecked(true);
+
+        verticalLayout_3->addWidget(pwm1CheckBox);
+
+        pwm2CheckBox = new QCheckBox(groupBox_3);
+        pwm2CheckBox->setObjectName(QStringLiteral("pwm2CheckBox"));
+        sizePolicy.setHeightForWidth(pwm2CheckBox->sizePolicy().hasHeightForWidth());
+        pwm2CheckBox->setSizePolicy(sizePolicy);
+        pwm2CheckBox->setChecked(true);
+
+        verticalLayout_3->addWidget(pwm2CheckBox);
+
+
+        horizontalLayout_2->addWidget(groupBox_3);
+
+        groupBox_5 = new QGroupBox(BoardConsoleClass);
+        groupBox_5->setObjectName(QStringLiteral("groupBox_5"));
+        sizePolicy.setHeightForWidth(groupBox_5->sizePolicy().hasHeightForWidth());
+        groupBox_5->setSizePolicy(sizePolicy);
+        verticalLayout_8 = new QVBoxLayout(groupBox_5);
         verticalLayout_8->setSpacing(6);
         verticalLayout_8->setContentsMargins(11, 11, 11, 11);
         verticalLayout_8->setObjectName(QStringLiteral("verticalLayout_8"));
+        count1CheckBox = new QCheckBox(groupBox_5);
+        count1CheckBox->setObjectName(QStringLiteral("count1CheckBox"));
+        sizePolicy.setHeightForWidth(count1CheckBox->sizePolicy().hasHeightForWidth());
+        count1CheckBox->setSizePolicy(sizePolicy);
+        count1CheckBox->setChecked(true);
+
+        verticalLayout_8->addWidget(count1CheckBox);
+
+        count2CheckBox = new QCheckBox(groupBox_5);
+        count2CheckBox->setObjectName(QStringLiteral("count2CheckBox"));
+        sizePolicy.setHeightForWidth(count2CheckBox->sizePolicy().hasHeightForWidth());
+        count2CheckBox->setSizePolicy(sizePolicy);
+        count2CheckBox->setChecked(true);
+
+        verticalLayout_8->addWidget(count2CheckBox);
+
+
+        horizontalLayout_2->addWidget(groupBox_5);
+
+
+        verticalLayout_12->addLayout(horizontalLayout_2);
+
+        groupBox = new QGroupBox(BoardConsoleClass);
+        groupBox->setObjectName(QStringLiteral("groupBox"));
+        sizePolicy.setHeightForWidth(groupBox->sizePolicy().hasHeightForWidth());
+        groupBox->setSizePolicy(sizePolicy);
+        verticalLayout_5 = new QVBoxLayout(groupBox);
+        verticalLayout_5->setSpacing(6);
+        verticalLayout_5->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_5->setObjectName(QStringLiteral("verticalLayout_5"));
         horizontalLayout_7 = new QHBoxLayout();
         horizontalLayout_7->setSpacing(6);
         horizontalLayout_7->setObjectName(QStringLiteral("horizontalLayout_7"));
@@ -612,7 +575,7 @@ public:
         horizontalLayout_7->addWidget(pLineEdit);
 
 
-        verticalLayout_8->addLayout(horizontalLayout_7);
+        verticalLayout_5->addLayout(horizontalLayout_7);
 
         horizontalLayout_9 = new QHBoxLayout();
         horizontalLayout_9->setSpacing(6);
@@ -632,7 +595,7 @@ public:
         horizontalLayout_9->addWidget(iLineEdit);
 
 
-        verticalLayout_8->addLayout(horizontalLayout_9);
+        verticalLayout_5->addLayout(horizontalLayout_9);
 
         horizontalLayout_8 = new QHBoxLayout();
         horizontalLayout_8->setSpacing(6);
@@ -652,148 +615,79 @@ public:
         horizontalLayout_8->addWidget(dLineEdit);
 
 
-        verticalLayout_8->addLayout(horizontalLayout_8);
+        verticalLayout_5->addLayout(horizontalLayout_8);
 
 
         verticalLayout_12->addWidget(groupBox);
 
 
-        horizontalLayout_12->addLayout(verticalLayout_12);
+        horizontalLayout_6->addLayout(verticalLayout_12);
 
-        verticalLayout_9 = new QVBoxLayout();
-        verticalLayout_9->setSpacing(6);
-        verticalLayout_9->setObjectName(QStringLiteral("verticalLayout_9"));
-        horizontalLayout_3 = new QHBoxLayout();
-        horizontalLayout_3->setSpacing(6);
-        horizontalLayout_3->setObjectName(QStringLiteral("horizontalLayout_3"));
-        telemetryGroupBox = new QGroupBox(layoutWidget);
-        telemetryGroupBox->setObjectName(QStringLiteral("telemetryGroupBox"));
-        verticalLayout_11 = new QVBoxLayout(telemetryGroupBox);
-        verticalLayout_11->setSpacing(6);
-        verticalLayout_11->setContentsMargins(11, 11, 11, 11);
-        verticalLayout_11->setObjectName(QStringLiteral("verticalLayout_11"));
-        saveToFileCheckBox = new QCheckBox(telemetryGroupBox);
-        saveToFileCheckBox->setObjectName(QStringLiteral("saveToFileCheckBox"));
-        saveToFileCheckBox->setChecked(true);
-
-        verticalLayout_11->addWidget(saveToFileCheckBox);
-
-        telemetryToggleButton = new QPushButton(telemetryGroupBox);
-        telemetryToggleButton->setObjectName(QStringLiteral("telemetryToggleButton"));
-
-        verticalLayout_11->addWidget(telemetryToggleButton);
-
-        clearTelemetryButton = new QPushButton(telemetryGroupBox);
-        clearTelemetryButton->setObjectName(QStringLiteral("clearTelemetryButton"));
-
-        verticalLayout_11->addWidget(clearTelemetryButton);
-
-
-        horizontalLayout_3->addWidget(telemetryGroupBox);
-
-        groupBox_2 = new QGroupBox(layoutWidget);
-        groupBox_2->setObjectName(QStringLiteral("groupBox_2"));
-        verticalLayout_7 = new QVBoxLayout(groupBox_2);
-        verticalLayout_7->setSpacing(6);
-        verticalLayout_7->setContentsMargins(11, 11, 11, 11);
-        verticalLayout_7->setObjectName(QStringLiteral("verticalLayout_7"));
-        angleCheckBox = new QCheckBox(groupBox_2);
-        angleCheckBox->setObjectName(QStringLiteral("angleCheckBox"));
-        angleCheckBox->setChecked(true);
-
-        verticalLayout_7->addWidget(angleCheckBox);
-
-        angVelCheckBox = new QCheckBox(groupBox_2);
-        angVelCheckBox->setObjectName(QStringLiteral("angVelCheckBox"));
-        angVelCheckBox->setChecked(true);
-
-        verticalLayout_7->addWidget(angVelCheckBox);
-
-
-        horizontalLayout_3->addWidget(groupBox_2);
-
-        groupBox_3 = new QGroupBox(layoutWidget);
-        groupBox_3->setObjectName(QStringLiteral("groupBox_3"));
-        horizontalLayout = new QHBoxLayout(groupBox_3);
-        horizontalLayout->setSpacing(6);
-        horizontalLayout->setContentsMargins(11, 11, 11, 11);
-        horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
-        verticalLayout_3 = new QVBoxLayout();
-        verticalLayout_3->setSpacing(6);
-        verticalLayout_3->setObjectName(QStringLiteral("verticalLayout_3"));
-        fRadioButton = new QRadioButton(groupBox_3);
-        fRadioButton->setObjectName(QStringLiteral("fRadioButton"));
-        fRadioButton->setChecked(true);
-
-        verticalLayout_3->addWidget(fRadioButton);
-
-        fCheckBox = new QCheckBox(groupBox_3);
-        fCheckBox->setObjectName(QStringLiteral("fCheckBox"));
-        fCheckBox->setChecked(false);
-
-        verticalLayout_3->addWidget(fCheckBox);
-
-        pwm1CheckBox = new QCheckBox(groupBox_3);
-        pwm1CheckBox->setObjectName(QStringLiteral("pwm1CheckBox"));
-        pwm1CheckBox->setChecked(true);
-
-        verticalLayout_3->addWidget(pwm1CheckBox);
-
-        pwm2CheckBox = new QCheckBox(groupBox_3);
-        pwm2CheckBox->setObjectName(QStringLiteral("pwm2CheckBox"));
-        pwm2CheckBox->setChecked(true);
-
-        verticalLayout_3->addWidget(pwm2CheckBox);
-
-
-        horizontalLayout->addLayout(verticalLayout_3);
-
-        verticalLayout_5 = new QVBoxLayout();
-        verticalLayout_5->setSpacing(6);
-        verticalLayout_5->setObjectName(QStringLiteral("verticalLayout_5"));
-        gyroRadioButton = new QRadioButton(groupBox_3);
-        gyroRadioButton->setObjectName(QStringLiteral("gyroRadioButton"));
-        gyroRadioButton->setChecked(false);
-
-        verticalLayout_5->addWidget(gyroRadioButton);
-
-        gxCheckBox = new QCheckBox(groupBox_3);
-        gxCheckBox->setObjectName(QStringLiteral("gxCheckBox"));
-        gxCheckBox->setChecked(true);
-
-        verticalLayout_5->addWidget(gxCheckBox);
-
-        gyCheckBox = new QCheckBox(groupBox_3);
-        gyCheckBox->setObjectName(QStringLiteral("gyCheckBox"));
-
-        verticalLayout_5->addWidget(gyCheckBox);
-
-        gzCheckBox = new QCheckBox(groupBox_3);
-        gzCheckBox->setObjectName(QStringLiteral("gzCheckBox"));
-
-        verticalLayout_5->addWidget(gzCheckBox);
-
-
-        horizontalLayout->addLayout(verticalLayout_5);
-
-
-        horizontalLayout_3->addWidget(groupBox_3);
-
-
-        verticalLayout_9->addLayout(horizontalLayout_3);
-
-        plot1 = new QwtPlot(layoutWidget);
+        verticalLayout_10 = new QVBoxLayout();
+        verticalLayout_10->setSpacing(6);
+        verticalLayout_10->setObjectName(QStringLiteral("verticalLayout_10"));
+        groupBox_4 = new QGroupBox(BoardConsoleClass);
+        groupBox_4->setObjectName(QStringLiteral("groupBox_4"));
+        QSizePolicy sizePolicy1(QSizePolicy::Minimum, QSizePolicy::Fixed);
+        sizePolicy1.setHorizontalStretch(0);
+        sizePolicy1.setVerticalStretch(0);
+        sizePolicy1.setHeightForWidth(groupBox_4->sizePolicy().hasHeightForWidth());
+        groupBox_4->setSizePolicy(sizePolicy1);
+        horizontalLayout_12 = new QHBoxLayout(groupBox_4);
+        horizontalLayout_12->setSpacing(6);
+        horizontalLayout_12->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout_12->setObjectName(QStringLiteral("horizontalLayout_12"));
+        plot1 = new QwtPlot(groupBox_4);
         plot1->setObjectName(QStringLiteral("plot1"));
+        QSizePolicy sizePolicy2(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+        sizePolicy2.setHorizontalStretch(0);
+        sizePolicy2.setVerticalStretch(0);
+        sizePolicy2.setHeightForWidth(plot1->sizePolicy().hasHeightForWidth());
+        plot1->setSizePolicy(sizePolicy2);
 
-        verticalLayout_9->addWidget(plot1);
+        horizontalLayout_12->addWidget(plot1);
 
-        plot2 = new QwtPlot(layoutWidget);
+
+        verticalLayout_10->addWidget(groupBox_4);
+
+        groupBox_7 = new QGroupBox(BoardConsoleClass);
+        groupBox_7->setObjectName(QStringLiteral("groupBox_7"));
+        sizePolicy1.setHeightForWidth(groupBox_7->sizePolicy().hasHeightForWidth());
+        groupBox_7->setSizePolicy(sizePolicy1);
+        horizontalLayout_14 = new QHBoxLayout(groupBox_7);
+        horizontalLayout_14->setSpacing(6);
+        horizontalLayout_14->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout_14->setObjectName(QStringLiteral("horizontalLayout_14"));
+        plot2 = new QwtPlot(groupBox_7);
         plot2->setObjectName(QStringLiteral("plot2"));
+        sizePolicy2.setHeightForWidth(plot2->sizePolicy().hasHeightForWidth());
+        plot2->setSizePolicy(sizePolicy2);
 
-        verticalLayout_9->addWidget(plot2);
+        horizontalLayout_14->addWidget(plot2);
 
 
-        horizontalLayout_12->addLayout(verticalLayout_9);
+        verticalLayout_10->addWidget(groupBox_7);
+
+        groupBox_6 = new QGroupBox(BoardConsoleClass);
+        groupBox_6->setObjectName(QStringLiteral("groupBox_6"));
+        sizePolicy1.setHeightForWidth(groupBox_6->sizePolicy().hasHeightForWidth());
+        groupBox_6->setSizePolicy(sizePolicy1);
+        horizontalLayout_13 = new QHBoxLayout(groupBox_6);
+        horizontalLayout_13->setSpacing(6);
+        horizontalLayout_13->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout_13->setObjectName(QStringLiteral("horizontalLayout_13"));
+        plot3 = new QwtPlot(groupBox_6);
+        plot3->setObjectName(QStringLiteral("plot3"));
+        sizePolicy2.setHeightForWidth(plot3->sizePolicy().hasHeightForWidth());
+        plot3->setSizePolicy(sizePolicy2);
+
+        horizontalLayout_13->addWidget(plot3);
+
+
+        verticalLayout_10->addWidget(groupBox_6);
+
+
+        horizontalLayout_6->addLayout(verticalLayout_10);
 
 
         retranslateUi(BoardConsoleClass);
@@ -807,22 +701,9 @@ public:
         connectGroupBox->setTitle(QApplication::translate("BoardConsoleClass", "STM", 0));
         connectButton->setText(QApplication::translate("BoardConsoleClass", "Connect", 0));
         programButton->setText(QApplication::translate("BoardConsoleClass", "Program", 0));
-        accelgroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Accel", 0));
-        HZ25RadioButton->setText(QApplication::translate("BoardConsoleClass", "25 Hz", 0));
-        HZ50RadioButton->setText(QApplication::translate("BoardConsoleClass", "50 Hz", 0));
-        HZ100RadioButton->setText(QApplication::translate("BoardConsoleClass", "100 Hz", 0));
-        HZ800RadioButton->setText(QApplication::translate("BoardConsoleClass", "800 Hz", 0));
-        HZ1600RadioButton->setText(QApplication::translate("BoardConsoleClass", "1600 Hz", 0));
-        HZ3200RadioButton->setText(QApplication::translate("BoardConsoleClass", "3200 Hz", 0));
-        groupBox_4->setTitle(QApplication::translate("BoardConsoleClass", "Gyro", 0));
-        gyroHZ100RadioButton->setText(QApplication::translate("BoardConsoleClass", "100 Hz", 0));
-        gyroHZ250RadioButton->setText(QApplication::translate("BoardConsoleClass", "250 Hz", 0));
-        gyroHZ500RadioButton->setText(QApplication::translate("BoardConsoleClass", "500 Hz", 0));
-        gyroHZ1000RadioButton->setText(QApplication::translate("BoardConsoleClass", "1000 Hz", 0));
         researchGroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Research", 0));
         lowpassFilterCheckBox->setText(QApplication::translate("BoardConsoleClass", "lowpass", 0));
         turnUselessCheckBox->setText(QApplication::translate("BoardConsoleClass", "Turn Useless", 0));
-        gyroRecalibrationCheckBox->setText(QApplication::translate("BoardConsoleClass", "Gyro Recalibration", 0));
         noResearchRadioButton->setText(QApplication::translate("BoardConsoleClass", "No Research", 0));
         operatorRadioButton->setText(QApplication::translate("BoardConsoleClass", "Operator", 0));
         adjustRadioButton->setText(QApplication::translate("BoardConsoleClass", "Adjust", 0));
@@ -836,12 +717,6 @@ public:
         researchAmplLineEdit->setText(QApplication::translate("BoardConsoleClass", "1.0", 0));
         label_4->setText(QApplication::translate("BoardConsoleClass", "Frequency", 0));
         researchFreqLineEdit->setText(QApplication::translate("BoardConsoleClass", "0.01", 0));
-        tranquilityButton->setText(QApplication::translate("BoardConsoleClass", "Tranquility Time (ms)", 0));
-        tranquilityLineEdit->setText(QApplication::translate("BoardConsoleClass", "300", 0));
-        pwmStepButton->setText(QApplication::translate("BoardConsoleClass", "PWM Step", 0));
-        pwmStepLineEdit->setText(QApplication::translate("BoardConsoleClass", "10", 0));
-        everyNButton->setText(QApplication::translate("BoardConsoleClass", "Every N", 0));
-        everyNLineEdit->setText(QApplication::translate("BoardConsoleClass", "2", 0));
         stabGroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Stabilization", 0));
         stopMotorsButton->setText(QApplication::translate("BoardConsoleClass", "Stop Motors", 0));
         calibrButton->setText(QApplication::translate("BoardConsoleClass", "Calibrate", 0));
@@ -851,18 +726,6 @@ public:
         pwm1Label->setText(QApplication::translate("BoardConsoleClass", "1000", 0));
         label_6->setText(QApplication::translate("BoardConsoleClass", "Pwm 2", 0));
         pwm2Label->setText(QApplication::translate("BoardConsoleClass", "1000", 0));
-        maxAngleButton->setText(QApplication::translate("BoardConsoleClass", "Max Angle", 0));
-        maxAngleLineEdit->setText(QApplication::translate("BoardConsoleClass", "10", 0));
-        maxVelButton->setText(QApplication::translate("BoardConsoleClass", "Max Velocity", 0));
-        maxVelLineEdit->setText(QApplication::translate("BoardConsoleClass", "30", 0));
-        turnoffAngleButton->setText(QApplication::translate("BoardConsoleClass", "TurnOff Angle", 0));
-        turnoffAngleLineEdit->setText(QApplication::translate("BoardConsoleClass", "3", 0));
-        accelDeviationButton->setText(QApplication::translate("BoardConsoleClass", "Accel Deviation", 0));
-        accelDeviationLineEdit->setText(QApplication::translate("BoardConsoleClass", "0.05", 0));
-        groupBox->setTitle(QApplication::translate("BoardConsoleClass", "PID Control", 0));
-        pButton->setText(QApplication::translate("BoardConsoleClass", "P", 0));
-        iButton->setText(QApplication::translate("BoardConsoleClass", "I", 0));
-        dButton->setText(QApplication::translate("BoardConsoleClass", "D", 0));
         telemetryGroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Telemetry", 0));
         saveToFileCheckBox->setText(QApplication::translate("BoardConsoleClass", "Save to file", 0));
         telemetryToggleButton->setText(QApplication::translate("BoardConsoleClass", "Start", 0));
@@ -871,14 +734,19 @@ public:
         angleCheckBox->setText(QApplication::translate("BoardConsoleClass", "Angle", 0));
         angVelCheckBox->setText(QApplication::translate("BoardConsoleClass", "AngVel", 0));
         groupBox_3->setTitle(QApplication::translate("BoardConsoleClass", "Plot 2", 0));
-        fRadioButton->setText(QApplication::translate("BoardConsoleClass", "F", 0));
         fCheckBox->setText(QApplication::translate("BoardConsoleClass", "F", 0));
         pwm1CheckBox->setText(QApplication::translate("BoardConsoleClass", "pwm1", 0));
         pwm2CheckBox->setText(QApplication::translate("BoardConsoleClass", "pwm2", 0));
-        gyroRadioButton->setText(QApplication::translate("BoardConsoleClass", "Gyro", 0));
-        gxCheckBox->setText(QApplication::translate("BoardConsoleClass", "X", 0));
-        gyCheckBox->setText(QApplication::translate("BoardConsoleClass", "Y", 0));
-        gzCheckBox->setText(QApplication::translate("BoardConsoleClass", "Z", 0));
+        groupBox_5->setTitle(QApplication::translate("BoardConsoleClass", "Plot3", 0));
+        count1CheckBox->setText(QApplication::translate("BoardConsoleClass", "COUNT1", 0));
+        count2CheckBox->setText(QApplication::translate("BoardConsoleClass", "COUNT2", 0));
+        groupBox->setTitle(QApplication::translate("BoardConsoleClass", "PID Control", 0));
+        pButton->setText(QApplication::translate("BoardConsoleClass", "P", 0));
+        iButton->setText(QApplication::translate("BoardConsoleClass", "I", 0));
+        dButton->setText(QApplication::translate("BoardConsoleClass", "D", 0));
+        groupBox_4->setTitle(QApplication::translate("BoardConsoleClass", "Plots", 0));
+        groupBox_7->setTitle(QApplication::translate("BoardConsoleClass", "GroupBox", 0));
+        groupBox_6->setTitle(QApplication::translate("BoardConsoleClass", "GroupBox", 0));
     } // retranslateUi
 
 };

@@ -24,6 +24,7 @@ private:
 
 	QVector<QwtPlotCurve *> plot1_curves;
 	QVector<QwtPlotCurve *> plot2_curves;
+	QVector<QwtPlotCurve *> plot3_curves;
 
 	QVector<double> angleX;
 	QVector<double> angleY;
@@ -40,14 +41,11 @@ private:
 	QVector<double> pwm2X;
 	QVector<double> pwm2Y;
 
-	QVector<double> gyroXX;
-	QVector<double> gyroXY;
+	QVector<double> count1X;
+	QVector<double> count1Y;
 
-	QVector<double> gyroYX;
-	QVector<double> gyroYY;
-
-	QVector<double> gyroZX;
-	QVector<double> gyroZY;
+	QVector<double> count2X;
+	QVector<double> count2Y;
 
 	QString defineLogFile();
 
@@ -67,8 +65,8 @@ void handleProgramButton();
 	void handleCalibrButton();
 	void handleClearTelemetryButton();
 	void handleTelemetryToggleButton();
-	void handleAccelButtons();
-	void handleGyroButtons();
+	//void handleAccelButtons();
+	//void handleGyroButtons();
 
 	void handleFreshLine(QString &line);
 
@@ -90,17 +88,19 @@ void handleProgramButton();
 
 	void handleResearchButtons();
 
-	void handleMaxAngleButton();
-	void handleAccelDeviationButton();
-	void handleTurnoffAngleButton();
-	void handleMaxVelButton();
+	//void handleMaxAngleButton();
+	//void handleAccelDeviationButton();
+	//void handleTurnoffAngleButton();
+	//void handleMaxVelButton();
 
 	void handleTurnUselessCheckBox();
-	void handleGyroRecalibrationCheckBox();
-	void handleTranquilityButton();
+	//void handleGyroRecalibrationCheckBox();
+	//void handleTranquilityButton();
 
-	void handlePwmStepButton();
-	void handleEveryNButton();
+	//void handlePwmStepButton();
+	//void handleEveryNButton();
+	void handleFreshMessage(Message);
+
 
 };
 

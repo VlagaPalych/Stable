@@ -13,7 +13,7 @@
 #define DATA_READY_INT              0x80
 
 #define INT_MAPPING_ADDRESS         0x2f
-#define DATA_READY_INT0_MAPPING     0x80
+#define DATA_READY_INT0_MAPPING     0x7f
 
 #define POWER_CTL_ADDRESS           0x2d
 #define MEASUREMENT_MODE            0x08
@@ -40,12 +40,21 @@ extern uint8_t freshFreq;
 extern uint8_t curFreq;
 extern float curDT;
 
-extern int16_t ax, ay, az;
+#define ACCEL_CALIBR_SAMPLES 3000
+extern uint8_t accel_calibr_on;
+extern uint32_t accel_calibr_index;
+extern uint32_t accel_calibr_number;
+extern float accel_sum[3];
+extern float accel_offset[3];
+extern int16_t a[3];
+extern float calibrated_a[3];
 
 void Delay(void);
 
-void NSS_Low(void);
-void NSS_High(void);
+void Accel_VDD_Init(void);
+void Accel_NSS_Init(void);
+void Accel_NSS_Low(void);
+void Accel_NSS_High(void);
 
 uint16_t SPI2_Transfer(uint16_t byte);
 uint8_t SPI2_Read(uint8_t address);

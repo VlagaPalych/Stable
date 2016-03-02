@@ -2,37 +2,42 @@
 #define ADXRS290_H
 
 #include "stdint.h"
+#include "processing.h"
 
 //-------------------------------------------------------------------
 // COMMON
 //-------------------------------------------------------------------
 
-typedef enum { NOBODY, ACCEL, ARS1, ARS2 } usingSPI2;
-extern usingSPI2 curUsingSPI2;
+#define ADXRS290_NUMBER 2
+#define ADXRS290_DATA_SIZE 3
 
+#define SPI2_ACCEL_USING  ADXRS290_NUMBER
+#define SPI2_NOONE_USING (ADXRS290_NUMBER + 1)
+extern uint8_t SPI2_curUsing;
+
+extern uint8_t ars_spiIndex[ADXRS290_NUMBER];
+extern uint8_t ars_rawData[ADXRS290_NUMBER][ADXRS290_DATA_SIZE*2];
+extern int16_t ars_data[ADXRS290_NUMBER][ADXRS290_DATA_SIZE]; 
+extern float ars_termoData[ADXRS290_NUMBER][ADXRS290_DATA_SIZE-1];
+extern float ars_filteredData[ADXRS290_NUMBER][ADXRS290_DATA_SIZE-1];
+extern float ars_angleRate[ADXRS290_NUMBER][ADXRS290_DATA_SIZE-1];
+
+#define ADXRS290_CALIBR_SAMPLES 3000
+extern uint8_t adxrs290_calibr_on;
+extern uint32_t adxrs290_calibr_index;
+extern uint32_t adxrs290_calibr_number;
+extern float adxrs290_offset[2];
+extern float adxrs290_sum[2];
+extern float calibrated_ar[2];
+
+void All_NSS_High(void);
 void SPI2_SensorsPoll(void);
 
-//-------------------------------------------------------------------
-// ARS1
-//-------------------------------------------------------------------
+void ADXRS290_NSS_Init(uint8_t i);
+void ADXRS290_NSS_Low(uint8_t i);
+void ADXRS290_NSS_High(uint8_t i);
+void ADXRS290_EXTI_Init(uint8_t i);
+void ADXRS290_Init(uint8_t i);
+void ADXRS290_Calibr(void);
 
-void ARS1_Init(void);
-
-void ARS1_NSS_Low(void);
-void ARS1_NSS_High(void);
-
-//-------------------------------------------------------------------
-// ARS2
-//-------------------------------------------------------------------
-
-extern uint8_t ARS2_EXTI; // PA;
-extern uint8_t ars2_dma_status;
-
-void ARS2_Init(void);
-void ARS2_EXTI_Init(void);
-void ARS2_DMA_Init(void);
-void ARS2_GetData(void);
-
-void ARS2_NSS_Low(void);
-void ARS2_NSS_High(void);
 #endif

@@ -3,16 +3,31 @@
 
 #include "stdint.h"
 
+typedef struct {
+//    float accelRoll;
+//    float gyroRoll;
+//    float complementaryRoll;
+//    float accelPitch;
+//    float gyroPitch;
+//    float complementaryPitch;
+    float ax, ay, az;
+    float angle;
+} Message;
+
+extern Message message;
+extern uint8_t Message_Size;
+
 extern uint8_t curFreq;
 extern uint8_t freshFreq;
 extern uint8_t recalibrate;
 
 extern uint8_t turnUselessOn;
 extern uint8_t gyroRecalibrationOn;
+extern uint8_t telemetryOn;
 
 void USART_Init(void);
 void Telemetry_TIM_Init(void);
-void SendTelemetry(void);
+void SendTelemetry(Message *msg);
 void Telemetry_DMA_Init(void) ;
 void send_to_uart(uint8_t data);
 

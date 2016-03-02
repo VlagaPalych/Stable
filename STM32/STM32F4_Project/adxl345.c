@@ -3,6 +3,7 @@
 #include "processing.h"
 #include "telemetry.h"
 #include "adxrs290.h"
+#include "filters.h"
 
 #define ACCEL_DMA
 
@@ -10,19 +11,22 @@
 uint8_t SPI2_SCK    = 13;   // PB
 uint8_t SPI2_MISO   = 14;   // PB
 uint8_t SPI2_MOSI   = 15;   // PB
-uint8_t SPI2_NSS    = 12;   // PB
+uint8_t ACCEL_NSS    = 12;   // PB
 uint8_t ACCEL_INT1  = 1;    // PA
-uint8_t ACCEL_VCC   = 13;   // PC
+uint8_t ACCEL_VDD   = 11;   // PB
 
 int16_t accelRegisters[6] = {0xB200, 0xB300, 0xB400, 0xB500, 0xB600, 0xB700};
 int16_t accel[6];
 
-uint8_t accelCalibrationOn = 0;
-uint32_t accelCalibrIndex = 0;
-uint32_t accelCalibrNumber = 0;
-float accel_xSum = 0, accel_ySum = 0, accel_zSum = 0;
+uint8_t accel_calibr_on = 0;
+uint32_t accel_calibr_index = 0;
+uint32_t accel_calibr_number = 0;
+float accel_sum[3] = {0, 0, 0};
+float accel_offset[3] = {0, 0, 0};
+int16_t a[3];
+float calibrated_a[3];
 
-int16_t xOffset, yOffset, zOffset;
+int16_t a_offset[3] = {0, 0, 0};
 
 uint8_t freshFreq   = 0;
 uint8_t curFreq     = HZ1600;
@@ -30,42 +34,48 @@ float curDT         = 0.000625;
 
 void Delay() {
   volatile uint32_t i;
-  for (i=0; i < 0xF0000; i++){ __nop();__nop();}
+  for (i=0; i < 0xF0000; i++){ __nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();}
 }
 
-void ADXL345_AccelVCCInit() {
-    GPIOC->MODER    |= 1 << ACCEL_VCC*2;
-    GPIOC->OTYPER   &= ~(1 << ACCEL_VCC);
-    GPIOC->OSPEEDR  |= 3 << ACCEL_VCC*2;
+void Accel_VDD_Init() {
+    GPIOB->MODER    |= 1 << ACCEL_VDD*2;
+    GPIOB->OTYPER   &= ~(1 << ACCEL_VDD);
+    GPIOB->OSPEEDR  |= 3 << ACCEL_VDD*2;
     
-    GPIOC->BSRRL |= 1 << ACCEL_VCC;
-    Delay();
+    GPIOB->BSRRL |= 1 << ACCEL_VDD;
 }
 
-void NSS_Low() {
-    GPIOB->BSRRH |= (1 << SPI2_NSS);
+void Accel_NSS_Init() {
+    GPIOB->MODER    |= 1 << ACCEL_NSS*2;
+    GPIOB->OSPEEDR 	|= 3 << ACCEL_NSS*2;
+    GPIOB->OTYPER	&= ~(1 << ACCEL_NSS);
 }
 
-void NSS_High() {
-    GPIOB->BSRRL |= (1 << SPI2_NSS);
+void Accel_NSS_Low() {
+    GPIOB->BSRRH |= (1 << ACCEL_NSS);
+}
+
+void Accel_NSS_High() {
+    GPIOB->BSRRL |= (1 << ACCEL_NSS);
 }
 
 void SPI2_GPIO_Init() {
-	GPIOB->MODER 	|= (2 << SPI2_SCK*2) | (2 << SPI2_MISO*2) | (2 << SPI2_MOSI*2) | (1 << SPI2_NSS*2);
-	GPIOB->OSPEEDR 	|= (3 << SPI2_SCK*2) | (3 << SPI2_MISO*2) | (3 << SPI2_MOSI*2) | (3 << SPI2_NSS*2);
+	GPIOB->MODER 	|= (2 << SPI2_SCK*2) | (2 << SPI2_MISO*2) | (2 << SPI2_MOSI*2);
+	GPIOB->OSPEEDR 	|= (3 << SPI2_SCK*2) | (3 << SPI2_MISO*2) | (3 << SPI2_MOSI*2);
 	GPIOB->AFR[1] 	|= (5 << (SPI2_SCK-8)*4) | (5 << (SPI2_MISO-8)*4) | (5 << (SPI2_MOSI-8)*4);                         // AF5
-	GPIOB->OTYPER	&= ~((1 << SPI2_SCK) | (1 << SPI2_MISO) | (1 << SPI2_MOSI) | (1 << SPI2_NSS)); 
+	GPIOB->OTYPER	&= ~((1 << SPI2_SCK) | (1 << SPI2_MISO) | (1 << SPI2_MOSI)); 
+    GPIOB->PUPDR    |= (1 << SPI2_MISO*2); // Pull-up MISO
 	
-	NSS_High();
+	Accel_NSS_High();
 }
 
 void SPI2_Init() {
     SPI2_GPIO_Init();
-	
+    
 	SPI2->CR1 = 0;
 	SPI2->CR1 |= SPI_CR1_DFF;                                                   // 16 bits
 	SPI2->CR2 |= SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN;
-	//SPI2->CR1 |= SPI_CR1_BR; 							                        // baudrate = Fpclk / 256
+	SPI2->CR1 |= SPI_CR1_BR_1; 							                        // baudrate = Fpclk / 8
 	SPI2->CR1 |= SPI_CR1_CPOL;													// polarity
 	SPI2->CR1 |= SPI_CR1_CPHA;													// phase	
 	SPI2->CR1 &= ~(SPI_CR1_LSBFIRST);										    // MSBFIRST		
@@ -75,19 +85,16 @@ void SPI2_Init() {
 	SPI2->CR1 |= SPI_CR1_SPE;                                                   // Enable SPI                  
 }
 
-
 void ADXL345_Init() {  
     uint8_t accel_test = 0;  
     
-    ADXL345_AccelVCCInit();
-    SPI2_Init();  
+    Accel_VDD_Init();
+    Accel_NSS_Init();
+    Delay();    
     
-    NSS_Low();
-    //while(test!=0xE5) {
-    //    NSS_Low();
-        accel_test = SPI2_Read(DEVID_ADDRESS);
-    //    NSS_High();
-    //}
+    Accel_NSS_Low();
+    
+    accel_test = SPI2_Read(DEVID_ADDRESS);
 
     SPI2_Write(INT_MAPPING_ADDRESS, DATA_READY_INT0_MAPPING);
     accel_test = SPI2_Read(INT_MAPPING_ADDRESS);
@@ -106,18 +113,14 @@ void ADXL345_Init() {
     SPI2_Write(INT_ENABLE_ADDRESS, DATA_READY_INT);
     accel_test = SPI2_Read(INT_ENABLE_ADDRESS);
 
-    NSS_High();
+    Accel_NSS_High();
 }
 
 uint16_t SPI2_Transfer(uint16_t byte) { 
-    //uint8_t rx;
-    //while ((SPI2->SR & SPI_SR_RXNE)) rx=SPI2->DR;
 	while ((SPI2->SR & SPI_SR_TXE)==0);
-    //NSS_Low();
 	SPI2->DR = byte;
 	
 	while ((SPI2->SR & SPI_SR_RXNE)==0);
-    //NSS_High();
 	return (SPI2->DR);
 }
 
@@ -140,24 +143,26 @@ void SPI2_Write(uint8_t address, uint8_t data) {
 }
 
 void ADXL345_GetAccel(int16_t *x, int16_t *y, int16_t *z) {
-    NSS_Low();
+    Accel_NSS_Low();
     ((uint8_t *)x)[0] = SPI2_Read(0x32);
     ((uint8_t *)x)[1] = SPI2_Read(0x33);
     ((uint8_t *)y)[0] = SPI2_Read(0x34);
     ((uint8_t *)y)[1] = SPI2_Read(0x35);
     ((uint8_t *)z)[0] = SPI2_Read(0x36);
     ((uint8_t *)z)[1] = SPI2_Read(0x37);
-    NSS_High();
+    Accel_NSS_High();
 }
 
 void ADXL345_Calibr() {
-    accel_xSum = 0; accel_ySum = 0; accel_zSum = 0;
-    accelCalibrIndex = 0;
-    accelCalibrNumber = (int)(8.0 / curDT);
-    accelCalibrationOn = 1;
+    uint8_t i = 0;
+    for (i = 0; i < 3; i++) { accel_sum[i] = 0; }
+    accel_calibr_index = 0;
+    accel_calibr_number = ACCEL_CALIBR_SAMPLES;
+    accel_calibr_on = 1;
 }
 
-void Accel_EXTI_Init() {    
+void Accel_EXTI_Init() {   
+    GPIOA->MODER |= 1 << 2*2;;    
     GPIOA->OSPEEDR |= 3 << 1*2;
     
     SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI1_PA;
@@ -185,18 +190,17 @@ void EXTI1_IRQHandler() {  //what to do when accelerometer is ready
 #else
 
 void Accel_GetData() {
-    GPIOD->BSRRL |= 1 << 15;
-    NSS_Low();
-    ADXL345_DMA_Init();
+    if (SPI2_curUsing == SPI2_NOONE_USING) {
+        SPI2_curUsing = SPI2_ACCEL_USING;
+        ADXL345_DMA_Init();
+    } 
 }
 
 void EXTI1_IRQHandler() {
     if (EXTI->PR & EXTI_PR_PR1) {
         EXTI->PR = EXTI_PR_PR1;
         
-//        if ((SPI2->SR & SPI_SR_BSY) == 0) {
-            Accel_GetData();
-    //    } 
+        Accel_GetData();
     }
 }
 
@@ -206,15 +210,16 @@ void ADXL345_DMA_Init() {
     NVIC_EnableIRQ(DMA1_Stream4_IRQn);
     
     DMA1->HIFCR = DMA_HIFCR_CFEIF4;
+    //GPIOD->BSRRL |= 1 << 15;
     
     DMA1_Stream4->CR    = 0;
     DMA1_Stream3->CR    = 0;
     DMA1_Stream3->PAR   = (uint32_t)&(SPI2->DR);
     DMA1_Stream3->M0AR  = (uint32_t)accel;
     DMA1_Stream3->NDTR  = 6;
-    DMA1_Stream3->CR    |= DMA_SxCR_MINC | DMA_SxCR_PSIZE_0 | DMA_SxCR_MSIZE_0 |
+    DMA1_Stream3->CR    = DMA_SxCR_MINC | DMA_SxCR_PSIZE_0 | DMA_SxCR_MSIZE_0 |
                                 DMA_SxCR_TCIE | DMA_SxCR_PL | DMA_SxCR_EN; 
-    NSS_Low();
+    Accel_NSS_Low();
     DMA1_Stream4->PAR   = (uint32_t)&(SPI2->DR);
     DMA1_Stream4->CR    = 0;
     DMA1_Stream4->M0AR  = (uint32_t)accelRegisters;     
@@ -224,102 +229,63 @@ void ADXL345_DMA_Init() {
 }
 
 
-void updateFreq() {
+void Accel_UpdateFreq() {
     if (freshFreq) {
-        NSS_Low();
+        Accel_NSS_Low();
         SPI2_Write(BW_RATE_ADDRESS, curFreq);
-        NSS_High();
+        Accel_NSS_High();
         freshFreq = 0;
     }
 }
 
 void DMA1_Stream3_IRQHandler() {
+    uint8_t i = 0;
     if (DMA1->LISR & DMA_LISR_TCIF3) {
         DMA1->LIFCR = DMA_LIFCR_CTCIF3 | DMA_LIFCR_CHTIF3;
-        //NSS_High();
-//        ARS2_NSS_High();
-         switch (curUsingSPI2) {
-            case ACCEL:
-                if(GPIOA->IDR & GPIO_IDR_IDR_1) {  
-                    ADXL345_DMA_Init();
-                } else  NSS_High();
-            
-            
-                
-                GPIOD->BSRRH |= 1 << 15;
-                
-                updateFreq();
-                
-                ((uint8_t *)(&ax))[0] = (uint8_t)(accel[0] & 0xFF);
-                ((uint8_t *)(&ax))[1] = (uint8_t)(accel[1] & 0xFF);
-                ((uint8_t *)(&ay))[0] = (uint8_t)(accel[2] & 0xFF);
-                ((uint8_t *)(&ay))[1] = (uint8_t)(accel[3] & 0xFF);
-                ((uint8_t *)(&az))[0] = (uint8_t)(accel[4] & 0xFF);
-                ((uint8_t *)(&az))[1] = (uint8_t)(accel[5] & 0xFF);
-                
-                if (accelCalibrationOn) {
-                    accel_xSum += ax;
-                    accel_ySum += ay;
-                    accel_zSum += az;  
-                    
-                    accelCalibrIndex++;
-                    
-                    if (accelCalibrIndex == accelCalibrNumber) {
-                        xOffset = (int16_t)(accel_xSum / accelCalibrNumber);
-                        yOffset = (int16_t)(accel_ySum / accelCalibrNumber);
-                        zOffset = (int16_t)(accel_zSum / accelCalibrNumber) - 0xFF;
-                        accelCalibrationOn = 0;
-                    }
-                }
-                
-                ax -= xOffset;
-                ay -= yOffset;
-                az -= zOffset;
-                
-                
-                axHistory[axHistoryIndex] = ax;
-                axHistoryIndex++;
-                
-                azHistory[azHistoryIndex] = az;
-                azHistoryIndex++;
-                
-                if (azHistoryIndex >= ACCEL_FILTER_SIZE) {
-                    accelLowpassReady = 1;
-                }
-                
-                processCounter++;
-                if (processCounter == 16) {
-                    processCounter = 0;
-                    
-                    axCurHistoryIndex = axHistoryIndex - 1;
-                    azCurHistoryIndex = azHistoryIndex - 1;
-                    if (lowpassOn && accelLowpassReady) {
-                        doAccelProcess = 1;
-                    }
-                } 
-                
-                
-                break;
-            case ARS1:
-                break;
-            case ARS2:
-//                if(GPIOA->IDR & GPIO_IDR_IDR_5) {  
-//                    ARS2_DMA_Init();
-//                } else ARS2_NSS_High();
-            
-              //  ARS2_NSS_High();
-//                ars2_dma_status++;
-//                if (ars2_dma_status == 2) {
-//                    // data from ars2 received
-//                } else {
-//                    ARS2_NSS_Low();
-//                    ARS2_DMA_Init();
-//                }
-                break;
-            default:
-                break;
+        All_NSS_High();
+        
+        Accel_UpdateFreq();
+        
+        ((uint8_t *)(&a[0]))[0] = (uint8_t)(accel[0] & 0xFF);
+        ((uint8_t *)(&a[0]))[1] = (uint8_t)(accel[1] & 0xFF);
+        ((uint8_t *)(&a[1]))[0] = (uint8_t)(accel[2] & 0xFF);
+        ((uint8_t *)(&a[1]))[1] = (uint8_t)(accel[3] & 0xFF);
+        ((uint8_t *)(&a[2]))[0] = (uint8_t)(accel[4] & 0xFF);
+        ((uint8_t *)(&a[2]))[1] = (uint8_t)(accel[5] & 0xFF);  
+   
+        // record data for future filtering
+        for (i = 0; i < 3; i++) {
+            accel_history[i][accel_history_index] = a[i]; 
+            //lpf_rect_hpf_a[i] = a[i];
         }
-        //SPI2_SensorsPoll();
+        //quasistatic_new_a = 1; // new accelerations for lpf_rect_hpf procedure
+        
+        accel_history_index++;  
+        if (accel_history_index >= ACCEL_FILTER_SIZE) {
+            // enough data for filtering
+            accelLowpassReady = 1;
+            if (accel_history_index >= 2*ACCEL_FILTER_SIZE) {
+                // transition to beginning of array required
+                for (i = 0; i < 3; i++) {
+                    memcpy(accel_history[i], &accel_history[i][ACCEL_FILTER_SIZE], ACCEL_FILTER_SIZE*sizeof(float)); 
+                }
+                accel_history_index = ACCEL_FILTER_SIZE;
+            }
+        }
+        
+        processCounter++;
+
+            
+            
+        if (processCounter == ACCEL_DECIMATION) {
+            processCounter = 0;
+            if (lowpassOn && accelLowpassReady) {
+                doAccelProcess = 1;
+                accel_history_filter_index = accel_history_index;
+            }          
+
+        } 
+        SPI2_SensorsPoll();
     }
 }
 

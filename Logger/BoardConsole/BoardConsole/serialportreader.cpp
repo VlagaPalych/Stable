@@ -43,6 +43,7 @@
 
 #include <QCoreApplication>
 #include <QDebug>
+#include "commands.h"
 
 QT_USE_NAMESPACE
 
@@ -91,27 +92,30 @@ void SerialPortReader::setFile(QString fileName) {
 	analyseFileName(fileName);
 }
 
+qint32 errorCounter = 0;
+
 void SerialPortReader::handleReadyRead()
 {
 	m_readData.append(m_serialPort->readAll());
-	int endLineIndex = 0;
-	while (endLineIndex != -1) {
-		endLineIndex = m_readData.indexOf('\n');
-		if (endLineIndex != -1) {
-			/*QByteArray dataLine = m_readData.mid(0, endLineIndex);
-			QByteArray axByteArray = dataLine.mid(0, 2);
-			qint16 ax = 0;
-			((quint8 *)&ax)[0] = axByteArray.at(0);
-			((quint8 *)&ax)[1] = axByteArray.at(1);*/
-		QString line = QString::fromLatin1(m_readData.mid(0, endLineIndex));
-			//QString line = QString::number(ax);
-			qDebug() << line;
+	while (m_readData.size() >= Message_Size+2) {
+		QByteArray msgByteArray = m_readData.mid(0, Message_Size + 2);
+		Message msg;
+		if (Message_FromByteArray((uint8_t *)msgByteArray.data(), Message_Size + 2, &msg)) {	
 			if (logStream) {
-				(*logStream) << line << endl;
+				//(*logStream) << msg.ax << ' ' << msg.ay << ' ' << msg.az << ' ' << msg.angle << endl;
+				//qDebug() << msg.ax << ' ' << msg.ay << ' ' << msg.az << ' ' << msg.angle  << endl;
+				(*logStream) << msg.gyroRoll << ' ' << msg.accelRoll << ' ' << msg.complementaryRoll << ' ' << msg.gyroPitch << ' ' << msg.accelPitch << ' ' << msg.complementaryPitch << endl;
+				qDebug() << msg.gyroRoll << ' ' << msg.accelRoll << ' ' << msg.complementaryRoll << ' ' << msg.gyroPitch << ' ' << msg.accelPitch << ' ' << msg.complementaryPitch << endl;
 			}
-			Q_EMIT freshLine(line);
-			m_readData = m_readData.mid(endLineIndex + 1);
+			Q_EMIT freshMessage(msg);
+			m_readData = m_readData.remove(0, Message_Size+2);
 		}
+		else {
+			errorCounter++;
+			qDebug() << "errors=" << errorCounter << endl;
+			m_readData.remove(0, 1);
+		}
+		
 	}
 }
 
