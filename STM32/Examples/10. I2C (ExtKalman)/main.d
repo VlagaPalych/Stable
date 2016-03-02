@@ -9,3 +9,4 @@
 .\main.o: gyro.h
 .\main.o: accel_magne.h
 .\main.o: extra_math.h
+.\main.o: telemetry.h

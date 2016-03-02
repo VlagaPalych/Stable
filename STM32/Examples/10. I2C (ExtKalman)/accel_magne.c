@@ -2,6 +2,7 @@
 #include "accel_magne.h"
 #include "extra_math.h"
 #include "string.h"
+#include "telemetry.h"
 
 uint8_t I2C1_SCL    = 6; // PB
 uint8_t I2C1_SDA    = 7; // PB
@@ -40,6 +41,8 @@ extern float v1[VECT_SIZE], v2[VECT_SIZE];
 
 uint8_t meas1 = 1;
 uint8_t quest_run = 0;
+
+extern Message message;
 
 void I2C1_SetDevice(device dvc) {
     I2C1->CR2 &= ~I2C_CR2_SADD;
@@ -229,21 +232,26 @@ void DMA1_Channel7_IRQHandler() {
                 magField[i] = tmp / MAG_SENSITIVITY; 
             }
             
-            if (meas1) {
-                meas1 = 0;
-                memcpy(w1, accel, VECT_SIZE*sizeof(float));
-                memcpy(w2, magField, VECT_SIZE*sizeof(float));
-                
-                Vect_Norm(w1);
-                Vect_Norm(w2);
-            } else {
-                quest_run = 1;
-                memcpy(v1, accel, VECT_SIZE*sizeof(float));
-                memcpy(v2, magField, VECT_SIZE*sizeof(float));
-                
-                Vect_Norm(v1);
-                Vect_Norm(v2);
-            }
+            memcpy(message.accel, accel, VECT_SIZE*sizeof(float));
+            memcpy(message.magField, magField, VECT_SIZE*sizeof(float));
+            
+            Telemetry_Send(&message);
+            
+//            if (meas1) {
+//                meas1 = 0;
+//                memcpy(w1, accel, VECT_SIZE*sizeof(float));
+//                memcpy(w2, magField, VECT_SIZE*sizeof(float));
+//                
+//                Vect_Norm(w1);
+//                Vect_Norm(w2);
+//            } else {
+//                quest_run = 1;
+//                memcpy(v1, accel, VECT_SIZE*sizeof(float));
+//                memcpy(v2, magField, VECT_SIZE*sizeof(float));
+//                
+//                Vect_Norm(v1);
+//                Vect_Norm(v2);
+//            }
         }
     }
 }

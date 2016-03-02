@@ -9,3 +9,4 @@
 .\accel_magne.o: accel_magne.h
 .\accel_magne.o: extra_math.h
 .\accel_magne.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+.\accel_magne.o: telemetry.h

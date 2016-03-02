@@ -3,6 +3,7 @@
 ".\gyro.o"
 ".\main.o"
 ".\extra_math.o"
+".\telemetry.o"
 "C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Lib\ARM\arm_cortexM4lf_math.lib"
 ".\startup_stm32f303xc.o"
 ".\system_stm32f30x.o"
