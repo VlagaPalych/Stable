@@ -18,10 +18,28 @@ void RCC_Init() {
     RCC->APB2ENR    |= RCC_APB2ENR_SPI1EN | RCC_APB2ENR_SYSCFGEN | RCC_APB2ENR_USART1EN;
 }
 
-uint16_t answer = 0;
+uint8_t BUTTON_PIN = 0; // PA
+
+void Button_Init() {
+    GPIOA->MODER &= ~(3 << BUTTON_PIN*2);
+    GPIOA->OSPEEDR |= 3 << BUTTON_PIN*2;
+    
+    SYSCFG->EXTICR[0] = SYSCFG_EXTICR1_EXTI0_PA;
+    EXTI->RTSR 	|= EXTI_RTSR_TR0;  	    // rising events
+	EXTI->IMR 	|= EXTI_IMR_MR0; 		// we don't mask events on line 0
+	NVIC_EnableIRQ(EXTI0_IRQn); 		// enable EXTI0 interrupt
+}
+
+void EXTI0_IRQHandler(void) {
+	if (EXTI->PR & EXTI_PR_PR0) {
+		EXTI->PR = EXTI_PR_PR0;		    // Clear interrupt flag
+		
+        Telemetry_Send(&message);
+	}
+}
 
 int main() {
-//    QUEST_Init();
+    QUEST_Init();
     Message_Size = sizeof(Message);
     RCC_Init();
     
@@ -36,12 +54,13 @@ int main() {
     EXTI->SWIER |= EXTI_SWIER_SWIER4;
     
     USART1_Init();
+    Button_Init();
     
     while (1) {
-//        if (quest_run) {
-//            quest_run = 0;
-//            QUEST();
-//            Quat_ToEuler(orientation, euler);
-//        }
+        if (quest_run) {
+            quest_run = 0;
+            QUEST();
+            Quat_ToEuler(orientation, euler);
+        }
     }
 }

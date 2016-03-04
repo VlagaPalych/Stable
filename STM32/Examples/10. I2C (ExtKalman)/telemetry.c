@@ -56,7 +56,7 @@ void USART1_Init() {
     Telemetry_DMA_Init();
 }
 
-void send_to_uart(uint8_t data) {
+void USART1_Send(uint8_t data) {
     while((USART1->ISR & USART_ISR_TXE)==0); 
     USART1->TDR = data; 
 }

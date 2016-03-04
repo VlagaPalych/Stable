@@ -10,3 +10,6 @@
 .\accel_magne.o: extra_math.h
 .\accel_magne.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 .\accel_magne.o: telemetry.h
+.\accel_magne.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\arm_math.h
+.\accel_magne.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cm4.h
+.\accel_magne.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h

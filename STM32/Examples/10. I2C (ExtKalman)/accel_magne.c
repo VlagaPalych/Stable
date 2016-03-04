@@ -3,6 +3,7 @@
 #include "extra_math.h"
 #include "string.h"
 #include "telemetry.h"
+#include "arm_math.h"
 
 uint8_t I2C1_SCL    = 6; // PB
 uint8_t I2C1_SDA    = 7; // PB
@@ -22,6 +23,7 @@ uint8_t AM_DRDY     = 2; // PE;
 #define ACCEL_SENSITIVITY   0.012f      // 12 mg/LSB
 
 uint8_t accel_data[7];
+float non_calibr_accel_data[3];
 float accel[3];
 
 #define MAG_ADDRESS 0x1e
@@ -34,6 +36,7 @@ float accel[3];
 #define MAG_SENSITIVITY     1100.0f       // 1100 LSB/Gauss
 
 uint8_t mag_data[6];
+float non_calibr_mag_data[3];
 float magField[3];
 
 extern float w1[VECT_SIZE], w2[VECT_SIZE];
@@ -42,7 +45,37 @@ extern float v1[VECT_SIZE], v2[VECT_SIZE];
 uint8_t meas1 = 1;
 uint8_t quest_run = 0;
 
-extern Message message;
+float accel_trans_matrix_data[VECT_SIZE*VECT_SIZE] = {
+    1.0160,     -0.0243,    -0.0229,
+    -0.0004,    1.0046,     -0.0353,
+    0.0119,     0.0115,     0.9749
+};
+
+float accel_bias[VECT_SIZE] = {
+    -0.0038,
+    0.0120,
+    0.0340
+};
+
+arm_matrix_instance_f32 accel_trans_matrix = {VECT_SIZE, VECT_SIZE, accel_trans_matrix_data};
+arm_matrix_instance_f32 non_calibr_accel = {VECT_SIZE, 1, non_calibr_accel_data};
+arm_matrix_instance_f32 accel_mat = {VECT_SIZE, 1, accel};
+
+float mag_trans_matrix_data[VECT_SIZE*VECT_SIZE] = {
+    3.1804,     0.4338,     -0.1249,
+    0.4379,     4.0072,     0.1038,
+    0.2601,     -0.1797,    3.1062
+};
+
+float mag_bias[VECT_SIZE] = {
+    0.0198, 
+    -0.3726, 
+    0.0481
+};
+
+arm_matrix_instance_f32 mag_trans_matrix = {VECT_SIZE, VECT_SIZE, mag_trans_matrix_data};
+arm_matrix_instance_f32 non_calibr_mag = {VECT_SIZE, 1, non_calibr_mag_data};
+arm_matrix_instance_f32 magField_mat = {VECT_SIZE, 1, magField};
 
 void I2C1_SetDevice(device dvc) {
     I2C1->CR2 &= ~I2C_CR2_SADD;
@@ -214,6 +247,7 @@ void EXTI4_IRQHandler() {
 void DMA1_Channel7_IRQHandler() {
     uint8_t i = 0;
     int16_t tmp = 0;
+    float swap = 0;
     if ((DMA1->ISR & DMA_ISR_TCIF7) != 0) {
         DMA1->IFCR |= DMA_IFCR_CTCIF7 | DMA_IFCR_CHTIF7;
         DMA1_Channel7->CCR &= ~DMA_CCR_EN;
@@ -222,36 +256,50 @@ void DMA1_Channel7_IRQHandler() {
             for (i = 0; i < 3; i++) {
                 tmp = (accel_data[2*i+2] << 8) | accel_data[2*i+1];
                 tmp >>= 4;                  // only upper 12 bits are meaningful
-                accel[i] = tmp * ACCEL_SENSITIVITY;
+                non_calibr_accel_data[i] = tmp * ACCEL_SENSITIVITY;
             }
             
             AM_MultiRead(AM_MAG, 0x03, mag_data, 6);
         } else if (DMA1_Channel7->CMAR == (uint32_t)mag_data) {
             for (i = 0; i < 3; i++) {
                 tmp = (mag_data[2*i] << 8) | mag_data[2*i+1];
-                magField[i] = tmp / MAG_SENSITIVITY; 
+                non_calibr_mag_data[i] = tmp / MAG_SENSITIVITY; 
             }
+            swap = non_calibr_mag_data[2];
+            non_calibr_mag_data[2] = non_calibr_mag_data[1];
+            non_calibr_mag_data[1] = swap;
             
+            //memcpy(accel, non_calibr_accel_data, VECT_SIZE*sizeof(float));
+            memcpy(magField, non_calibr_mag_data, VECT_SIZE*sizeof(float));
+            
+            // taking in account calibration
+            arm_sub_f32(non_calibr_accel_data, accel_bias, non_calibr_accel_data, VECT_SIZE);
+            arm_mat_mult_f32(&accel_trans_matrix, &non_calibr_accel, &accel_mat);
+//            
+//            arm_mat_mult_f32(&mag_trans_matrix, &non_calibr_mag, &non_calibr_mag);
+//            arm_sub_f32(non_calibr_mag_data, mag_bias, magField, VECT_SIZE);
+            
+            // telemetry
             memcpy(message.accel, accel, VECT_SIZE*sizeof(float));
             memcpy(message.magField, magField, VECT_SIZE*sizeof(float));
             
             Telemetry_Send(&message);
-            
-//            if (meas1) {
-//                meas1 = 0;
-//                memcpy(w1, accel, VECT_SIZE*sizeof(float));
-//                memcpy(w2, magField, VECT_SIZE*sizeof(float));
-//                
-//                Vect_Norm(w1);
-//                Vect_Norm(w2);
-//            } else {
-//                quest_run = 1;
-//                memcpy(v1, accel, VECT_SIZE*sizeof(float));
-//                memcpy(v2, magField, VECT_SIZE*sizeof(float));
-//                
-//                Vect_Norm(v1);
-//                Vect_Norm(v2);
-//            }
+                   
+            if (meas1) {
+                meas1 = 0;
+                memcpy(w1, accel, VECT_SIZE*sizeof(float));
+                memcpy(w2, magField, VECT_SIZE*sizeof(float));
+                
+                Vect_Norm(w1);
+                Vect_Norm(w2);
+            } else {
+                quest_run = 1;
+                memcpy(v1, accel, VECT_SIZE*sizeof(float));
+                memcpy(v2, magField, VECT_SIZE*sizeof(float));
+                
+                Vect_Norm(v1);
+                Vect_Norm(v2);
+            }
         }
     }
 }

@@ -428,6 +428,11 @@
               <FileType>1</FileType>
               <FilePath>.\extra_math.c</FilePath>
             </File>
+            <File>
+              <FileName>telemetry.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\telemetry.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -442,6 +447,16 @@
               <FileName>accel_magne.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\accel_magne.h</FilePath>
+            </File>
+            <File>
+              <FileName>extra_math.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\extra_math.h</FilePath>
+            </File>
+            <File>
+              <FileName>telemetry.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\telemetry.h</FilePath>
             </File>
           </Files>
         </Group>
