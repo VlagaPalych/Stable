@@ -15,6 +15,8 @@ uint8_t tele_len;
 
 uint8_t received = 0;
 
+uint8_t telemetry_on = 0;
+
 void Message_ToByteArray(Message *message, uint8_t *a) {
     uint8_t i = 0, crc = 0;
     memcpy(a+1, (uint8_t *)message, Message_Size);
@@ -66,6 +68,10 @@ void USART1_IRQHandler() {
     if (USART1->ISR & USART_ISR_RXNE) {
         USART1->ISR &= ~USART_ISR_RXNE;
         received = USART1->RDR;
+        
+        if (received == 'h') {
+            telemetry_on ^= 1;
+        }
     }
 }
 
@@ -90,10 +96,12 @@ void DMA1_Channel4_IRQHandler() {
 }
 
 void Telemetry_Send(Message *msg) {
-    Message_ToByteArray(msg, tele);
-    tele_len = Message_Size+2;
+    if (telemetry_on) {
+        Message_ToByteArray(msg, tele);
+        tele_len = Message_Size+2;
 
-    Telemetry_DMA_Run();
+        Telemetry_DMA_Run();
+    }
 }
 
 

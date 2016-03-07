@@ -283,7 +283,7 @@ void DMA1_Channel7_IRQHandler() {
             memcpy(message.accel, accel, VECT_SIZE*sizeof(float));
             memcpy(message.magField, magField, VECT_SIZE*sizeof(float));
             
-            Telemetry_Send(&message);
+            //Telemetry_Send(&message);
                    
             if (meas1) {
                 meas1 = 0;

@@ -14,7 +14,7 @@ uint8_t Message_Size = 0;
 
 void RCC_Init() {
     RCC->AHBENR     |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOEEN | RCC_AHBENR_DMA1EN;
-    RCC->APB1ENR    |= RCC_APB1ENR_I2C1EN;
+    RCC->APB1ENR    |= RCC_APB1ENR_I2C1EN | RCC_APB1ENR_TIM2EN;
     RCC->APB2ENR    |= RCC_APB2ENR_SPI1EN | RCC_APB2ENR_SYSCFGEN | RCC_APB2ENR_USART1EN;
 }
 
@@ -38,6 +38,22 @@ void EXTI0_IRQHandler(void) {
 	}
 }
 
+void TIM2_Init() {
+    TIM2->PSC = 7199;
+    TIM2->ARR = 10000;
+    TIM2->DIER |= TIM_DIER_UIE;
+    NVIC_EnableIRQ(TIM2_IRQn);
+    TIM2->CR1 |= TIM_CR1_CEN;
+}
+
+void TIM2_IRQHandler() {
+    if (TIM2->SR & TIM_SR_UIF) {
+        TIM2->SR &= ~TIM_SR_UIF;
+        
+        Telemetry_Send(&message);
+    }
+}
+
 int main() {
     QUEST_Init();
     Message_Size = sizeof(Message);
@@ -55,6 +71,7 @@ int main() {
     
     USART1_Init();
     Button_Init();
+    TIM2_Init();
     
     while (1) {
         if (quest_run) {

@@ -1,5 +1,5 @@
 Dependencies for Project 'ExtKalman', Target 'STM32': (DO NOT MODIFY !)
-F (.\accel_magne.c)(0x56D9B9E1)(-c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I "D:\Vlad\Projects\Stable\STM32\Examples\10. I2C (ExtKalman)\RTE"-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.2.0\Device\Include-D__UVISION_VERSION="514" -D_RTE_ -DSTM32F303xC -DARM_MATH_CM4 -D__FPU_PRESENT-o .\accel_magne.o --omf_browse .\accel_magne.crf --depend .\accel_magne.d)
+F (.\accel_magne.c)(0x56DD7DC3)(-c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I "D:\Vlad\Projects\Stable\STM32\Examples\10. I2C (ExtKalman)\RTE"-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.2.0\Device\Include-D__UVISION_VERSION="514" -D_RTE_ -DSTM32F303xC -DARM_MATH_CM4 -D__FPU_PRESENT-o .\accel_magne.o --omf_browse .\accel_magne.crf --depend .\accel_magne.d)
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.2.0\Device\Include\stm32f30x.h)(0x54255B02)
 I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cm4.h)(0x53FC6A1A)
 I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x54763950)
@@ -22,7 +22,7 @@ I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmFunc.h)(0x53FF2AEA)
 I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmSimd.h)(0x53FC6A1A)
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.2.0\Device\Include\system_stm32f30x.h)(0x54255B02)
 I (gyro.h)(0x56D07A0A)
-F (.\main.c)(0x56D9AF7E)(-c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I "D:\Vlad\Projects\Stable\STM32\Examples\10. I2C (ExtKalman)\RTE"-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.2.0\Device\Include-D__UVISION_VERSION="514" -D_RTE_ -DSTM32F303xC -DARM_MATH_CM4 -D__FPU_PRESENT-o .\main.o --omf_browse .\main.crf --depend .\main.d)
+F (.\main.c)(0x56DD7E2A)(-c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I "D:\Vlad\Projects\Stable\STM32\Examples\10. I2C (ExtKalman)\RTE"-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.2.0\Device\Include-D__UVISION_VERSION="514" -D_RTE_ -DSTM32F303xC -DARM_MATH_CM4 -D__FPU_PRESENT-o .\main.o --omf_browse .\main.crf --depend .\main.d)
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.2.0\Device\Include\stm32f30x.h)(0x54255B02)
 I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cm4.h)(0x53FC6A1A)
 I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x54763950)
@@ -44,7 +44,7 @@ I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmFunc.h)(0x53FF2AEA)
 I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmSimd.h)(0x53FC6A1A)
 I (C:\Keil_v5\ARM\ARMCC\include\string.h)(0x54763950)
 I (C:\Keil_v5\ARM\ARMCC\include\math.h)(0x5476394E)
-F (.\telemetry.c)(0x56D82645)(-c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I "D:\Vlad\Projects\Stable\STM32\Examples\10. I2C (ExtKalman)\RTE"-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.2.0\Device\Include-D__UVISION_VERSION="514" -D_RTE_ -DSTM32F303xC -DARM_MATH_CM4 -D__FPU_PRESENT-o .\telemetry.o --omf_browse .\telemetry.crf --depend .\telemetry.d)
+F (.\telemetry.c)(0x56DD7FC4)(-c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I "D:\Vlad\Projects\Stable\STM32\Examples\10. I2C (ExtKalman)\RTE"-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.2.0\Device\Include-D__UVISION_VERSION="514" -D_RTE_ -DSTM32F303xC -DARM_MATH_CM4 -D__FPU_PRESENT-o .\telemetry.o --omf_browse .\telemetry.crf --depend .\telemetry.d)
 I (telemetry.h)(0x56D827C6)
 I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x54763950)
 I (C:\Keil_v5\ARM\ARMCC\include\string.h)(0x54763950)
