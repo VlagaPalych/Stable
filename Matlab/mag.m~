@@ -115,7 +115,8 @@ log_number = 784:1:805;
 N = 20;
 
 for i = 1:1:N
-    logName = sprintf('../Logs/log%d.txt', log_number(i));
+    logName = sprintf('D:\\Vlad\\Projects\\Stable\\Logger\\BoardConsole\\BoardConsole\\log%d.txt', log_number(i));
+
     logFile = fopen(logName, 'r');
     data = fscanf(logFile, '%f %f %f %f %f %f\n', [6 Inf]);
 
