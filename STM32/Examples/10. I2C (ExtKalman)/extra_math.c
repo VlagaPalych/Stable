@@ -216,3 +216,145 @@ void QUEST() {
     arm_sqrt_f32(gamma*gamma + X.pData[0]*X.pData[0] + X.pData[0]*X.pData[0] + X.pData[0]*X.pData[0], &norm_cf);
     Quat_Scale(&orientation, 1/norm_cf);
 }
+
+
+#define DELTA 0.01
+
+float E_data[KALMAN_STATE_SIZE*KALMAN_STATE_SIZE] = {
+    1, 0, 0, 0, 0, 0, 0,
+    0, 1, 0, 0, 0, 0, 0,
+    0, 0, 1, 0, 0, 0, 0,
+    0, 0, 0, 1, 0, 0, 0,
+    0, 0, 0, 0, 1, 0, 0,
+    0, 0, 0, 0, 0, 1, 0,
+    0, 0, 0, 0, 0, 0, 1
+};
+arm_matrix_instance_f32 E = {KALMAN_STATE_SIZE, KALMAN_STATE_SIZE, E_data};
+
+float Fk_data[KALMAN_STATE_SIZE*KALMAN_STATE_SIZE] = {
+    1, 0, 0, 0, 0, 0, 0,
+    0, 1, 0, 0, 0, 0, 0,
+    0, 0, 1, 0, 0, 0, 0,
+    0, 0, 0, 1, 0, 0, 0,
+    0.5*DELTA, 0, 0, 0, 1, 0, 0,
+    0, 0.5*DELTA, 0, 0, 0, 1, 0,
+    0, 0, 0.5*DELTA, 0, 0, 0, 1
+};
+arm_matrix_instance_f32 Fk = {KALMAN_STATE_SIZE, KALMAN_STATE_SIZE, Fk_data};
+
+float Fkt_data[KALMAN_STATE_SIZE*KALMAN_STATE_SIZE] = {
+    1, 0, 0, 0, 0.5*DELTA, 0, 0,
+    0, 1, 0, 0, 0, 0.5*DELTA, 0,
+    0, 0, 1, 0, 0, 0, 0.5*DELTA,
+    0, 0, 0, 1, 0, 0, 0,
+    0, 0, 0, 0, 1, 0, 0,
+    0, 0, 0, 0, 0, 1, 0,
+    0, 0, 0, 0, 0, 0, 1
+};
+arm_matrix_instance_f32 Fkt = {KALMAN_STATE_SIZE, KALMAN_STATE_SIZE, Fkt_data};
+
+float Hk_data[KALMAN_STATE_SIZE*KALMAN_STATE_SIZE] = {
+    1, 0, 0, 0, 0, 0, 0,
+    0, 1, 0, 0, 0, 0, 0,
+    0, 0, 1, 0, 0, 0, 0,
+    0, 0, 0, 1, 0, 0, 0,
+    0, 0, 0, 0, 1, 0, 0,
+    0, 0, 0, 0, 0, 1, 0,
+    0, 0, 0, 0, 0, 0, 1
+};
+arm_matrix_instance_f32 Hk = {KALMAN_STATE_SIZE, KALMAN_STATE_SIZE, Hk_data};
+
+// 3 sigma of max change of angle rate around axis
+#define q11 0.1
+#define q22 0.1 
+#define q33 0.1
+float Qk_data[KALMAN_STATE_SIZE*KALMAN_STATE_SIZE] = {
+    q11, 0, 0, 0, 0, 0, 0,
+    0, q22, 0, 0, 0, 0, 0,
+    0, 0, q33, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0
+};
+arm_matrix_instance_f32 Qk = {KALMAN_STATE_SIZE, KALMAN_STATE_SIZE, Qk_data};
+
+float invRk_data[KALMAN_STATE_SIZE*KALMAN_STATE_SIZE] = {
+    10, 0, 0, 0, 0, 0, 0,
+    0, 10, 0, 0, 0, 0, 0,
+    0, 0, 10, 0, 0, 0, 0,
+    0, 0, 0, 1e2, 0, 0, 0,
+    0, 0, 0, 0, 1e2, 0, 0,
+    0, 0, 0, 0, 0, 1e2, 0,
+    0, 0, 0, 0, 0, 0, 1e2
+};
+arm_matrix_instance_f32 invRk = {KALMAN_STATE_SIZE, KALMAN_STATE_SIZE, invRk_data};
+
+float x_apriori_data[KALMAN_STATE_SIZE] = {0, 0, 0, 1, 0, 0, 0};
+arm_matrix_instance_f32 x_apriori = {KALMAN_STATE_SIZE, 1, x_apriori_data};
+float x_aposteriori_data[KALMAN_STATE_SIZE];
+arm_matrix_instance_f32 x_aposteriori = {KALMAN_STATE_SIZE, 1, x_aposteriori_data};
+
+float P_apriori_data[KALMAN_STATE_SIZE*KALMAN_STATE_SIZE] = {
+    0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0
+};
+arm_matrix_instance_f32 P_apriori = {KALMAN_STATE_SIZE, KALMAN_STATE_SIZE, P_apriori_data};
+float P_aposteriori_data[KALMAN_STATE_SIZE*KALMAN_STATE_SIZE];
+arm_matrix_instance_f32 P_aposteriori = {KALMAN_STATE_SIZE, KALMAN_STATE_SIZE, P_aposteriori_data};
+
+float zk_data[KALMAN_STATE_SIZE];
+arm_matrix_instance_f32 zk = {KALMAN_STATE_SIZE, 1, zk_data};
+
+float Kk_data[KALMAN_STATE_SIZE*KALMAN_STATE_SIZE];
+arm_matrix_instance_f32 Kk = {KALMAN_STATE_SIZE, KALMAN_STATE_SIZE, Kk_data};
+
+float tmp5_data[KALMAN_STATE_SIZE*KALMAN_STATE_SIZE];
+arm_matrix_instance_f32 tmp5 = {KALMAN_STATE_SIZE, KALMAN_STATE_SIZE, tmp5_data};
+
+float tmp6_data[KALMAN_STATE_SIZE];
+arm_matrix_instance_f32 tmp6 = {KALMAN_STATE_SIZE, 1, tmp6_data};
+
+float tmp7_data[KALMAN_STATE_SIZE];
+arm_matrix_instance_f32 tmp7 = {KALMAN_STATE_SIZE, 1, tmp7_data};
+
+void f(float *in, float *out) {
+    out[0] = 0;
+    out[1] = 0;
+    out[2] = 0;
+    out[3] = -in[0]*in[4] - in[1]*in[5] - in[2]*in[6];
+    out[4] = in[0]*in[3] + in[2]*in[5] - in[1]*in[6];
+    out[5] = in[1]*in[3] + in[0]*in[6] - in[2]*in[4];
+    out[6] = in[2]*in[3] + in[1]*in[4] - in[0]*in[5];
+}
+
+
+void Kalman() {
+    // Kalman gain
+    arm_mat_mult_f32(&P_apriori, &invRk, &tmp5);
+    arm_mat_add_f32(&tmp5, &E, &Kk);
+    
+    // x_aposteriori
+    arm_sub_f32(zk_data, x_apriori_data, tmp6_data, KALMAN_STATE_SIZE);
+    arm_mat_mult_f32(&Kk, &tmp6, &tmp7);
+    arm_add_f32(x_apriori_data, tmp7_data, x_aposteriori_data, KALMAN_STATE_SIZE); 
+    
+    // P_aposteriori
+    arm_mat_sub_f32(&E, &Kk, &tmp5);
+    arm_mat_mult_f32(&tmp5, &P_apriori, &P_aposteriori);
+    
+    // x_apriori
+    f(x_aposteriori_data, tmp6_data);
+    arm_scale_f32(tmp6_data, DELTA, tmp6_data, KALMAN_STATE_SIZE);
+    arm_add_f32(x_aposteriori_data, tmp6_data, x_apriori_data, KALMAN_STATE_SIZE);
+    
+    // P_apriori
+    arm_mat_mult_f32(&Fk, &P_aposteriori, &tmp5);
+    arm_mat_mult_f32(&tmp5, &Fkt, &P_apriori);
+    arm_mat_add_f32(&P_apriori, &Qk, &P_apriori);
+}

@@ -3,14 +3,18 @@
 #include "accel_magne.h"
 #include "extra_math.h"
 #include "telemetry.h"
+#include "string.h"
 
 Quat orientation;
+extern float angleRate[VECT_SIZE];
 float w1[VECT_SIZE], w2[VECT_SIZE];
 float v1[VECT_SIZE], v2[VECT_SIZE];
 
 float euler[3];
 
 uint8_t Message_Size = 0;
+
+extern float x_aposteriori_data[7];
 
 void RCC_Init() {
     RCC->AHBENR     |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOEEN | RCC_AHBENR_DMA1EN;
@@ -77,6 +81,15 @@ int main() {
         if (quest_run) {
             quest_run = 0;
             QUEST();
+            
+            
+            memcpy(zk_data, angleRate, VECT_SIZE*sizeof(float));
+            zk_data[3] = orientation.w;
+            memcpy(zk_data+VECT_SIZE+1, orientation.v, VECT_SIZE*sizeof(float));
+            
+            Kalman();
+            orientation.w = x_aposteriori_data[3];
+            memcpy(orientation.v, x_aposteriori_data+VECT_SIZE+1, VECT_SIZE*sizeof(float));
             Quat_ToEuler(orientation, euler);
         }
     }

@@ -10,3 +10,4 @@
 .\main.o: accel_magne.h
 .\main.o: extra_math.h
 .\main.o: telemetry.h
+.\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h

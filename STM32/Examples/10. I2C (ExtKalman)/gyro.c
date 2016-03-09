@@ -196,7 +196,7 @@ void DMA1_Channel2_IRQHandler() {
         
         for (i = 0; i < 3; i++) {
             tmp = (gyro_data[2*i+2] << 8) | gyro_data[2*i+1];
-            angleRate[i] = tmp * GYRO_SENSITIVITY;
+            angleRate[i] = tmp * GYRO_SENSITIVITY * 3.14159 / 180.0;
         }
     }
 }

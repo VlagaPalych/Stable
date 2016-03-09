@@ -168,7 +168,7 @@ for i = 1:19
             Ai(j,k) = A(i,j,k);
         end
     end
-    F(i) = (invP*invK*(M0 - m) - Ai'*invP*invK*(M(:,i) - m))' * ...
-        (invP*invK*(M0 - m) - Ai'*invP*invK*(M(:,i) - m));
+    F(i) = sqrt((invP*invK*(M0 - m) - Ai'*invP*invK*(M(:,i) - m))' * ...
+        (invP*invK*(M0 - m) - Ai'*invP*invK*(M(:,i) - m)));
 end
 end
