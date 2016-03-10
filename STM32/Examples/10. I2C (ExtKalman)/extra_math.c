@@ -173,12 +173,12 @@ void QUEST() {
     // S calculation
     
     arm_mat_mult_f32(&w1_mat, &v1_t_mat, &tmp1);    // tmp1 = w1*v1^T
-    arm_mat_mult_f32(&v1_mat, &w1_t_mat, &tmp1);    // tmp2 = v1*w1^T
+    arm_mat_mult_f32(&v1_mat, &w1_t_mat, &tmp2);    // tmp2 = v1*w1^T
     arm_mat_add_f32(&tmp1, &tmp2, &tmp3);           // tmp3 = tmp1 + tmp2
     arm_mat_scale_f32(&tmp3, a1, &tmp4);            // tmp4 = a1*tmp3
     
     arm_mat_mult_f32(&w2_mat, &v2_t_mat, &tmp1);    // tmp1 = w2*v2^T
-    arm_mat_mult_f32(&v2_mat, &w2_t_mat, &tmp1);    // tmp2 = v2*w2^T
+    arm_mat_mult_f32(&v2_mat, &w2_t_mat, &tmp2);    // tmp2 = v2*w2^T
     arm_mat_add_f32(&tmp1, &tmp2, &tmp3);           // tmp3 = tmp1 + tmp2
     arm_mat_scale_f32(&tmp3, a1, &tmp1);            // tmp1 = a2*tmp3
     
@@ -203,6 +203,7 @@ void QUEST() {
     beta = lambda_max - sigma;
     gamma = (lambda_max + sigma) * alpha - delta;
     
+    // X calculation
     arm_mat_scale_f32(&I, alpha, &tmp1);            // tmp1 = alpha*I
     arm_mat_scale_f32(&S, beta, &tmp2);             // tmp2 = beta*S
     arm_mat_mult_f32(&S, &S, &tmp3);                // tmp3 = S^2
@@ -279,16 +280,16 @@ float Qk_data[KALMAN_STATE_SIZE*KALMAN_STATE_SIZE] = {
 };
 arm_matrix_instance_f32 Qk = {KALMAN_STATE_SIZE, KALMAN_STATE_SIZE, Qk_data};
 
-float invRk_data[KALMAN_STATE_SIZE*KALMAN_STATE_SIZE] = {
-    10, 0, 0, 0, 0, 0, 0,
-    0, 10, 0, 0, 0, 0, 0,
-    0, 0, 10, 0, 0, 0, 0,
-    0, 0, 0, 1e2, 0, 0, 0,
-    0, 0, 0, 0, 1e2, 0, 0,
-    0, 0, 0, 0, 0, 1e2, 0,
-    0, 0, 0, 0, 0, 0, 1e2
+float Rk_data[KALMAN_STATE_SIZE*KALMAN_STATE_SIZE] = {
+    1e-2, 0, 0, 0, 0, 0, 0,
+    0, 1e-2, 0, 0, 0, 0, 0,
+    0, 0, 1e-2, 0, 0, 0, 0,
+    0, 0, 0, 1e-4, 0, 0, 0,
+    0, 0, 0, 0, 1e-4, 0, 0,
+    0, 0, 0, 0, 0, 1e-4, 0,
+    0, 0, 0, 0, 0, 0, 1e-4
 };
-arm_matrix_instance_f32 invRk = {KALMAN_STATE_SIZE, KALMAN_STATE_SIZE, invRk_data};
+arm_matrix_instance_f32 Rk = {KALMAN_STATE_SIZE, KALMAN_STATE_SIZE, Rk_data};
 
 float x_apriori_data[KALMAN_STATE_SIZE] = {0, 0, 0, 1, 0, 0, 0};
 arm_matrix_instance_f32 x_apriori = {KALMAN_STATE_SIZE, 1, x_apriori_data};
@@ -323,6 +324,9 @@ arm_matrix_instance_f32 tmp6 = {KALMAN_STATE_SIZE, 1, tmp6_data};
 float tmp7_data[KALMAN_STATE_SIZE];
 arm_matrix_instance_f32 tmp7 = {KALMAN_STATE_SIZE, 1, tmp7_data};
 
+float tmp8_data[KALMAN_STATE_SIZE*KALMAN_STATE_SIZE];
+arm_matrix_instance_f32 tmp8 = {KALMAN_STATE_SIZE, KALMAN_STATE_SIZE, tmp8_data};
+
 void f(float *in, float *out) {
     out[0] = 0;
     out[1] = 0;
@@ -336,8 +340,9 @@ void f(float *in, float *out) {
 
 void Kalman() {
     // Kalman gain
-    arm_mat_mult_f32(&P_apriori, &invRk, &tmp5);
-    arm_mat_add_f32(&tmp5, &E, &Kk);
+    arm_mat_add_f32(&P_apriori, &Rk, &tmp5);
+    arm_mat_inverse_f32(&tmp5, &tmp8);
+    arm_mat_mult_f32(&P_apriori, &tmp8, &Kk);
     
     // x_aposteriori
     arm_sub_f32(zk_data, x_apriori_data, tmp6_data, KALMAN_STATE_SIZE);

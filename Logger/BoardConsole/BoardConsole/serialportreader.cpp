@@ -107,7 +107,9 @@ void SerialPortReader::handleReadyRead()
 					<< ' ' << msg.angleRate[0] << ' ' << msg.angleRate[1] << ' ' << msg.angleRate[2] << endl;
 				(*logStream) << msg.accel[0] << ' ' << msg.accel[1] << ' ' << msg.accel[2]
 					<< ' ' << msg.magField[0] << ' ' << msg.magField[1] << ' ' << msg.magField[2]
-					<< ' ' << msg.angleRate[0] << ' ' << msg.angleRate[1] << ' ' << msg.angleRate[2] << endl;
+					<< ' ' << msg.angleRate[0] << ' ' << msg.angleRate[1] << ' ' << msg.angleRate[2] 
+					<< ' ' << msg.orientation[0] << ' ' << msg.orientation[1] << ' ' << msg.orientation[2] << ' ' << msg.orientation[3]
+					<< ' ' << msg.euler[0] << ' ' << msg.euler[1] << ' ' << msg.euler[2] << endl;
 
 			}
 			Q_EMIT freshMessage(msg);

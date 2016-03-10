@@ -70,6 +70,8 @@ typedef struct {
 	float accel[3];
 	float magField[3];
 	float angleRate[3];
+	float orientation[4];
+	float euler[3];
 } Message;
 
 extern uint8_t Message_Size;

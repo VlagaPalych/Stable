@@ -1,7 +1,7 @@
-logName = 'D:\Vlad\Projects\Stable\Logger\BoardConsole\BoardConsole\log815.txt';
+logName = 'D:\Vlad\Projects\Stable\Logger\BoardConsole\BoardConsole\log824.txt';
 
 logFile = fopen(logName, 'r');
-A = fscanf(logFile, '%f %f %f %f %f %f %f %f %f\n', [9 Inf]);
+A = fscanf(logFile, '%f %f %f %f %f %f %f %f %f\n', [16 Inf]);
 
 ax = A(1,:);
 ay = A(2,:);
@@ -15,6 +15,11 @@ gx = A(7,:);
 gy = A(8,:);
 gz = A(9,:);
 
+stm_q = A(10:13,:);
+stm_roll = A(14,:) * pi / 180.0;
+stm_pitch = A(15,:) * pi / 180.0;
+stm_yaw = A(16,:) * pi / 180.0;
+
 w1 = [ax(1) ay(1) az(1)]';
 w2 = [mx(1) my(1) mz(1)]';
 
@@ -25,9 +30,9 @@ x_apriori = [0 0 0 1 0 0 0]';
 P_apriori = zeros(7, 7);
 
 F = eye(7);
-F(5,1) = 0.5;
-F(6,2) = 0.5;
-F(7,3) = 0.5;
+F(5,1) = 0.5*d;
+F(6,2) = 0.5*d;
+F(7,3) = 0.5*d;
 
 Q = diag([0.1 0.1 0.1 0 0 0 0]);
 
@@ -58,6 +63,7 @@ for i = 2:N
     [x_aposteriori, P_aposteriori, x_apriori, P_apriori] = my_kalman(F, Q, H, R, x_apriori, P_apriori, zk, @state_equation, d);
     
     q = x_aposteriori(4:7)';
+    orient(:,i) = q;
     [kalman_yaw(i), kalman_pitch(i), kalman_roll(i)] = quat2angle(q);
     
     gyro_roll(i) = gyro_roll(i-1) + gx(i)*d;
@@ -65,9 +71,12 @@ for i = 2:N
     gyro_yaw(i) = gyro_yaw(i-1) + gz(i)*d;
 end
 
-t = 1:N;
+[stm_orient_yaw, stm_orient_pitch, stm_orient_roll] = quat2angle(stm_q');
 
-plot(t, quest_roll, t, gyro_roll, t, kalman_roll);
-plot(t, quest_pitch, t, gyro_pitch, t, kalman_pitch);
-plot(t, quest_yaw, t, gyro_yaw, t, kalman_yaw);
+t = 1:N;
+plot(t, stm_q(4,:), t, orient(4,:));
+
+plot(t, quest_roll, t, gyro_roll, t, kalman_roll, t, stm_roll, t, stm_orient_roll);
+plot(t, quest_pitch, t, gyro_pitch, t, kalman_pitch, t, stm_pitch);
+plot(t, quest_yaw, t, gyro_yaw, t, kalman_yaw, t, stm_yaw);
 

@@ -84,8 +84,7 @@ int main() {
     while (1) {
         if (process) {
             process = 0;
-            QUEST();
-            
+            QUEST();           
             
             memcpy(zk_data, angleRate, VECT_SIZE*sizeof(float));
             zk_data[3] = orientation.w;
@@ -100,6 +99,9 @@ int main() {
             memcpy(message.accel, accel, VECT_SIZE*sizeof(float));
             memcpy(message.magField, magField, VECT_SIZE*sizeof(float));
             memcpy(message.angleRate, angleRate, VECT_SIZE*sizeof(float));
+            message.orientation[0] = orientation.w;
+            memcpy(message.orientation+1, orientation.v, VECT_SIZE*sizeof(float));
+            memcpy(message.euler, euler, VECT_SIZE*sizeof(float));
             Telemetry_Send(&message);
         }
     }
