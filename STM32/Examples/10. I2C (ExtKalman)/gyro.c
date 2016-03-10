@@ -138,6 +138,7 @@ void Gyro_EXTI_Init() {
     EXTI->RTSR  |= EXTI_RTSR_TR1;       // rising
     EXTI->IMR   |= EXTI_IMR_MR1;        // non-masking
     NVIC_EnableIRQ(EXTI1_IRQn);
+    NVIC_SetPriority(EXTI1_IRQn, 0x02);
 }
 
 void Gyro_GetData() {
@@ -156,7 +157,9 @@ void Gyro_GetData() {
 
 void Gyro_DMA_Init() {
     NVIC_EnableIRQ(DMA1_Channel2_IRQn);
+    NVIC_SetPriority(DMA1_Channel2_IRQn, 0x02); 
     NVIC_EnableIRQ(DMA1_Channel3_IRQn);
+    NVIC_SetPriority(DMA1_Channel3_IRQn, 0x02); 
       
     DMA1_Channel2->CPAR = (uint32_t)(&SPI1->DR);
     DMA1_Channel2->CCR = DMA_CCR_MSIZE_0 | DMA_CCR_PSIZE_0 | DMA_CCR_MINC | DMA_CCR_PL | DMA_CCR_TCIE; // | DMA_CCR_EN;

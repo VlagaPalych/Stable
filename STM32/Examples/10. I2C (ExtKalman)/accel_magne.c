@@ -43,7 +43,7 @@ extern float w1[VECT_SIZE], w2[VECT_SIZE];
 extern float v1[VECT_SIZE], v2[VECT_SIZE];
 
 uint8_t meas1 = 1;
-uint8_t quest_run = 0;
+uint8_t process = 0;
 
 float accel_trans_matrix_data[VECT_SIZE*VECT_SIZE] = {
     1.0160,     -0.0243,    -0.0229,
@@ -221,10 +221,12 @@ void AM_EXTI_Init() {
     EXTI->RTSR  |= EXTI_RTSR_TR4;       // rising
     EXTI->IMR   |= EXTI_IMR_MR4;        // non-masking
     NVIC_EnableIRQ(EXTI4_IRQn);
+    NVIC_SetPriority(EXTI4_IRQn, 0x02); 
 }
 
 void AM_DMA_Init() {
     NVIC_EnableIRQ(DMA1_Channel7_IRQn);
+    NVIC_SetPriority(DMA1_Channel7_IRQn, 0x02); 
       
     DMA1_Channel7->CPAR = (uint32_t)(&I2C1->RXDR);
     DMA1_Channel7->CCR = DMA_CCR_MINC | DMA_CCR_PL | DMA_CCR_TCIE; 
@@ -279,29 +281,23 @@ void DMA1_Channel7_IRQHandler() {
             arm_mat_mult_f32(&accel_trans_matrix, &non_calibr_accel, &accel_mat);
 //            
 //            arm_mat_mult_f32(&mag_trans_matrix, &non_calibr_mag, &non_calibr_mag);
-//            arm_sub_f32(non_calibr_mag_data, mag_bias, magField, VECT_SIZE);
-            
-            // telemetry
-            memcpy(message.accel, accel, VECT_SIZE*sizeof(float));
-            memcpy(message.magField, magField, VECT_SIZE*sizeof(float));
-            memcpy(message.angleRate, angleRate, VECT_SIZE*sizeof(float));
-            Telemetry_Send(&message);
+//            arm_sub_f32(non_calibr_mag_data, mag_bias, magField, VECT_SIZE);           
                    
-//            if (meas1) {
-//                meas1 = 0;
-//                memcpy(w1, accel, VECT_SIZE*sizeof(float));
-//                memcpy(w2, magField, VECT_SIZE*sizeof(float));
-//                
-//                Vect_Norm(w1);
-//                Vect_Norm(w2);
-//            } else {
-//                quest_run = 1;
-//                memcpy(v1, accel, VECT_SIZE*sizeof(float));
-//                memcpy(v2, magField, VECT_SIZE*sizeof(float));
-//                
-//                Vect_Norm(v1);
-//                Vect_Norm(v2);
-//            }
+            if (meas1) {
+                meas1 = 0;
+                memcpy(w1, accel, VECT_SIZE*sizeof(float));
+                memcpy(w2, magField, VECT_SIZE*sizeof(float));
+                
+                Vect_Norm(w1);
+                Vect_Norm(w2);
+            } else {
+                process = 1;
+                memcpy(v1, accel, VECT_SIZE*sizeof(float));
+                memcpy(v2, magField, VECT_SIZE*sizeof(float));
+                
+                Vect_Norm(v1);
+                Vect_Norm(v2);
+            }
         }
     }
 }

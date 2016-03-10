@@ -75,8 +75,8 @@ void Quat_ToEuler(Quat q, float angle[3]) {
     }
 }
 
-extern float w1[VECT_SIZE], w2[VECT_SIZE];
-extern float v1[VECT_SIZE], v2[VECT_SIZE];
+float w1[VECT_SIZE], w2[VECT_SIZE];
+float v1[VECT_SIZE], v2[VECT_SIZE];
 float a1 = 0.5, a2 = 0.5;
 
 float v1_t[VECT_SIZE];

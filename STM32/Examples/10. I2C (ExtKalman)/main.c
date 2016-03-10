@@ -7,8 +7,11 @@
 
 Quat orientation;
 extern float angleRate[VECT_SIZE];
-float w1[VECT_SIZE], w2[VECT_SIZE];
-float v1[VECT_SIZE], v2[VECT_SIZE];
+extern float accel[VECT_SIZE];
+extern float magField[VECT_SIZE];
+
+extern float w1[VECT_SIZE], w2[VECT_SIZE];
+extern float v1[VECT_SIZE], v2[VECT_SIZE];
 
 float euler[3];
 
@@ -47,6 +50,7 @@ void TIM2_Init() {
     TIM2->ARR = 10000;
     TIM2->DIER |= TIM_DIER_UIE;
     NVIC_EnableIRQ(TIM2_IRQn);
+    NVIC_SetPriority(TIM2_IRQn, 0x01);   
     TIM2->CR1 |= TIM_CR1_CEN;
 }
 
@@ -59,7 +63,7 @@ void TIM2_IRQHandler() {
 }
 
 int main() {
-    //QUEST_Init();
+    QUEST_Init();
     Message_Size = sizeof(Message);
     RCC_Init();
     
@@ -75,22 +79,28 @@ int main() {
     
     USART1_Init();
     //Button_Init();
-    //TIM2_Init();
+    TIM2_Init();
     
     while (1) {
-//        if (quest_run) {
-//            quest_run = 0;
-//            QUEST();
-//            
-//            
-//            memcpy(zk_data, angleRate, VECT_SIZE*sizeof(float));
-//            zk_data[3] = orientation.w;
-//            memcpy(zk_data+VECT_SIZE+1, orientation.v, VECT_SIZE*sizeof(float));
-//            
-//            Kalman();
-//            orientation.w = x_aposteriori_data[3];
-//            memcpy(orientation.v, x_aposteriori_data+VECT_SIZE+1, VECT_SIZE*sizeof(float));
-//            Quat_ToEuler(orientation, euler);
-//        }
+        if (process) {
+            process = 0;
+            QUEST();
+            
+            
+            memcpy(zk_data, angleRate, VECT_SIZE*sizeof(float));
+            zk_data[3] = orientation.w;
+            memcpy(zk_data+VECT_SIZE+1, orientation.v, VECT_SIZE*sizeof(float));
+            
+            Kalman();
+            orientation.w = x_aposteriori_data[3];
+            memcpy(orientation.v, x_aposteriori_data+VECT_SIZE+1, VECT_SIZE*sizeof(float));
+            Quat_ToEuler(orientation, euler);
+            
+            // telemetry
+            memcpy(message.accel, accel, VECT_SIZE*sizeof(float));
+            memcpy(message.magField, magField, VECT_SIZE*sizeof(float));
+            memcpy(message.angleRate, angleRate, VECT_SIZE*sizeof(float));
+            Telemetry_Send(&message);
+        }
     }
 }

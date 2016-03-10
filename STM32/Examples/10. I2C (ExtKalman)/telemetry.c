@@ -55,6 +55,7 @@ void USART1_Init() {
     //USART1->CR2     |= USART_CR2_STOP_1;
     USART1->CR1     |= (1 << 12) | USART_CR1_PCE | USART_CR1_UE | USART_CR1_TE | USART_CR1_RE | USART_CR1_RXNEIE; 
     NVIC_EnableIRQ(USART1_IRQn); 
+    NVIC_SetPriority(USART1_IRQn, 0x01); 
     Telemetry_DMA_Init();
 }
 
@@ -76,7 +77,8 @@ void USART1_IRQHandler() {
 }
 
 void Telemetry_DMA_Init() {
-    NVIC_EnableIRQ(DMA1_Channel4_IRQn);    
+    NVIC_EnableIRQ(DMA1_Channel4_IRQn);
+    NVIC_SetPriority(DMA1_Channel4_IRQn, 0x01);      
         
     DMA1_Channel4->CPAR = (uint32_t)&(USART1->TDR);
     DMA1_Channel4->CCR = DMA_CCR_DIR | DMA_CCR_MINC | DMA_CCR_PL | DMA_CCR_TCIE;
