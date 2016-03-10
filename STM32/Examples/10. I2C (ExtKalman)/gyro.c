@@ -180,6 +180,7 @@ void Gyro_DMA_Run() {
 void DMA1_Channel2_IRQHandler() {
     uint8_t i = 0;
     int16_t tmp = 0;
+    float swap = 0;
     
     if (DMA1->ISR & DMA_ISR_TCIF2) {
         DMA1->IFCR |= DMA_IFCR_CTCIF2 | DMA_IFCR_CHTIF2;
@@ -198,6 +199,9 @@ void DMA1_Channel2_IRQHandler() {
             tmp = (gyro_data[2*i+2] << 8) | gyro_data[2*i+1];
             angleRate[i] = tmp * GYRO_SENSITIVITY * 3.14159 / 180.0;
         }
+        swap = angleRate[1];
+        angleRate[1] = -angleRate[0];
+        angleRate[0] = swap;
     }
 }
 

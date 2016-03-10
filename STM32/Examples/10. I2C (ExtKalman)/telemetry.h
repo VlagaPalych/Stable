@@ -6,6 +6,7 @@
 typedef struct {
     float accel[3];
     float magField[3];
+    float angleRate[3];
 } Message;
 
 extern Message message;

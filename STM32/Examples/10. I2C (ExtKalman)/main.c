@@ -59,7 +59,7 @@ void TIM2_IRQHandler() {
 }
 
 int main() {
-    QUEST_Init();
+    //QUEST_Init();
     Message_Size = sizeof(Message);
     RCC_Init();
     
@@ -74,23 +74,23 @@ int main() {
     EXTI->SWIER |= EXTI_SWIER_SWIER4;
     
     USART1_Init();
-    Button_Init();
-    TIM2_Init();
+    //Button_Init();
+    //TIM2_Init();
     
     while (1) {
-        if (quest_run) {
-            quest_run = 0;
-            QUEST();
-            
-            
-            memcpy(zk_data, angleRate, VECT_SIZE*sizeof(float));
-            zk_data[3] = orientation.w;
-            memcpy(zk_data+VECT_SIZE+1, orientation.v, VECT_SIZE*sizeof(float));
-            
-            Kalman();
-            orientation.w = x_aposteriori_data[3];
-            memcpy(orientation.v, x_aposteriori_data+VECT_SIZE+1, VECT_SIZE*sizeof(float));
-            Quat_ToEuler(orientation, euler);
-        }
+//        if (quest_run) {
+//            quest_run = 0;
+//            QUEST();
+//            
+//            
+//            memcpy(zk_data, angleRate, VECT_SIZE*sizeof(float));
+//            zk_data[3] = orientation.w;
+//            memcpy(zk_data+VECT_SIZE+1, orientation.v, VECT_SIZE*sizeof(float));
+//            
+//            Kalman();
+//            orientation.w = x_aposteriori_data[3];
+//            memcpy(orientation.v, x_aposteriori_data+VECT_SIZE+1, VECT_SIZE*sizeof(float));
+//            Quat_ToEuler(orientation, euler);
+//        }
     }
 }

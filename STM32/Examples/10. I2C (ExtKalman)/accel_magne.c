@@ -185,7 +185,7 @@ void AM_Init() {
 
     // Accelerometer
     
-    // normal mode, all axis on
+    // 100Hz, normal mode, all axis on
     AM_Write(AM_ACCEL, AM_CTRL_REG1_A, AM_CTRL_REG1_A_VALUE); 
     am_test = AM_SingleRead(AM_ACCEL, AM_CTRL_REG1_A);
     
@@ -244,6 +244,8 @@ void EXTI4_IRQHandler() {
     }
 }
 
+extern float angleRate[3];
+
 void DMA1_Channel7_IRQHandler() {
     uint8_t i = 0;
     int16_t tmp = 0;
@@ -282,24 +284,24 @@ void DMA1_Channel7_IRQHandler() {
             // telemetry
             memcpy(message.accel, accel, VECT_SIZE*sizeof(float));
             memcpy(message.magField, magField, VECT_SIZE*sizeof(float));
-            
-            //Telemetry_Send(&message);
+            memcpy(message.angleRate, angleRate, VECT_SIZE*sizeof(float));
+            Telemetry_Send(&message);
                    
-            if (meas1) {
-                meas1 = 0;
-                memcpy(w1, accel, VECT_SIZE*sizeof(float));
-                memcpy(w2, magField, VECT_SIZE*sizeof(float));
-                
-                Vect_Norm(w1);
-                Vect_Norm(w2);
-            } else {
-                quest_run = 1;
-                memcpy(v1, accel, VECT_SIZE*sizeof(float));
-                memcpy(v2, magField, VECT_SIZE*sizeof(float));
-                
-                Vect_Norm(v1);
-                Vect_Norm(v2);
-            }
+//            if (meas1) {
+//                meas1 = 0;
+//                memcpy(w1, accel, VECT_SIZE*sizeof(float));
+//                memcpy(w2, magField, VECT_SIZE*sizeof(float));
+//                
+//                Vect_Norm(w1);
+//                Vect_Norm(w2);
+//            } else {
+//                quest_run = 1;
+//                memcpy(v1, accel, VECT_SIZE*sizeof(float));
+//                memcpy(v2, magField, VECT_SIZE*sizeof(float));
+//                
+//                Vect_Norm(v1);
+//                Vect_Norm(v2);
+//            }
         }
     }
 }
