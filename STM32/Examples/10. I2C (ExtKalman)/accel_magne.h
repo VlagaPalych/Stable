@@ -6,6 +6,7 @@
 typedef enum {AM_ACCEL, AM_MAG} device;
 
 extern uint8_t process;
+extern uint8_t meas1;
 
 void I2C1_Init(void);
 uint8_t AM_SingleRead(device dvc, uint8_t address);

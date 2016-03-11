@@ -79,7 +79,7 @@ int main() {
     
     USART1_Init();
     //Button_Init();
-    TIM2_Init();
+    //TIM2_Init();
     
     while (1) {
         if (process) {
@@ -96,12 +96,13 @@ int main() {
             Quat_ToEuler(orientation, euler);
             
             // telemetry
+            memcpy(message.w1, w1, VECT_SIZE*sizeof(float));
+            memcpy(message.w2, w2, VECT_SIZE*sizeof(float));
             memcpy(message.accel, accel, VECT_SIZE*sizeof(float));
             memcpy(message.magField, magField, VECT_SIZE*sizeof(float));
             memcpy(message.angleRate, angleRate, VECT_SIZE*sizeof(float));
-            message.orientation[0] = orientation.w;
-            memcpy(message.orientation+1, orientation.v, VECT_SIZE*sizeof(float));
-            memcpy(message.euler, euler, VECT_SIZE*sizeof(float));
+            memcpy(message.q+1, orientation.v, VECT_SIZE*sizeof(float));
+            message.q[0] = orientation.w;
             Telemetry_Send(&message);
         }
     }

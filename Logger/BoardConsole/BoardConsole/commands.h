@@ -67,11 +67,12 @@ typedef quint8 uint8_t;
 typedef quint16 uint16_t;
 
 typedef struct {
+	float w1[3];
+	float w2[3];
 	float accel[3];
 	float magField[3];
 	float angleRate[3];
-	float orientation[4];
-	float euler[3];
+	float q[4];
 } Message;
 
 extern uint8_t Message_Size;

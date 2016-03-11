@@ -214,7 +214,7 @@ void QUEST() {
     arm_copy_f32(X.pData, orientation.v, VECT_SIZE);
     orientation.w = gamma;
     
-    arm_sqrt_f32(gamma*gamma + X.pData[0]*X.pData[0] + X.pData[0]*X.pData[0] + X.pData[0]*X.pData[0], &norm_cf);
+    arm_sqrt_f32(gamma*gamma + X.pData[0]*X.pData[0] + X.pData[1]*X.pData[1] + X.pData[2]*X.pData[2], &norm_cf);
     Quat_Scale(&orientation, 1/norm_cf);
 }
 
@@ -331,10 +331,10 @@ void f(float *in, float *out) {
     out[0] = 0;
     out[1] = 0;
     out[2] = 0;
-    out[3] = -in[0]*in[4] - in[1]*in[5] - in[2]*in[6];
-    out[4] = in[0]*in[3] + in[2]*in[5] - in[1]*in[6];
-    out[5] = in[1]*in[3] + in[0]*in[6] - in[2]*in[4];
-    out[6] = in[2]*in[3] + in[1]*in[4] - in[0]*in[5];
+    out[3] = -0.5*(in[0]*in[4] + in[1]*in[5] + in[2]*in[6]);
+    out[4] = 0.5*(in[0]*in[3] + in[2]*in[5] - in[1]*in[6]);
+    out[5] = 0.5*(in[1]*in[3] + in[0]*in[6] - in[2]*in[4]);
+    out[6] = 0.5*(in[2]*in[3] + in[1]*in[4] - in[0]*in[5]);
 }
 
 
