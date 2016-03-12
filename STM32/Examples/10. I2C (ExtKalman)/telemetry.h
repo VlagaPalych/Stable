@@ -4,12 +4,15 @@
 #include "stdint.h"
 
 typedef struct {
-    float w1[3];
-    float w2[3];
-    float accel[3];
-    float magField[3];
+//    float w1[3];
+//    float w2[3];
+//    float accel[3];
+//    float magField[3];
+//    float angleRate[3];
+//    float q[4];
     float angleRate[3];
-    float q[4];
+    float euler[3];
+    float eulerRate[3];
 } Message;
 
 extern Message message;

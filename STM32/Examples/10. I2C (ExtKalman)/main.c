@@ -6,14 +6,16 @@
 #include "string.h"
 
 Quat orientation;
-extern float angleRate[VECT_SIZE];
+extern float gyro_angleRate[VECT_SIZE];
 extern float accel[VECT_SIZE];
 extern float magField[VECT_SIZE];
+float angleRate[VECT_SIZE];
 
 extern float w1[VECT_SIZE], w2[VECT_SIZE];
 extern float v1[VECT_SIZE], v2[VECT_SIZE];
 
-float euler[3];
+float euler[VECT_SIZE];
+float eulerRate[VECT_SIZE];
 
 uint8_t Message_Size = 0;
 
@@ -62,10 +64,13 @@ void TIM2_IRQHandler() {
     }
 }
 
-int main() {
+int main() { 
     QUEST_Init();
     Message_Size = sizeof(Message);
     RCC_Init();
+    
+    GPIOA->MODER &= ~(3 << 15*2);
+    GPIOA->MODER |= 1 << 15*2;
     
     Gyro_Init();
     Gyro_EXTI_Init();  
@@ -83,8 +88,14 @@ int main() {
     
     while (1) {
         if (process) {
+            GPIOA->BSRR |= GPIO_BSRR_BS_15;
             process = 0;
-            QUEST();           
+            memcpy(angleRate, gyro_angleRate, VECT_SIZE*sizeof(float));
+            
+            QUEST();          
+            
+//            memcpy(message.q+1, orientation.v, VECT_SIZE*sizeof(float));
+//            message.q[0] = orientation.w;
             
             memcpy(zk_data, angleRate, VECT_SIZE*sizeof(float));
             zk_data[3] = orientation.w;
@@ -95,15 +106,23 @@ int main() {
             memcpy(orientation.v, x_aposteriori_data+VECT_SIZE+1, VECT_SIZE*sizeof(float));
             Quat_ToEuler(orientation, euler);
             
+            angleRate_to_eulerRate(angleRate, euler, eulerRate);
+            
+            radians_to_degrees(euler);
+            radians_to_degrees(eulerRate);
+            
             // telemetry
-            memcpy(message.w1, w1, VECT_SIZE*sizeof(float));
-            memcpy(message.w2, w2, VECT_SIZE*sizeof(float));
-            memcpy(message.accel, accel, VECT_SIZE*sizeof(float));
-            memcpy(message.magField, magField, VECT_SIZE*sizeof(float));
+//            memcpy(message.w1, w1, VECT_SIZE*sizeof(float));
+//            memcpy(message.w2, w2, VECT_SIZE*sizeof(float));
+//            memcpy(message.accel, accel, VECT_SIZE*sizeof(float));
+//            memcpy(message.magField, magField, VECT_SIZE*sizeof(float));
             memcpy(message.angleRate, angleRate, VECT_SIZE*sizeof(float));
-            memcpy(message.q+1, orientation.v, VECT_SIZE*sizeof(float));
-            message.q[0] = orientation.w;
+//            memcpy(message.q+1, orientation.v, VECT_SIZE*sizeof(float));
+//            message.q[0] = orientation.w;
+            memcpy(message.euler, euler, VECT_SIZE*sizeof(float));
+            memcpy(message.eulerRate, eulerRate, VECT_SIZE*sizeof(float));
             Telemetry_Send(&message);
+            GPIOA->BSRR |= GPIO_BSRR_BR_15;
         }
     }
 }

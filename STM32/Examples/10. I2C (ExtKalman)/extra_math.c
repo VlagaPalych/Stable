@@ -65,14 +65,9 @@ void Quat_Scale(Quat *q, float scale_factor) {
     }
 }
 void Quat_ToEuler(Quat q, float angle[3]) {
-    uint8_t i = 0;
     angle[0] = atan(2*(q.w*q.v[0] + q.v[1]*q.v[2]) / (1.0f - 2*(q.v[0]*q.v[0] + q.v[1]*q.v[1])));
     angle[1] = asin(2*(q.w*q.v[1] + q.v[0]*q.v[2]));
     angle[2] = atan(2*(q.w*q.v[2] + q.v[0]*q.v[1]) / (1.0f - 2*(q.v[1]*q.v[1] + q.v[2]*q.v[2])));
-    
-    for (i = 0; i < 3; i++) {
-        angle[i] *= 180.0 / 3.14159;
-    }
 }
 
 float w1[VECT_SIZE], w2[VECT_SIZE];
@@ -281,13 +276,13 @@ float Qk_data[KALMAN_STATE_SIZE*KALMAN_STATE_SIZE] = {
 arm_matrix_instance_f32 Qk = {KALMAN_STATE_SIZE, KALMAN_STATE_SIZE, Qk_data};
 
 float Rk_data[KALMAN_STATE_SIZE*KALMAN_STATE_SIZE] = {
-    1e-2, 0, 0, 0, 0, 0, 0,
-    0, 1e-2, 0, 0, 0, 0, 0,
-    0, 0, 1e-2, 0, 0, 0, 0,
-    0, 0, 0, 1e-4, 0, 0, 0,
-    0, 0, 0, 0, 1e-4, 0, 0,
-    0, 0, 0, 0, 0, 1e-4, 0,
-    0, 0, 0, 0, 0, 0, 1e-4
+    0.9125e-5, 0, 0, 0, 0, 0, 0,
+    0, 0.7459e-5, 0, 0, 0, 0, 0,
+    0, 0, 0.3602e-5, 0, 0, 0, 0,
+    0, 0, 0, 0.0017e-5, 0, 0, 0,
+    0, 0, 0, 0, 0.4351e-5, 0, 0,
+    0, 0, 0, 0, 0, 0.3828e-5, 0,
+    0, 0, 0, 0, 0, 0, 0.0006e-5
 };
 arm_matrix_instance_f32 Rk = {KALMAN_STATE_SIZE, KALMAN_STATE_SIZE, Rk_data};
 
@@ -331,10 +326,10 @@ void f(float *in, float *out) {
     out[0] = 0;
     out[1] = 0;
     out[2] = 0;
-    out[3] = -0.5*(in[0]*in[4] + in[1]*in[5] + in[2]*in[6]);
-    out[4] = 0.5*(in[0]*in[3] + in[2]*in[5] - in[1]*in[6]);
-    out[5] = 0.5*(in[1]*in[3] + in[0]*in[6] - in[2]*in[4]);
-    out[6] = 0.5*(in[2]*in[3] + in[1]*in[4] - in[0]*in[5]);
+    out[3] = -0.5f*(in[0]*in[4] + in[1]*in[5] + in[2]*in[6]);
+    out[4] = 0.5f*(in[0]*in[3] + in[2]*in[5] - in[1]*in[6]);
+    out[5] = 0.5f*(in[1]*in[3] + in[0]*in[6] - in[2]*in[4]);
+    out[6] = 0.5f*(in[2]*in[3] + in[1]*in[4] - in[0]*in[5]);
 }
 
 
@@ -362,4 +357,39 @@ void Kalman() {
     arm_mat_mult_f32(&Fk, &P_aposteriori, &tmp5);
     arm_mat_mult_f32(&tmp5, &Fkt, &P_apriori);
     arm_mat_add_f32(&P_apriori, &Qk, &P_apriori);
+}
+
+void angleRate_to_eulerRate(float *angleRate, float *euler, float *eulerRate) {
+    uint8_t i = 0;
+    float sin_phi, cos_phi, sin_teta, cos_teta, tan_teta;
+    float tmp;
+    
+    sin_phi = arm_sin_f32(euler[0]);
+    cos_phi = arm_cos_f32(euler[0]);
+    sin_teta = arm_sin_f32(euler[1]);
+    cos_teta = arm_cos_f32(euler[1]);
+    tan_teta = sin_teta / cos_teta;
+    
+    eulerRate[0] = angleRate[0];
+    tmp = angleRate[1]*sin_phi*tan_teta;
+    eulerRate[0] = eulerRate[0] + tmp;
+    tmp = angleRate[2]*cos_phi*tan_teta;
+    eulerRate[0] = eulerRate[0] + tmp;
+    
+    eulerRate[1] = angleRate[1]*cos_phi - angleRate[2]*sin_phi;
+    eulerRate[2] = angleRate[1]*sin_phi/cos_teta + angleRate[2]*cos_phi/cos_teta;
+}
+
+void radians_to_degrees(float *radians) {
+    uint8_t i = 0;
+    for (i = 0; i < VECT_SIZE; i++) {
+        radians[i] *= 180.0 / 3.14159;
+    }
+}
+
+void degrees_to_radians(float *degrees) {
+    uint8_t i = 0;
+    for (i = 0; i < VECT_SIZE; i++) {
+        degrees[i] *= 3.14159 / 180.0;
+    }
 }

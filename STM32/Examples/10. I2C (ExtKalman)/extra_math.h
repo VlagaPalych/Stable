@@ -20,4 +20,8 @@ extern float zk_data[KALMAN_STATE_SIZE];
 
 void Kalman(void);
 
+void angleRate_to_eulerRate(float *angleRate, float *euler, float *eulerRate);
+void radians_to_degrees(float *radians);
+void degrees_to_radians(float *degrees);
+
 #endif

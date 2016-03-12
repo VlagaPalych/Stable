@@ -1,5 +1,6 @@
 #include "stm32f30x.h"
 #include "gyro.h"
+#include "extra_math.h"
 
 uint8_t SPI1_SCK    = 5; // PA
 uint8_t SPI1_MOSI   = 7; // PA
@@ -16,11 +17,13 @@ uint8_t GYRO_INT2   = 1; // PE
 #define GYRO_CTRL_REG1_VALUE    0x1f
 #define GYRO_CTRL_REG3          0x22
 #define GYRO_CTRL_REG3_VALUE    0x08
+#define GYRO_CTRL_REG4          0x23
+#define GYRO_CTRL_REG4_VALUE    0x30
 
-#define GYRO_SENSITIVITY 8.75e-3 // mdps per lsb
+#define GYRO_SENSITIVITY 70e-3 // mdps per lsb
 
 uint8_t gyro_data[7];
-float angleRate[3];
+float gyro_angleRate[3];
 
 uint16_t gyro_dma_tx[4] = {0xe700, 0x0000, 0x0000, 0x0000};
 uint16_t gyro_dma_rx[4];
@@ -127,6 +130,14 @@ void Gyro_Init() {
     gyro_test = Gyro_Read(GYRO_CTRL_REG3);
     Gyro_NSS_High();
     
+    // Sensitivity 2000 dps
+    Gyro_NSS_Low();
+    Gyro_Write(GYRO_CTRL_REG4, GYRO_CTRL_REG4_VALUE);
+    Gyro_NSS_High();
+    Gyro_NSS_Low();
+    gyro_test = Gyro_Read(GYRO_CTRL_REG4);
+    Gyro_NSS_High();
+    
     Gyro_DMA_Init();
 }
 
@@ -151,7 +162,7 @@ void Gyro_GetData() {
     
     for (i = 0; i < 3; i++) {
         tmp = (gyro_data[2*i+2] << 8) | gyro_data[2*i+1];
-        angleRate[i] = tmp * GYRO_SENSITIVITY;
+        gyro_angleRate[i] = tmp * GYRO_SENSITIVITY;
     }
 }
 
@@ -200,11 +211,13 @@ void DMA1_Channel2_IRQHandler() {
         
         for (i = 0; i < 3; i++) {
             tmp = (gyro_data[2*i+2] << 8) | gyro_data[2*i+1];
-            angleRate[i] = tmp * GYRO_SENSITIVITY * 3.14159 / 180.0;
+            gyro_angleRate[i] = tmp * GYRO_SENSITIVITY; //degrees
         }
-        swap = angleRate[1];
-        angleRate[1] = -angleRate[0];
-        angleRate[0] = swap;
+        swap = gyro_angleRate[1];
+        gyro_angleRate[1] = -gyro_angleRate[0];
+        gyro_angleRate[0] = swap;
+        
+        degrees_to_radians(gyro_angleRate);
     }
 }
 
