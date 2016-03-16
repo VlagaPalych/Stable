@@ -162,12 +162,17 @@
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>tmp5_data</ItemText>
+          <ItemText>gyro_dma_rx</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>tmp8_data</ItemText>
+          <ItemText>gyro_temp,0x0A</ItemText>
+        </Ww>
+        <Ww>
+          <count>2</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>message</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
@@ -231,6 +236,11 @@
           <WinNumber>2</WinNumber>
           <ItemText>message</ItemText>
         </Ww>
+        <Ww>
+          <count>12</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>eulerRate</ItemText>
+        </Ww>
       </WatchWindow2>
       <Tracepoint>
         <THDelay>0</THDelay>
@@ -267,6 +277,10 @@
         <Entry>
           <Name>System Viewer\DMA1</Name>
           <WinId>35904</WinId>
+        </Entry>
+        <Entry>
+          <Name>System Viewer\GPIOA</Name>
+          <WinId>35902</WinId>
         </Entry>
         <Entry>
           <Name>System Viewer\I2C1</Name>

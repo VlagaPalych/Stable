@@ -10,6 +10,7 @@ extern float gyro_angleRate[VECT_SIZE];
 extern float accel[VECT_SIZE];
 extern float magField[VECT_SIZE];
 float angleRate[VECT_SIZE];
+extern int8_t gyro_temp;
 
 extern float w1[VECT_SIZE], w2[VECT_SIZE];
 extern float v1[VECT_SIZE], v2[VECT_SIZE];
@@ -116,11 +117,12 @@ int main() {
 //            memcpy(message.w2, w2, VECT_SIZE*sizeof(float));
 //            memcpy(message.accel, accel, VECT_SIZE*sizeof(float));
 //            memcpy(message.magField, magField, VECT_SIZE*sizeof(float));
-            memcpy(message.angleRate, angleRate, VECT_SIZE*sizeof(float));
+            memcpy(message.angleRate, angleRate, VECT_SIZE*sizeof(float));          
+            message.temp = gyro_temp;
 //            memcpy(message.q+1, orientation.v, VECT_SIZE*sizeof(float));
 //            message.q[0] = orientation.w;
-            memcpy(message.euler, euler, VECT_SIZE*sizeof(float));
-            memcpy(message.eulerRate, eulerRate, VECT_SIZE*sizeof(float));
+//            memcpy(message.euler, euler, VECT_SIZE*sizeof(float));
+//            memcpy(message.eulerRate, eulerRate, VECT_SIZE*sizeof(float));
             Telemetry_Send(&message);
             GPIOA->BSRR |= GPIO_BSRR_BR_15;
         }

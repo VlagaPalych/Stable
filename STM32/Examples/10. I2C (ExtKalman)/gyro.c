@@ -20,13 +20,20 @@ uint8_t GYRO_INT2   = 1; // PE
 #define GYRO_CTRL_REG4          0x23
 #define GYRO_CTRL_REG4_VALUE    0x30
 
-#define GYRO_SENSITIVITY 70e-3 // mdps per lsb
+#define GYRO_SENSITIVITY 8.75e-3//70e-3 // mdps per lsb
 
-uint8_t gyro_data[7];
+uint8_t gyro_data[9];
 float gyro_angleRate[3];
 
-uint16_t gyro_dma_tx[4] = {0xe700, 0x0000, 0x0000, 0x0000};
-uint16_t gyro_dma_rx[4];
+// Bias depends on temperature
+// Bias = gyro_k*temp + gyro_b;
+int8_t gyro_temp;
+float gyro_k[3] = {0.007173716852707, -0.002663790962610, 0.024035829009952};
+float gyro_b[3] = {0.156616579931222, 0.882064466464646, 0.946608336010653};
+float gyro_axis_sensitivity[3] = {0.971826171252673, 1.133234173275460, 0.940997344975712};
+
+uint16_t gyro_dma_tx[5] = {0xe600, 0x0000, 0x0000, 0x0000, 0x0000};
+uint16_t gyro_dma_rx[5];
 
 
 void SPI1_GPIO_Init() {
@@ -131,12 +138,12 @@ void Gyro_Init() {
     Gyro_NSS_High();
     
     // Sensitivity 2000 dps
-    Gyro_NSS_Low();
-    Gyro_Write(GYRO_CTRL_REG4, GYRO_CTRL_REG4_VALUE);
-    Gyro_NSS_High();
-    Gyro_NSS_Low();
-    gyro_test = Gyro_Read(GYRO_CTRL_REG4);
-    Gyro_NSS_High();
+//    Gyro_NSS_Low();
+//    Gyro_Write(GYRO_CTRL_REG4, GYRO_CTRL_REG4_VALUE);
+//    Gyro_NSS_High();
+//    Gyro_NSS_Low();
+//    gyro_test = Gyro_Read(GYRO_CTRL_REG4);
+//    Gyro_NSS_High();
     
     Gyro_DMA_Init();
 }
@@ -183,11 +190,11 @@ void Gyro_DMA_Run() {
     Gyro_NSS_Low();
     
     DMA1_Channel2->CMAR = (uint32_t)(gyro_dma_rx);
-    DMA1_Channel2->CNDTR = 4;
+    DMA1_Channel2->CNDTR = 5;
     DMA1_Channel2->CCR |= DMA_CCR_EN;
     
     DMA1_Channel3->CMAR = (uint32_t)(gyro_dma_tx);
-    DMA1_Channel3->CNDTR = 4;
+    DMA1_Channel3->CNDTR = 5;
     DMA1_Channel3->CCR |= DMA_CCR_EN;
 }
 
@@ -199,23 +206,31 @@ void DMA1_Channel2_IRQHandler() {
     if (DMA1->ISR & DMA_ISR_TCIF2) {
         DMA1->IFCR |= DMA_IFCR_CTCIF2 | DMA_IFCR_CHTIF2;
         DMA1_Channel2->CCR &= ~DMA_CCR_EN;
-        Gyro_NSS_High();
+        Gyro_NSS_High();       
         
-        gyro_data[0] = gyro_dma_rx[0] & 0xff;
-        gyro_data[1] = gyro_dma_rx[1] >> 8;
-        gyro_data[2] = gyro_dma_rx[1] & 0xff;
-        gyro_data[3] = gyro_dma_rx[2] >> 8;
-        gyro_data[4] = gyro_dma_rx[2] & 0xff;
-        gyro_data[5] = gyro_dma_rx[3] >> 8;
-        gyro_data[6] = gyro_dma_rx[3] & 0xff;
+        gyro_temp = gyro_dma_rx[0] & 0xff;
+        
+        gyro_data[0] = gyro_dma_rx[1] >> 8;
+        gyro_data[1] = gyro_dma_rx[1] & 0xff;
+        gyro_data[2] = gyro_dma_rx[2] >> 8;
+        gyro_data[3] = gyro_dma_rx[2] & 0xff;
+        gyro_data[4] = gyro_dma_rx[3] >> 8;
+        gyro_data[5] = gyro_dma_rx[3] & 0xff;
+        gyro_data[6] = gyro_dma_rx[4] >> 8;
         
         for (i = 0; i < 3; i++) {
             tmp = (gyro_data[2*i+2] << 8) | gyro_data[2*i+1];
             gyro_angleRate[i] = tmp * GYRO_SENSITIVITY; //degrees
+            //gyro_angleRate[i] -= (gyro_k[i] * (-gyro_temp) + gyro_b[i]); 
         }
         swap = gyro_angleRate[1];
         gyro_angleRate[1] = -gyro_angleRate[0];
         gyro_angleRate[0] = swap;
+        
+        for (i = 0; i < VECT_SIZE; i++) {
+            gyro_angleRate[i] -= (gyro_k[i] * (-gyro_temp) + gyro_b[i]); 
+            //gyro_angleRate[i] *= gyro_axis_sensitivity[i];
+        }
         
         degrees_to_radians(gyro_angleRate);
     }

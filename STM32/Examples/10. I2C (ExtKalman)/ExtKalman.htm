@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\ExtKalman.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\ExtKalman.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5050106: Last Updated: Sat Mar 12 17:26:44 2016
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5050106: Last Updated: Tue Mar 15 20:59:07 2016
 <BR><P>
 <H3>Maximum Stack Usage =        328 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -753,7 +753,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[73]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;AM_Init
 </UL>
 
-<P><STRONG><a name="[18]"></a>DMA1_Channel2_IRQHandler</STRONG> (Thumb, 212 bytes, Stack size 40 bytes, gyro.o(i.DMA1_Channel2_IRQHandler))
+<P><STRONG><a name="[18]"></a>DMA1_Channel2_IRQHandler</STRONG> (Thumb, 306 bytes, Stack size 40 bytes, gyro.o(i.DMA1_Channel2_IRQHandler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 104<LI>Call Chain = DMA1_Channel2_IRQHandler &rArr; degrees_to_radians &rArr; __aeabi_dmul
 </UL>
 <BR>[Calls]<UL><LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;degrees_to_radians
@@ -827,7 +827,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[89]"></a>Gyro_Init</STRONG> (Thumb, 132 bytes, Stack size 8 bytes, gyro.o(i.Gyro_Init))
+<P><STRONG><a name="[89]"></a>Gyro_Init</STRONG> (Thumb, 98 bytes, Stack size 8 bytes, gyro.o(i.Gyro_Init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = Gyro_Init &rArr; Gyro_DMA_Init &rArr; NVIC_SetPriority
 </UL>
 <BR>[Calls]<UL><LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SPI1_Init
@@ -1170,7 +1170,7 @@ Global Symbols
 <LI><a href="#[a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__hardfp_asin
 </UL>
 
-<P><STRONG><a name="[5b]"></a>main</STRONG> (Thumb, 304 bytes, Stack size 0 bytes, main.o(i.main))
+<P><STRONG><a name="[5b]"></a>main</STRONG> (Thumb, 280 bytes, Stack size 0 bytes, main.o(i.main))
 <BR><BR>[Stack]<UL><LI>Max Depth = 328<LI>Call Chain = main &rArr; Quat_ToEuler &rArr; __hardfp_asin &rArr; sqrt &rArr; _dsqrt &rArr; __fpl_dnaninf &rArr; __dunder_d &rArr; _fp_trapveneer &rArr; _fp_trap &rArr; __rt_SIGFPE &rArr; __rt_SIGFPE_inner &rArr; __default_signal_display &rArr; _ttywrch
 </UL>
 <BR>[Calls]<UL><LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radians_to_degrees
