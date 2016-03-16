@@ -340,66 +340,66 @@ float angle = 0;
 void BoardConsole::handleFreshMessage(Message msg) {
 	qint64 time = QDateTime::currentMSecsSinceEpoch() - startTime;
 
-	if (ui.angleCheckBox->isChecked()) {
-		if (angleX.size() == maxSize) {
-			angleX.pop_front();
-			angleY.pop_front();
-		}
-		angleX.append(time);
-		angleY.append(msg.gyroRoll);
-		plot1_curves[0]->setSamples(angleX, angleY);
-	}
-	if (ui.angVelCheckBox->isChecked()) {
-		if (angVelX.size() == maxSize) {
-			angVelX.pop_front();
-			angVelY.pop_front();
-		}
-		angVelX.append(time);
-		angVelY.append(msg.accelRoll);
-		plot1_curves[1]->setSamples(angVelX, angVelY);
-	}
+	//if (ui.angleCheckBox->isChecked()) {
+	//	if (angleX.size() == maxSize) {
+	//		angleX.pop_front();
+	//		angleY.pop_front();
+	//	}
+	//	angleX.append(time);
+	//	angleY.append(msg.euler[0]);
+	//	plot1_curves[0]->setSamples(angleX, angleY);
+	//}
+	//if (ui.angVelCheckBox->isChecked()) {
+	//	if (angVelX.size() == maxSize) {
+	//		angVelX.pop_front();
+	//		angVelY.pop_front();
+	//	}
+	//	angVelX.append(time);
+	//	angVelY.append(msg.eulerRate[0]/*msg.angleRate[0] * 180.0 / 3.14159*/);
+	//	plot1_curves[1]->setSamples(angVelX, angVelY);
+	//}
 
-	if (ui.pwm1CheckBox->isChecked()) {
-		if (pwm1X.size() == maxSize) {
-			pwm1X.pop_front();
-			pwm1Y.pop_front();
-		}
-		pwm1X.append(time);
-		pwm1Y.append(msg.gyroPitch);
-		plot2_curves[0]->setSamples(pwm1X, pwm1Y);
-	}
-	if (ui.pwm2CheckBox->isChecked()) {
-		if (pwm2X.size() == maxSize) {
-			pwm2X.pop_front();
-			pwm2Y.pop_front();
-		}
-		pwm2X.append(time);
-		pwm2Y.append(msg.accelPitch);
-		plot2_curves[1]->setSamples(pwm2X, pwm2Y);
-	}
+	//if (ui.pwm1CheckBox->isChecked()) {
+	//	if (pwm1X.size() == maxSize) {
+	//		pwm1X.pop_front();
+	//		pwm1Y.pop_front();
+	//	}
+	//	pwm1X.append(time);
+	//	pwm1Y.append(msg.euler[1]);
+	//	plot2_curves[0]->setSamples(pwm1X, pwm1Y);
+	//}
+	//if (ui.pwm2CheckBox->isChecked()) {
+	//	if (pwm2X.size() == maxSize) {
+	//		pwm2X.pop_front();
+	//		pwm2Y.pop_front();
+	//	}
+	//	pwm2X.append(time);
+	//	pwm2Y.append(msg.eulerRate[1]/*msg.angleRate[1] * 180.0 / 3.14159*/);
+	//	plot2_curves[1]->setSamples(pwm2X, pwm2Y);
+	//}
 
-	if (ui.count1CheckBox->isChecked()) {
-		if (count1X.size() == maxSize) {
-			count1X.pop_front();
-			count1Y.pop_front();
-		}
-		count1X.append(time);
-		count1Y.append(msg.complementaryRoll);
-		plot3_curves[0]->setSamples(count1X, count1Y);
-	}
-	if (ui.count2CheckBox->isChecked()) {
-		if (count2X.size() == maxSize) {
-			count2X.pop_front();
-			count2Y.pop_front();
-		}
-		count2X.append(time);
-		count2Y.append(msg.complementaryPitch);
-		plot3_curves[1]->setSamples(count2X, count2Y);
-	}
+	//if (ui.count1CheckBox->isChecked()) {
+	//	if (count1X.size() == maxSize) {
+	//		count1X.pop_front();
+	//		count1Y.pop_front();
+	//	}
+	//	count1X.append(time);
+	//	count1Y.append(msg.euler[2]);
+	//	plot3_curves[0]->setSamples(count1X, count1Y);
+	//}
+	//if (ui.count2CheckBox->isChecked()) {
+	//	if (count2X.size() == maxSize) {
+	//		count2X.pop_front();
+	//		count2Y.pop_front();
+	//	}
+	//	count2X.append(time);
+	//	count2Y.append(msg.eulerRate[2]/*msg.angleRate[2] * 180.0 / 3.14159*/);
+	//	plot3_curves[1]->setSamples(count2X, count2Y);
+	//}
 
-	ui.plot1->replot();
-	ui.plot2->replot();
-	ui.plot3->replot();
+	//ui.plot1->replot();
+	//ui.plot2->replot();
+	//ui.plot3->replot();
 }
 
 void BoardConsole::handleFreshLine(QString &line) {

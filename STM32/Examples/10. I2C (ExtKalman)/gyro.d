@@ -1,0 +1,10 @@
+.\gyro.o: gyro.c
+.\gyro.o: C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.2.0\Device\Include\stm32f30x.h
+.\gyro.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cm4.h
+.\gyro.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\gyro.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmInstr.h
+.\gyro.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmFunc.h
+.\gyro.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmSimd.h
+.\gyro.o: C:\Keil_v5\ARM\PACK\Keil\STM32F3xx_DFP\1.2.0\Device\Include\system_stm32f30x.h
+.\gyro.o: gyro.h
+.\gyro.o: extra_math.h

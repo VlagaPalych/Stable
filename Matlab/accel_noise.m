@@ -2,26 +2,26 @@
 % для того, чтобы подобрать фильтра нижних частот
 % 659 - без вибрации
 % 662 - с вибрацией
-logName = 'D:\Vlad\Projects\Stable\Logger\BoardConsole\BoardConsole\log662.txt';
+logName = 'D:\Vlad\Projects\Stable\Logger\BoardConsole\BoardConsole\log769.txt';
 
 logFile = fopen(logName, 'r');
-A = fscanf(logFile, '%f %f %f\n', [3 Inf]);
+A = fscanf(logFile, '%f %f %f %f %f %f\n', [6 Inf]);
 
-ax = A(1,:);
-ay = A(2,:);
-az = A(3,:);
+ax = A(4,:);
+ay = A(5,:);
+az = A(6,:);
 
-y = ay;
+y = az;
 
-Fs = 1600;          % sampling frequency (Hz)
+Fs = 100;          % sampling frequency (Hz)
 T = 1/Fs;           % sample time
 L = length(y);      % length of signal
 t = (0:L-1)*T;      % time vector
 
 
-y_filtered = Hlp2.filter(y);
+%y_filtered = Hlp2.filter(y);
+% plot(y_filtered);
 plot(Fs*t, y);
-plot(y_filtered);
 
 NFFT = 2^nextpow2(L); % next power of 2 from length of signal
 y = y .* transpose(blackman(L));

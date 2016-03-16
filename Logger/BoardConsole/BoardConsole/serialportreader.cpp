@@ -102,10 +102,14 @@ void SerialPortReader::handleReadyRead()
 		Message msg;
 		if (Message_FromByteArray((uint8_t *)msgByteArray.data(), Message_Size + 2, &msg)) {	
 			if (logStream) {
-				//(*logStream) << msg.ax << ' ' << msg.ay << ' ' << msg.az << ' ' << msg.angle << endl;
-				//qDebug() << msg.ax << ' ' << msg.ay << ' ' << msg.az << ' ' << msg.angle  << endl;
-				(*logStream) << msg.gyroRoll << ' ' << msg.accelRoll << ' ' << msg.complementaryRoll << ' ' << msg.gyroPitch << ' ' << msg.accelPitch << ' ' << msg.complementaryPitch << endl;
-				qDebug() << msg.gyroRoll << ' ' << msg.accelRoll << ' ' << msg.complementaryRoll << ' ' << msg.gyroPitch << ' ' << msg.accelPitch << ' ' << msg.complementaryPitch << endl;
+				/*(*logStream) << msg.angleRate[0] << ' ' << msg.angleRate[1] << ' ' << msg.angleRate[2]
+					<< ' ' << msg.euler[0] << ' ' << msg.euler[1] << ' ' << msg.euler[2]
+					<< ' ' << msg.eulerRate[0] << ' ' << msg.eulerRate[1] << ' ' << msg.eulerRate[2] << endl;
+				qDebug() << msg.angleRate[0] << ' ' << msg.angleRate[1] << ' ' << msg.angleRate[2]
+					<< ' ' << msg.euler[0] << ' ' << msg.euler[1] << ' ' << msg.euler[2]
+					<< ' ' << msg.eulerRate[0] << ' ' << msg.eulerRate[1] << ' ' << msg.eulerRate[2] << endl;*/
+				(*logStream) << msg.angleRate[0] << ' ' << msg.angleRate[1] << ' ' << msg.angleRate[2] << ' ' << msg.temp << endl;
+				qDebug() << msg.angleRate[0] << ' ' << msg.angleRate[1] << ' ' << msg.angleRate[2] << ' ' << msg.temp << endl;
 			}
 			Q_EMIT freshMessage(msg);
 			m_readData = m_readData.remove(0, Message_Size+2);

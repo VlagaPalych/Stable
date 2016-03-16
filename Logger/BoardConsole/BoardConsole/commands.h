@@ -64,17 +64,12 @@
 
 typedef qint16 int16_t;
 typedef quint8 uint8_t;
+typedef qint8 int8_t;
 typedef quint16 uint16_t;
 
 typedef struct {
-	float accelRoll;
-	float gyroRoll;
-	float complementaryRoll;
-	float accelPitch;
-	float gyroPitch;
-	float complementaryPitch;
-	//float ax, ay, az;
-	//float angle;
+	float angleRate[3];
+	int8_t temp;
 } Message;
 
 extern uint8_t Message_Size;
