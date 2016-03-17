@@ -41,6 +41,9 @@ uint8_t IMU_INT     = 1;    // PA
 #define USER_CTRL               0x6a
 #define USER_CTRL_VALUE         0x20
 
+#define I2C_MST_CTRL            0x24
+#define I2C_MST_CTRL_VALUE      0x40
+
 #define I2C_SLV0_ADDR           0x25      
 #define I2C_SLV0_REG            0x26
 #define I2C_SLV0_CTRL           0x27
@@ -53,6 +56,8 @@ uint8_t IMU_INT     = 1;    // PA
 #define AK8963_CNTL1_VALUE      0x16
 #define AK8963_HXL              0x03
 
+void Delay_ms(uint16_t ms);
+void Delay_us(uint16_t us);
 
 void IMU_NSS_Init() {
     GPIOB->MODER    |= 1 << IMU_NSS*2;
@@ -179,8 +184,8 @@ void IMU_EXTI_Init() {
     
     EXTI->RTSR  |= EXTI_RTSR_TR1;       // rising
     EXTI->IMR   |= EXTI_IMR_MR1;        // non-masking
+    NVIC_SetPriority(EXTI1_IRQn, 0x02);
     NVIC_EnableIRQ(EXTI1_IRQn);
-    //NVIC_SetPriority(EXTI1_IRQn, 0x02);
 }
 
 uint8_t rawData[22];
@@ -200,7 +205,6 @@ void IMU_MultiRead(uint8_t address, uint8_t *data, uint8_t size) {
 }
 
 void EXTI1_IRQHandler() {
-    uint8_t i = 0;    
     if (EXTI->PR & EXTI_PR_PR1) {
         EXTI->PR = EXTI_PR_PR1;
         
@@ -209,7 +213,6 @@ void EXTI1_IRQHandler() {
     }
 }
 
-int k = 1000000;
 void Mag_Init() {
     // Enable I2C master
     IMU_WriteByte(USER_CTRL, USER_CTRL_VALUE);
@@ -223,15 +226,14 @@ void Mag_Init() {
     // Write 1 byte
     IMU_WriteByte(I2C_SLV0_CTRL, I2C_SLV0_CTRL_1_BYTE);
     
-    while (k != 0) k--;
+    Delay_ms(10);
     
-    IMU_WriteByte(36, 0x40);
+    // Data ready interrupt waits for external sensor data
+    IMU_WriteByte(I2C_MST_CTRL, I2C_MST_CTRL_VALUE);
     // I2C address for writing
     IMU_WriteByte(I2C_SLV0_ADDR, READ_COMMAND | AK8963_I2C_ADDRESS);
     // reading from HXL register
     IMU_WriteByte(I2C_SLV0_REG, AK8963_HXL);
     // Read 7 bytes
     IMU_WriteByte(I2C_SLV0_CTRL, I2C_SLV0_CTRL_7_BYTES);
-    
-    IMU_WriteByte(103, 0x01);
 }
