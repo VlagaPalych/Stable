@@ -1,0 +1,30 @@
+Dependencies for Project 'Orientation', Target 'STM32': (DO NOT MODIFY !)
+F (.\main.c)(0x56E9A710)(-c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I D:\Vlad\Projects\Stable\STM32\InvenSense\RTE-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.3.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="514" -D_RTE_ -DSTM32F407xx-o .\objects\main.o --omf_browse .\objects\main.crf --depend .\objects\main.d)
+I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.3.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include\stm32f4xx.h)(0x53ABCA8A)
+I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.3.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include\stm32f407xx.h)(0x53ABCA8A)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cm4.h)(0x53FC6A1A)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x54763950)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmInstr.h)(0x53FF2AEA)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmFunc.h)(0x53FF2AEA)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmSimd.h)(0x53FC6A1A)
+I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.3.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include\system_stm32f4xx.h)(0x53ABCA8A)
+I (mpu9250.h)(0x56E98C81)
+F (.\mpu9250.c)(0x56E9AD08)(-c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I D:\Vlad\Projects\Stable\STM32\InvenSense\RTE-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.3.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="514" -D_RTE_ -DSTM32F407xx-o .\objects\mpu9250.o --omf_browse .\objects\mpu9250.crf --depend .\objects\mpu9250.d)
+I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.3.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include\stm32f4xx.h)(0x53ABCA8A)
+I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.3.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include\stm32f407xx.h)(0x53ABCA8A)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cm4.h)(0x53FC6A1A)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x54763950)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmInstr.h)(0x53FF2AEA)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmFunc.h)(0x53FF2AEA)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmSimd.h)(0x53FC6A1A)
+I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.3.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include\system_stm32f4xx.h)(0x53ABCA8A)
+F (RTE\Device\STM32F407VGTx\startup_stm32f407xx.s)(0x53ABCA88)(--cpu Cortex-M4.fp -g --apcs=interwork -I D:\Vlad\Projects\Stable\STM32\InvenSense\RTE-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.3.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include--pd "__UVISION_VERSION SETA 514" --pd "_RTE_ SETA 1" --pd "STM32F407xx SETA 1"--list .\listings\startup_stm32f407xx.lst --xref -o .\objects\startup_stm32f407xx.o --depend .\objects\startup_stm32f407xx.d)
+F (RTE\Device\STM32F407VGTx\system_stm32f4xx.c)(0x5423F1C4)(-c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I D:\Vlad\Projects\Stable\STM32\InvenSense\RTE-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.3.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="514" -D_RTE_ -DSTM32F407xx-o .\objects\system_stm32f4xx.o --omf_browse .\objects\system_stm32f4xx.crf --depend .\objects\system_stm32f4xx.d)
+I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.3.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include\stm32f4xx.h)(0x53ABCA8A)
+I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.3.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include\stm32f407xx.h)(0x53ABCA8A)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cm4.h)(0x53FC6A1A)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x54763950)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmInstr.h)(0x53FF2AEA)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmFunc.h)(0x53FF2AEA)
+I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmSimd.h)(0x53FC6A1A)
+I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.3.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include\system_stm32f4xx.h)(0x53ABCA8A)
