@@ -273,17 +273,17 @@ void DMA1_Stream3_IRQHandler() {
         IMU_NSS_High();
         
         for (i = 0; i < 3; i++) {
-            accel[i] = imu_dma_rx[1+i] / ACCEL_SENSITIVITY;
+            accel[i] = (int16_t)imu_dma_rx[1+i] / ACCEL_SENSITIVITY;
         }
         
-        temp = imu_dma_rx[4] / TEMP_SENSITIBITY + TEMP_OFFSET;
+        temp = (int16_t)imu_dma_rx[4] / TEMP_SENSITIBITY + TEMP_OFFSET;
         
         for (i = 0; i < 3; i++) {
-            angleRate[i] = imu_dma_rx[5+i] / GYRO_SENSITIVITY;
+            angleRate[i] = (int16_t)imu_dma_rx[5+i] / GYRO_SENSITIVITY;
         }
         
         for (i = 0; i < 3; i++) {
-            magField[i] = swapHighLow(imu_dma_rx[8+i]) * MAG_SENSITIVITY * mag_sens_adj[i];
+            magField[i] = (int16_t)swapHighLow(imu_dma_rx[8+i]) * MAG_SENSITIVITY * mag_sens_adj[i];
         }
     }
 }
