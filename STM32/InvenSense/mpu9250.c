@@ -51,15 +51,18 @@ uint8_t IMU_INT     = 1;    // PA
 #define I2C_SLV0_CTRL_1_BYTE    0x81
 #define I2C_SLV0_CTRL_7_BYTES   0x87
 
+#define EXT_SENS_DATA_00        0x49
+
 #define AK8963_I2C_ADDRESS      0x0c
 
 #define AK8963_CNTL1            0x0a
 #define AK8963_CNTL1_VALUE      0x16
 #define AK8963_HXL              0x03
+#define AK8963_ASAX             0x10
 
 #define GYRO_SENSITIVITY        131.0f      // LSB/dps
 #define ACCEL_SENSITIVITY       2048.0f     // LSB/g
-#define MAG_SENSITIVITY         0.6f        // uT/LSB
+#define MAG_SENSITIVITY         0.15f       // uT/LSB
 #define TEMP_SENSITIBITY        338.87f     // LSB/degC
 #define TEMP_OFFSET             21.0f       // degC
 
@@ -73,6 +76,8 @@ float accel[3];
 float temp;
 float angleRate[3];
 float magField[3];
+
+float mag_sens_adj[3];
 
 
 void IMU_NSS_Init() {
@@ -261,24 +266,25 @@ int16_t swapHighLow(int16_t data) {
 }
 
 void DMA1_Stream3_IRQHandler() {
+    uint8_t i = 0;
     if (DMA1->LISR & DMA_LISR_TCIF3) {
         DMA1->LIFCR = DMA_LIFCR_CTCIF3 | DMA_LIFCR_CHTIF3;
         DMA1_Stream3->CR &= ~DMA_SxCR_EN;
         IMU_NSS_High();
         
-        accel[0] = imu_dma_rx[1] / ACCEL_SENSITIVITY;
-        accel[1] = imu_dma_rx[2] / ACCEL_SENSITIVITY;
-        accel[2] = imu_dma_rx[3] / ACCEL_SENSITIVITY;
+        for (i = 0; i < 3; i++) {
+            accel[i] = imu_dma_rx[1+i] / ACCEL_SENSITIVITY;
+        }
         
         temp = imu_dma_rx[4] / TEMP_SENSITIBITY + TEMP_OFFSET;
         
-        angleRate[0] = imu_dma_rx[5] / GYRO_SENSITIVITY;
-        angleRate[1] = imu_dma_rx[6] / GYRO_SENSITIVITY;
-        angleRate[2] = imu_dma_rx[7] / GYRO_SENSITIVITY;
+        for (i = 0; i < 3; i++) {
+            angleRate[i] = imu_dma_rx[5+i] / GYRO_SENSITIVITY;
+        }
         
-        magField[0] = swapHighLow(imu_dma_rx[8]) * MAG_SENSITIVITY;
-        magField[1] = swapHighLow(imu_dma_rx[9]) * MAG_SENSITIVITY;
-        magField[2] = swapHighLow(imu_dma_rx[10]) * MAG_SENSITIVITY; 
+        for (i = 0; i < 3; i++) {
+            magField[i] = swapHighLow(imu_dma_rx[8+i]) * MAG_SENSITIVITY * mag_sens_adj[i];
+        }
     }
 }
 
@@ -289,27 +295,52 @@ void DMA1_Stream4_IRQHandler() {
     } 
 }
 
+void Mag_WriteByte(uint8_t address, uint8_t data) {
+    // Mag I2C address
+    IMU_WriteByte(I2C_SLV0_ADDR, WRITE_COMMAND | AK8963_I2C_ADDRESS);
+    IMU_WriteByte(I2C_SLV0_REG, address);
+    IMU_WriteByte(I2C_SLV0_DO, data);
+    // I2C on, 1 byte
+    IMU_WriteByte(I2C_SLV0_CTRL, I2C_SLV0_CTRL_1_BYTE);
+}
+
 void Mag_Init() {
+    uint8_t tmp[3], i = 0;
+    
     // Enable I2C master
     IMU_WriteByte(USER_CTRL, USER_CTRL_VALUE);
     
-    // I2C address for writing
-    IMU_WriteByte(I2C_SLV0_ADDR, WRITE_COMMAND | AK8963_I2C_ADDRESS);
-    // writing in CNTL1 register
-    IMU_WriteByte(I2C_SLV0_REG, AK8963_CNTL1);
-    // Continuous measurement mode 2 (100 Hz), 16 bit output
-    IMU_WriteByte(I2C_SLV0_DO, AK8963_CNTL1_VALUE);
-    // Write 1 byte
-    IMU_WriteByte(I2C_SLV0_CTRL, I2C_SLV0_CTRL_1_BYTE);
+    Mag_WriteByte(AK8963_CNTL1, 0x00); // Power down magnetometer  
+    Delay_ms(10);   
+    Mag_WriteByte(AK8963_CNTL1, 0x0f); // Enter Fuse ROM access mode
+    Delay_ms(10);
     
+    // I2C address for reading
+    IMU_WriteByte(I2C_SLV0_ADDR, READ_COMMAND | AK8963_I2C_ADDRESS);
+    // reading from ASAX register
+    IMU_WriteByte(I2C_SLV0_REG, AK8963_ASAX);
+    // Read 3 bytes
+    IMU_WriteByte(I2C_SLV0_CTRL, 0x83);
+    Delay_ms(10);
+    IMU_MultiRead(EXT_SENS_DATA_00, tmp, 3);
+    
+    for (i = 0; i < 3; i++) {
+        mag_sens_adj[i] = (tmp[i] - 128)*0.5 / 128.0f + 1.0f;
+    }
+    
+    Mag_WriteByte(AK8963_CNTL1, 0x00); // Power down magnetometer  
+    Delay_ms(10);
+    
+
+    Mag_WriteByte(AK8963_CNTL1, AK8963_CNTL1_VALUE); // Continuous measurement mode 2 (100 Hz), 16 bit output
     Delay_ms(10);
     
     // Data ready interrupt waits for external sensor data
     IMU_WriteByte(I2C_MST_CTRL, I2C_MST_CTRL_VALUE);
-    // I2C address for writing
+    // I2C address for reading
     IMU_WriteByte(I2C_SLV0_ADDR, READ_COMMAND | AK8963_I2C_ADDRESS);
     // reading from HXL register
     IMU_WriteByte(I2C_SLV0_REG, AK8963_HXL);
-    // Read 7 bytes, swap for right order
+    // Read 7 bytes
     IMU_WriteByte(I2C_SLV0_CTRL, I2C_SLV0_CTRL_7_BYTES);
 }
