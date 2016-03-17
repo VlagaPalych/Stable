@@ -27,9 +27,28 @@ Project File Date:  03/16/2016
 <h2>Output:</h2>
 Build target 'STM32'
 compiling mpu9250.c...
+mpu9250.h(6): warning:  #1295-D: Deprecated declaration SPI2_Init - give arg types
+  void SPI2_Init();
+mpu9250.h(8): warning:  #1295-D: Deprecated declaration IMU_NSS_Low - give arg types
+  void IMU_NSS_Low();
+mpu9250.h(9): warning:  #1295-D: Deprecated declaration IMU_NSS_High - give arg types
+  void IMU_NSS_High();
+mpu9250.h(10): warning:  #1295-D: Deprecated declaration IMU_NSS_Init - give arg types
+  void IMU_NSS_Init();
+mpu9250.h(12): warning:  #1295-D: Deprecated declaration IMU_Init - give arg types
+  void IMU_Init();
+mpu9250.h(13): warning:  #1295-D: Deprecated declaration IMU_EXTI_Init - give arg types
+  void IMU_EXTI_Init();
+mpu9250.h(14): warning:  #1295-D: Deprecated declaration Mag_Init - give arg types
+  void Mag_Init();
+mpu9250.h(15): warning:  #1295-D: Deprecated declaration IMU_DMA_Init - give arg types
+  void IMU_DMA_Init();
+mpu9250.h(18): warning:  #1-D: last line of file ends without a newline
+  #endif
+mpu9250.c: 9 warnings, 0 errors
 linking...
-Program Size: Code=1604 RO-data=424 RW-data=8 ZI-data=1656  
-".\Objects\Orientation.axf" - 0 Error(s), 0 Warning(s).
+Program Size: Code=1824 RO-data=424 RW-data=32 ZI-data=1656  
+".\Objects\Orientation.axf" - 0 Error(s), 9 Warning(s).
 
 <h2>Software Packages used:</h2>
 

@@ -4,7 +4,7 @@
 void RCC_Init() {
     RCC->APB1ENR |= RCC_APB1ENR_SPI2EN | RCC_APB1ENR_TIM6EN;
     RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
-    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN | RCC_AHB1ENR_GPIOBEN;    
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN | RCC_AHB1ENR_GPIOBEN | RCC_AHB1ENR_DMA1EN;    
 }
 
 
@@ -29,15 +29,20 @@ void Delay_us(uint16_t us) {
 uint8_t nack = 0;
 int main() {
     RCC_Init();
+    GPIOA->MODER &= ~(3 << 15*2);
+    GPIOA->MODER |= 1 << 15*2;
+
     IMU_NSS_Init();
     IMU_NSS_High();
     SPI2_Init();
     
     IMU_Init();
+    Mag_Init();
+    IMU_DMA_Init();
     IMU_EXTI_Init();
     EXTI->SWIER |= EXTI_SWIER_SWIER1;
     
-    Mag_Init();
+    
  
     while (1) {
         //nack = IMU_ReadByte(54);

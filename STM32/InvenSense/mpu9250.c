@@ -1,4 +1,5 @@
 #include "stm32f4xx.h" 
+#include "mpu9250.h"
 
 uint8_t SPI2_SCK    = 13;   // PB
 uint8_t SPI2_MISO   = 14;   // PB
@@ -59,6 +60,10 @@ uint8_t IMU_INT     = 1;    // PA
 void Delay_ms(uint16_t ms);
 void Delay_us(uint16_t us);
 
+uint16_t imu_dma_tx[12] = {0xba00, 0, 0, 0, 0, 0, 0, 0, 0xc900, 0, 0, 0};
+uint16_t imu_dma_rx[12];
+
+
 void IMU_NSS_Init() {
     GPIOB->MODER    |= 1 << IMU_NSS*2;
     GPIOB->OSPEEDR 	|= 3 << IMU_NSS*2;
@@ -88,7 +93,7 @@ void SPI2_Init() {
     
 	SPI2->CR1 = 0;
 	SPI2->CR1 |= SPI_CR1_DFF;                                                   // 16 bits
-	//SPI2->CR2 |= SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN;
+	
 	SPI2->CR1 |= SPI_CR1_BR_1; 							                        // baudrate = Fpclk / 8
 	SPI2->CR1 |= SPI_CR1_CPOL;													// polarity
 	SPI2->CR1 |= SPI_CR1_CPHA;													// phase	
@@ -188,9 +193,6 @@ void IMU_EXTI_Init() {
     NVIC_EnableIRQ(EXTI1_IRQn);
 }
 
-uint8_t rawData[22];
-uint8_t startAddress = 0x3a;
-
 void IMU_MultiRead(uint8_t address, uint8_t *data, uint8_t size) {
     uint8_t i = 0;
     uint16_t tmp = 0;
@@ -208,9 +210,60 @@ void EXTI1_IRQHandler() {
     if (EXTI->PR & EXTI_PR_PR1) {
         EXTI->PR = EXTI_PR_PR1;
         
-        IMU_MultiRead(startAddress, rawData, 15);
-        IMU_MultiRead(73, rawData+15, 7);
+        GPIOA->BSRRL |= 1 << 15;
+        IMU_DMA_Run(imu_dma_tx, imu_dma_rx, 8);
     }
+}
+
+
+void IMU_DMA_Init() {
+    SPI2->CR2 |= SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN;
+    
+    NVIC_SetPriority(DMA1_Stream3_IRQn, 0x02);    
+    NVIC_SetPriority(DMA1_Stream4_IRQn, 0x02);    
+    NVIC_EnableIRQ(DMA1_Stream3_IRQn);
+    NVIC_EnableIRQ(DMA1_Stream4_IRQn);
+    
+    DMA1_Stream3->PAR   = (uint32_t)&(SPI2->DR);
+    DMA1_Stream3->CR    = DMA_SxCR_MINC | DMA_SxCR_PSIZE_0 | DMA_SxCR_MSIZE_0 |
+                                DMA_SxCR_TCIE | DMA_SxCR_PL; 
+    
+    DMA1_Stream4->PAR   = (uint32_t)&(SPI2->DR);
+    DMA1_Stream4->CR    |= DMA_SxCR_MINC | DMA_SxCR_PSIZE_0 | DMA_SxCR_MSIZE_0 | 
+                                DMA_SxCR_TCIE | DMA_SxCR_DIR_0 | DMA_SxCR_PL; 
+}
+
+void IMU_DMA_Run(uint16_t *tx, uint16_t *rx, uint8_t size) {
+    IMU_NSS_Low();
+    
+    DMA1_Stream3->M0AR  = (uint32_t)rx;
+    DMA1_Stream3->NDTR  = size;
+    DMA1_Stream3->CR    |= DMA_SxCR_EN; 
+
+    DMA1_Stream4->M0AR  = (uint32_t)tx;     
+    DMA1_Stream4->NDTR  = size;
+    DMA1_Stream4->CR    |= DMA_SxCR_EN;     
+}
+
+void DMA1_Stream3_IRQHandler() {
+    if (DMA1->LISR & DMA_LISR_TCIF3) {
+        DMA1->LIFCR = DMA_LIFCR_CTCIF3 | DMA_LIFCR_CHTIF3;
+        DMA1_Stream3->CR &= ~DMA_SxCR_EN;
+        IMU_NSS_High();
+        
+        if (DMA1_Stream3->M0AR == (uint32_t)imu_dma_rx) {
+            IMU_DMA_Run(imu_dma_tx + 8, imu_dma_rx + 8, 4);
+        } else if (DMA1_Stream3->M0AR == (uint32_t)(imu_dma_rx + 8)) {
+            GPIOA->BSRRH |= 1 << 15;
+        }
+    }
+}
+
+void DMA1_Stream4_IRQHandler() {
+    if (DMA1->HISR & DMA_HISR_TCIF4) {
+        DMA1->HIFCR = DMA_HIFCR_CTCIF4 | DMA_HIFCR_CHTIF4;
+        DMA1_Stream4->CR &= ~DMA_SxCR_EN;
+    } 
 }
 
 void Mag_Init() {
