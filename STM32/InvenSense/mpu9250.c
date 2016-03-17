@@ -57,11 +57,22 @@ uint8_t IMU_INT     = 1;    // PA
 #define AK8963_CNTL1_VALUE      0x16
 #define AK8963_HXL              0x03
 
+#define GYRO_SENSITIVITY        131.0f      // LSB/dps
+#define ACCEL_SENSITIVITY       2048.0f     // LSB/g
+#define MAG_SENSITIVITY         0.6f        // uT/LSB
+#define TEMP_SENSITIBITY        338.87f     // LSB/degC
+#define TEMP_OFFSET             21.0f       // degC
+
 void Delay_ms(uint16_t ms);
 void Delay_us(uint16_t us);
 
 uint16_t imu_dma_tx[12] = {0xba00, 0, 0, 0, 0, 0, 0, 0, 0xc900, 0, 0, 0};
 uint16_t imu_dma_rx[12];
+
+float accel[3];
+float temp;
+float angleRate[3];
+float magField[3];
 
 
 void IMU_NSS_Init() {
@@ -211,7 +222,7 @@ void EXTI1_IRQHandler() {
         EXTI->PR = EXTI_PR_PR1;
         
         GPIOA->BSRRL |= 1 << 15;
-        IMU_DMA_Run(imu_dma_tx, imu_dma_rx, 8);
+        IMU_DMA_Run(imu_dma_tx, imu_dma_rx, 12);
     }
 }
 
@@ -245,17 +256,29 @@ void IMU_DMA_Run(uint16_t *tx, uint16_t *rx, uint8_t size) {
     DMA1_Stream4->CR    |= DMA_SxCR_EN;     
 }
 
+int16_t swapHighLow(int16_t data) {
+    return (data << 8) | (data >> 8);
+}
+
 void DMA1_Stream3_IRQHandler() {
     if (DMA1->LISR & DMA_LISR_TCIF3) {
         DMA1->LIFCR = DMA_LIFCR_CTCIF3 | DMA_LIFCR_CHTIF3;
         DMA1_Stream3->CR &= ~DMA_SxCR_EN;
         IMU_NSS_High();
         
-        if (DMA1_Stream3->M0AR == (uint32_t)imu_dma_rx) {
-            IMU_DMA_Run(imu_dma_tx + 8, imu_dma_rx + 8, 4);
-        } else if (DMA1_Stream3->M0AR == (uint32_t)(imu_dma_rx + 8)) {
-            GPIOA->BSRRH |= 1 << 15;
-        }
+        accel[0] = imu_dma_rx[1] / ACCEL_SENSITIVITY;
+        accel[1] = imu_dma_rx[2] / ACCEL_SENSITIVITY;
+        accel[2] = imu_dma_rx[3] / ACCEL_SENSITIVITY;
+        
+        temp = imu_dma_rx[4] / TEMP_SENSITIBITY + TEMP_OFFSET;
+        
+        angleRate[0] = imu_dma_rx[5] / GYRO_SENSITIVITY;
+        angleRate[1] = imu_dma_rx[6] / GYRO_SENSITIVITY;
+        angleRate[2] = imu_dma_rx[7] / GYRO_SENSITIVITY;
+        
+        magField[0] = swapHighLow(imu_dma_rx[8]) * MAG_SENSITIVITY;
+        magField[1] = swapHighLow(imu_dma_rx[9]) * MAG_SENSITIVITY;
+        magField[2] = swapHighLow(imu_dma_rx[10]) * MAG_SENSITIVITY; 
     }
 }
 
@@ -287,6 +310,6 @@ void Mag_Init() {
     IMU_WriteByte(I2C_SLV0_ADDR, READ_COMMAND | AK8963_I2C_ADDRESS);
     // reading from HXL register
     IMU_WriteByte(I2C_SLV0_REG, AK8963_HXL);
-    // Read 7 bytes
+    // Read 7 bytes, swap for right order
     IMU_WriteByte(I2C_SLV0_CTRL, I2C_SLV0_CTRL_7_BYTES);
 }

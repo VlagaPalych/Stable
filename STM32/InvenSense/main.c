@@ -26,11 +26,10 @@ void Delay_us(uint16_t us) {
 }
 
 
-uint8_t nack = 0;
 int main() {
     RCC_Init();
-    GPIOA->MODER &= ~(3 << 15*2);
-    GPIOA->MODER |= 1 << 15*2;
+//    GPIOA->MODER &= ~(3 << 15*2);
+//    GPIOA->MODER |= 1 << 15*2;
 
     IMU_NSS_Init();
     IMU_NSS_High();
@@ -41,10 +40,8 @@ int main() {
     IMU_DMA_Init();
     IMU_EXTI_Init();
     EXTI->SWIER |= EXTI_SWIER_SWIER1;
-    
-    
- 
+
     while (1) {
-        //nack = IMU_ReadByte(54);
+
     }
 }
