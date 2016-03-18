@@ -1,0 +1,15 @@
+"D:\Program Files\arm\bin\armproc.dll" 
+
+"D:\Program Files\arm\bin\armstlink2.dll" 
+
+"D:\Vlad\Projects\Stable\Libs\motion_driver_6.12\arm\STM32F4_MD6\Projects\eMD6\EWARM\Debug\Exe\STM32F4-Discovery.out" 
+
+--plugin "D:\Program Files\arm\bin\armbat.dll" 
+
+--device_macro "D:\Program Files\arm\config\debugger\ST\STM32F4xx.dmac" 
+
+--flash_loader "D:\Program Files\arm\config\flashloader\ST\FlashSTM32F4xxx.board" 
+
+
+
+
