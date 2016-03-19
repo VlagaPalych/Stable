@@ -42,6 +42,10 @@ uint8_t IMU_INT     = 1;    // PA
 #define USER_CTRL               0x6a
 #define USER_CTRL_VALUE         0x20
 
+#define BANK_SEL                0x6d
+#define MEM_R_W                 0x6f
+#define PRGM_START_H            0x70
+
 #define I2C_MST_CTRL            0x24
 #define I2C_MST_CTRL_VALUE      0x40
 
@@ -218,6 +222,16 @@ void IMU_MultiRead(uint8_t address, uint8_t *data, uint8_t size) {
         tmp = SPI2_Transfer(0x0000);
         data[2*i+1] = tmp >> 8;
         data[2*i+2] = tmp & 0xff;
+    }
+    IMU_NSS_High();
+}
+
+void IMU_MultiWrite(uint8_t address, uint8_t *data, uint8_t size) {
+    uint8_t i = 0;
+    IMU_NSS_Low();
+    SPI2_Write(address, data[0]);
+    for (i = 0; i < size/2; i++) {
+        tmp = (data[2*i+1] << 8) | data[2*i+2]; 
     }
     IMU_NSS_High();
 }
