@@ -228,10 +228,21 @@ void IMU_MultiRead(uint8_t address, uint8_t *data, uint8_t size) {
 
 void IMU_MultiWrite(uint8_t address, uint8_t *data, uint8_t size) {
     uint8_t i = 0;
+    uint16_t tmp = 0;
+    
     IMU_NSS_Low();
     SPI2_Write(address, data[0]);
-    for (i = 0; i < size/2; i++) {
+    if (size % 2 == 0) {
+        IMU_NSS_High();
+        IMU_NSS_Low();
+        SPI2_Write(address+1, data[1]);
+        for (i = 1; i < size/2; i++) {
+            tmp = (data[2*i] << 8) | data[2*i+1];
+            SPI2_Transfer(tmp);
+        }
+    } else for (i = 0; i < size/2; i++) {
         tmp = (data[2*i+1] << 8) | data[2*i+2]; 
+        SPI2_Transfer(tmp);
     }
     IMU_NSS_High();
 }

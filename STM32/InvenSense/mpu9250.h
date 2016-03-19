@@ -14,5 +14,6 @@ void IMU_EXTI_Init(void);
 void Mag_Init(void);
 void IMU_DMA_Init(void);
 void IMU_DMA_Run(uint16_t *tx, uint16_t *rx, uint8_t size);
+void IMU_MultiWrite(uint8_t address, uint8_t *data, uint8_t size) ;
 
 #endif
