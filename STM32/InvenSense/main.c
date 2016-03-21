@@ -37,6 +37,9 @@ int main() {
     
     IMU_Init();
     Mag_Init();
+
+    DMP_LoadFirmware(dmp_memory, DMP_CODE_SIZE, startAddress);
+
     IMU_DMA_Init();
     IMU_EXTI_Init();
     EXTI->SWIER |= EXTI_SWIER_SWIER1;

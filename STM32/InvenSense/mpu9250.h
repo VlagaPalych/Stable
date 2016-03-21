@@ -14,6 +14,12 @@ void IMU_EXTI_Init(void);
 void Mag_Init(void);
 void IMU_DMA_Init(void);
 void IMU_DMA_Run(uint16_t *tx, uint16_t *rx, uint8_t size);
-void IMU_MultiWrite(uint8_t address, uint8_t *data, uint8_t size) ;
+void IMU_MultiWrite(uint8_t address, uint8_t *data, uint8_t size);
+
+void DMP_LoadFirmware(uint8_t *firmware, uint16_t length, uint16_t start_addr);
+
+#define DMP_CODE_SIZE           3062
+extern uint8_t dmp_memory[DMP_CODE_SIZE];
+extern uint16_t startAddress;
 
 #endif
