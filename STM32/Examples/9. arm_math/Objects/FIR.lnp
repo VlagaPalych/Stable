@@ -1,8 +1,0 @@
---cpu Cortex-M4.fp
-".\objects\main.o"
-"C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Lib\ARM\arm_cortexM4lf_math.lib"
-".\objects\startup_stm32f303xc.o"
-".\objects\system_stm32f3xx.o"
---ro-base 0x08000000 --entry 0x08000000 --rw-base 0x20000000 --entry Reset_Handler --first __Vectors --strict --summary_stderr --info summarysizes --map --xref --callgraph --symbols
---info sizes --info totals --info unused --info veneers
---list ".\Listings\FIR.map" -o .\Objects\FIR.axf

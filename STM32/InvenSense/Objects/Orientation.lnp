@@ -1,9 +1,0 @@
---cpu Cortex-M4.fp
-".\objects\main.o"
-".\objects\mpu9250.o"
-".\objects\startup_stm32f407xx.o"
-".\objects\system_stm32f4xx.o"
---strict --scatter ".\Objects\Orientation.sct"
---summary_stderr --info summarysizes --map --xref --callgraph --symbols
---info sizes --info totals --info unused --info veneers
---list ".\Listings\Orientation.map" -o .\Objects\Orientation.axf
