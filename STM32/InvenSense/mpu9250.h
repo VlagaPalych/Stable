@@ -4,7 +4,7 @@
 #include "stdint.h"
 
 void SPI2_Init(void);
-uint16_t SPI2_Transfer(uint16_t byte);
+uint8_t SPI2_Transfer(uint8_t byte);
 void IMU_NSS_Low(void);
 void IMU_NSS_High(void);
 void IMU_NSS_Init(void);
@@ -13,9 +13,9 @@ void IMU_Init(void);
 void IMU_EXTI_Init(void);
 void Mag_Init(void);
 void IMU_DMA_Init(void);
-void IMU_DMA_Run(uint16_t *tx, uint16_t *rx, uint8_t size);
-void IMU_MultiWrite(uint8_t address, uint8_t *data, uint8_t size);
-
+void IMU_DMA_Run(uint8_t *tx, uint8_t *rx, uint8_t size);
+void IMU_Write(uint8_t address, uint8_t *data, uint8_t size);
+void IMU_Read(uint8_t address, uint8_t *data, uint8_t size);
 void DMP_LoadFirmware(uint8_t *firmware, uint16_t length, uint16_t start_addr);
 
 #define DMP_CODE_SIZE           3062

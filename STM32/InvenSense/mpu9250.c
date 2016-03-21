@@ -73,8 +73,9 @@ uint8_t IMU_INT     = 1;    // PA
 void Delay_ms(uint16_t ms);
 void Delay_us(uint16_t us);
 
-uint16_t imu_dma_tx[12] = {0xba00, 0, 0, 0, 0, 0, 0, 0, 0xc900, 0, 0, 0};
-uint16_t imu_dma_rx[12];
+#define MPU_READ_DATA_SIZE 23
+uint8_t imu_dma_tx[MPU_READ_DATA_SIZE] = {0xba};
+uint8_t imu_dma_rx[MPU_READ_DATA_SIZE];
 
 float accel[3];
 float temp;
@@ -114,7 +115,7 @@ void SPI2_Init() {
     SPI2_GPIO_Init();
     
 	SPI2->CR1 = 0;
-	SPI2->CR1 |= SPI_CR1_DFF;                                                   // 16 bits
+	//SPI2->CR1 |= SPI_CR1_DFF;                                                   // 16 bits
 	
 	SPI2->CR1 |= SPI_CR1_BR_1; 							                        // baudrate = Fpclk / 8
 	SPI2->CR1 |= SPI_CR1_CPOL;													// polarity
@@ -126,7 +127,7 @@ void SPI2_Init() {
 	SPI2->CR1 |= SPI_CR1_SPE;                                                   // Enable SPI                  
 }
 
-uint16_t SPI2_Transfer(uint16_t byte) { 
+uint8_t SPI2_Transfer(uint8_t byte) { 
 	while ((SPI2->SR & SPI_SR_TXE)==0);
 	SPI2->DR = byte;
 	
@@ -135,21 +136,19 @@ uint16_t SPI2_Transfer(uint16_t byte) {
 }
 
 uint8_t SPI2_Read(uint8_t address) {
-    uint16_t tmp = 0;
+    uint8_t tmp = 0;
     
     address |= READ_COMMAND;
-    tmp = SPI2_Transfer(address << 8);
+    SPI2_Transfer(address);
+    tmp = SPI2_Transfer(0x00);
     
-    return tmp & 0xFF;
+    return tmp;
 }
 
 void SPI2_Write(uint8_t address, uint8_t data) {
-    uint16_t tmp;
-    
     address |= WRITE_COMMAND;
-    tmp = address << 8;
-    tmp |= data;
-    SPI2_Transfer(tmp);
+    SPI2_Transfer(address);
+    SPI2_Transfer(data);
 }
 
 uint8_t IMU_ReadByte(uint8_t address) {
@@ -166,90 +165,72 @@ void IMU_WriteByte(uint8_t address, uint8_t data) {
     IMU_NSS_High();
 }
 
-void IMU_MultiRead(uint8_t address, uint8_t *data, uint8_t size) {
+void IMU_Read(uint8_t address, uint8_t *data, uint8_t size) {
     uint8_t i = 0;
-    uint16_t tmp = 0;
     IMU_NSS_Low();
     data[0] = SPI2_Read(address);
-    if (size % 2 == 0) {
-        IMU_NSS_High();
-        IMU_NSS_Low();
-        data[1] = SPI2_Read(address+1);
-    } else for (i = 0; i < size/2; i++) {
-        tmp = SPI2_Transfer(0x0000);
-        data[2*i+1] = tmp >> 8;
-        data[2*i+2] = tmp & 0xff;
+    for (i = 1; i < size; i++) {
+        data[i] = SPI2_Transfer(0x00);
     }
     IMU_NSS_High();
 }
 
-void IMU_MultiWrite(uint8_t address, uint8_t *data, uint8_t size) {
-    uint8_t i = 0;
-    uint16_t tmp = 0;
-    
+void IMU_Write(uint8_t address, uint8_t *data, uint8_t size) {
+    uint8_t i = 0;    
     IMU_NSS_Low();
     SPI2_Write(address, data[0]);
-    if (size % 2 == 0) {
-        IMU_NSS_High();
-        IMU_NSS_Low();
-        SPI2_Write(address+1, data[1]);
-        for (i = 1; i < size/2; i++) {
-            tmp = (data[2*i] << 8) | data[2*i+1];
-            SPI2_Transfer(tmp);
-        }
-    } else for (i = 0; i < size/2; i++) {
-        tmp = (data[2*i+1] << 8) | data[2*i+2]; 
-        SPI2_Transfer(tmp);
+    for (i = 1; i < size; i++) {
+        SPI2_Transfer(data[i]);
     }
     IMU_NSS_High();
 }
 
 void DMP_MemWrite(uint16_t addr, uint8_t *data, uint16_t size) {
-    IMU_MultiWrite(BANK_SEL, (uint8_t *)&addr, 2);
-    IMU_MultiWrite(MEM_R_W, data, size);
+    IMU_Write(BANK_SEL, (uint8_t *)&addr, 2);
+    IMU_Write(MEM_R_W, data, size);
 }
 
 void MPU_MemRead(uint16_t addr, uint8_t *data, uint16_t size) {
-    IMU_MultiWrite(BANK_SEL, (uint8_t *)&addr, 2);
-    IMU_MultiRead(MEM_R_W, data, size);
+    IMU_Write(BANK_SEL, (uint8_t *)&addr, 2);
+    IMU_Read(MEM_R_W, data, size);
 }
 
 uint8_t imu_test = 0;
 void IMU_Init() {
     // WHO_AM_I
-    //imu_test = IMU_ReadByte(0x85);
+    imu_test = IMU_ReadByte(0xf5);
     
     // PLL as clock source
     IMU_WriteByte(PWR_MGMT_1, PWR_MGMT_1_VALUE);
-    //imu_test = IMU_ReadByte(PWR_MGMT_1);
+    imu_test = IMU_ReadByte(PWR_MGMT_1);
 
     // 1000 Hz sample rate, 41 Hz gyro bandwidth
     IMU_WriteByte(CONFIG, CONFIG_VALUE);
-    //imu_test = IMU_ReadByte(CONFIG);   
+    imu_test = IMU_ReadByte(CONFIG);   
     
     // divisor = 5, sample rate -> 200 Hz
     IMU_WriteByte(SMPLRT_DIV, SMPLRT_DIV_VALUE);
-    //imu_test = IMU_ReadByte(SMPLRT_DIV);
+    imu_test = IMU_ReadByte(SMPLRT_DIV);
     
     // gyro sensitivity - 250 dps
     IMU_WriteByte(GYRO_CONFIG, GYRO_CONFIG_VALUE);
-    //imu_test = IMU_ReadByte(GYRO_CONFIG);
+    imu_test = IMU_ReadByte(GYRO_CONFIG);
     
     // accel sensitivity - +-16g
     IMU_WriteByte(ACCEL_CONFIG, ACCEL_CONFIG_VALUE);
-    //imu_test = IMU_ReadByte(ACCEL_CONFIG);
+    imu_test = IMU_ReadByte(ACCEL_CONFIG);
     
     // 41 Hz accel bandwidth, 1000 Hz sample rate
     IMU_WriteByte(ACCEL_CONFIG_2, ACCEL_CONFIG_2_VALUE);
-    //imu_test = IMU_ReadByte(ACCEL_CONFIG_2);
+    imu_test = IMU_ReadByte(ACCEL_CONFIG_2);
     
     // Interrupt implemented by constant level, not pulses
     IMU_WriteByte(INT_PIN_CFG, INT_PIN_CFG_VALUE);
-    //imu_test = IMU_ReadByte(INT_PIN_CFG);
+    imu_test = IMU_ReadByte(INT_PIN_CFG);
     
     // Raw data ready interrupt enable
     IMU_WriteByte(INT_ENABLE, INT_ENABLE_VALUE);
-    //imu_test = IMU_ReadByte(INT_ENABLE);
+    imu_test = IMU_ReadByte(INT_ENABLE);
 }
 
 void IMU_EXTI_Init() {
@@ -268,10 +249,9 @@ void EXTI1_IRQHandler() {
         EXTI->PR = EXTI_PR_PR1;
         
         GPIOA->BSRRL |= 1 << 15;
-        IMU_DMA_Run(imu_dma_tx, imu_dma_rx, 12);
+        IMU_DMA_Run(imu_dma_tx, imu_dma_rx, MPU_READ_DATA_SIZE);
     }
 }
-
 
 void IMU_DMA_Init() {
     SPI2->CR2 |= SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN;
@@ -282,15 +262,13 @@ void IMU_DMA_Init() {
     NVIC_EnableIRQ(DMA1_Stream4_IRQn);
     
     DMA1_Stream3->PAR   = (uint32_t)&(SPI2->DR);
-    DMA1_Stream3->CR    = DMA_SxCR_MINC | DMA_SxCR_PSIZE_0 | DMA_SxCR_MSIZE_0 |
-                                DMA_SxCR_TCIE | DMA_SxCR_PL; 
+    DMA1_Stream3->CR    = DMA_SxCR_MINC | DMA_SxCR_TCIE | DMA_SxCR_PL; 
     
     DMA1_Stream4->PAR   = (uint32_t)&(SPI2->DR);
-    DMA1_Stream4->CR    |= DMA_SxCR_MINC | DMA_SxCR_PSIZE_0 | DMA_SxCR_MSIZE_0 | 
-                                DMA_SxCR_TCIE | DMA_SxCR_DIR_0 | DMA_SxCR_PL; 
+    DMA1_Stream4->CR    |= DMA_SxCR_MINC | DMA_SxCR_TCIE | DMA_SxCR_DIR_0 | DMA_SxCR_PL; 
 }
 
-void IMU_DMA_Run(uint16_t *tx, uint16_t *rx, uint8_t size) {
+void IMU_DMA_Run(uint8_t *tx, uint8_t *rx, uint8_t size) {
     IMU_NSS_Low();
     
     DMA1_Stream3->M0AR  = (uint32_t)rx;
@@ -302,29 +280,30 @@ void IMU_DMA_Run(uint16_t *tx, uint16_t *rx, uint8_t size) {
     DMA1_Stream4->CR    |= DMA_SxCR_EN;     
 }
 
-int16_t swapHighLow(int16_t data) {
-    return (data << 8) | (data >> 8);
-}
-
 void DMA1_Stream3_IRQHandler() {
     uint8_t i = 0;
+    int16_t tmp = 0;
     if (DMA1->LISR & DMA_LISR_TCIF3) {
         DMA1->LIFCR = DMA_LIFCR_CTCIF3 | DMA_LIFCR_CHTIF3;
         DMA1_Stream3->CR &= ~DMA_SxCR_EN;
         IMU_NSS_High();
         
         for (i = 0; i < 3; i++) {
-            accel[i] = (int16_t)imu_dma_rx[1+i] / ACCEL_SENSITIVITY;
+            tmp = (imu_dma_rx[2*i+2] << 8) | imu_dma_rx[2*i+3];
+            accel[i] = tmp / ACCEL_SENSITIVITY;
         }
         
-        temp = (int16_t)imu_dma_rx[4] / TEMP_SENSITIBITY + TEMP_OFFSET;
+        tmp = (imu_dma_rx[8] << 8) | imu_dma_rx[9];
+        temp = tmp / TEMP_SENSITIBITY + TEMP_OFFSET;
         
         for (i = 0; i < 3; i++) {
-            angleRate[i] = (int16_t)imu_dma_rx[5+i] / GYRO_SENSITIVITY;
+            tmp = (imu_dma_rx[2*i+10] << 8) | imu_dma_rx[2*i+11];
+            angleRate[i] = tmp / GYRO_SENSITIVITY;
         }
         
         for (i = 0; i < 3; i++) {
-            magField[i] = (int16_t)swapHighLow(imu_dma_rx[8+i]) * MAG_SENSITIVITY * mag_sens_adj[i];
+            tmp = imu_dma_rx[2*i+16] | (imu_dma_rx[2*i+17] << 8);
+            magField[i] = tmp * MAG_SENSITIVITY * mag_sens_adj[i];
         }
     }
 }
@@ -363,7 +342,7 @@ void Mag_Init() {
     // Read 3 bytes
     IMU_WriteByte(I2C_SLV0_CTRL, 0x83);
     Delay_ms(10);
-    IMU_MultiRead(EXT_SENS_DATA_00, tmp, 3);
+    IMU_Read(EXT_SENS_DATA_00, tmp, 3);
     
     for (i = 0; i < 3; i++) {
         mag_sens_adj[i] = (tmp[i] - 128)*0.5 / 128.0f + 1.0f;
