@@ -166,6 +166,54 @@ void IMU_WriteByte(uint8_t address, uint8_t data) {
     IMU_NSS_High();
 }
 
+void IMU_MultiRead(uint8_t address, uint8_t *data, uint8_t size) {
+    uint8_t i = 0;
+    uint16_t tmp = 0;
+    IMU_NSS_Low();
+    data[0] = SPI2_Read(address);
+    if (size % 2 == 0) {
+        IMU_NSS_High();
+        IMU_NSS_Low();
+        data[1] = SPI2_Read(address+1);
+    } else for (i = 0; i < size/2; i++) {
+        tmp = SPI2_Transfer(0x0000);
+        data[2*i+1] = tmp >> 8;
+        data[2*i+2] = tmp & 0xff;
+    }
+    IMU_NSS_High();
+}
+
+void IMU_MultiWrite(uint8_t address, uint8_t *data, uint8_t size) {
+    uint8_t i = 0;
+    uint16_t tmp = 0;
+    
+    IMU_NSS_Low();
+    SPI2_Write(address, data[0]);
+    if (size % 2 == 0) {
+        IMU_NSS_High();
+        IMU_NSS_Low();
+        SPI2_Write(address+1, data[1]);
+        for (i = 1; i < size/2; i++) {
+            tmp = (data[2*i] << 8) | data[2*i+1];
+            SPI2_Transfer(tmp);
+        }
+    } else for (i = 0; i < size/2; i++) {
+        tmp = (data[2*i+1] << 8) | data[2*i+2]; 
+        SPI2_Transfer(tmp);
+    }
+    IMU_NSS_High();
+}
+
+void DMP_MemWrite(uint16_t addr, uint8_t *data, uint16_t size) {
+    IMU_MultiWrite(BANK_SEL, (uint8_t *)&addr, 2);
+    IMU_MultiWrite(MEM_R_W, data, size);
+}
+
+void MPU_MemRead(uint16_t addr, uint8_t *data, uint16_t size) {
+    IMU_MultiWrite(BANK_SEL, (uint8_t *)&addr, 2);
+    IMU_MultiRead(MEM_R_W, data, size);
+}
+
 uint8_t imu_test = 0;
 void IMU_Init() {
     // WHO_AM_I
@@ -213,40 +261,6 @@ void IMU_EXTI_Init() {
     EXTI->IMR   |= EXTI_IMR_MR1;        // non-masking
     NVIC_SetPriority(EXTI1_IRQn, 0x02);
     NVIC_EnableIRQ(EXTI1_IRQn);
-}
-
-void IMU_MultiRead(uint8_t address, uint8_t *data, uint8_t size) {
-    uint8_t i = 0;
-    uint16_t tmp = 0;
-    IMU_NSS_Low();
-    data[0] = SPI2_Read(address);
-    for (i = 0; i < size/2; i++) {
-        tmp = SPI2_Transfer(0x0000);
-        data[2*i+1] = tmp >> 8;
-        data[2*i+2] = tmp & 0xff;
-    }
-    IMU_NSS_High();
-}
-
-void IMU_MultiWrite(uint8_t address, uint8_t *data, uint8_t size) {
-    uint8_t i = 0;
-    uint16_t tmp = 0;
-    
-    IMU_NSS_Low();
-    SPI2_Write(address, data[0]);
-    if (size % 2 == 0) {
-        IMU_NSS_High();
-        IMU_NSS_Low();
-        SPI2_Write(address+1, data[1]);
-        for (i = 1; i < size/2; i++) {
-            tmp = (data[2*i] << 8) | data[2*i+1];
-            SPI2_Transfer(tmp);
-        }
-    } else for (i = 0; i < size/2; i++) {
-        tmp = (data[2*i+1] << 8) | data[2*i+2]; 
-        SPI2_Transfer(tmp);
-    }
-    IMU_NSS_High();
 }
 
 void EXTI1_IRQHandler() {
@@ -586,100 +600,96 @@ uint16_t startAddress = 0x0400;
 #define DMP_SAMPLE_RATE     (200)
 #define GYRO_SF             (46850825LL * 200 / DMP_SAMPLE_RATE)
 
-void DMP_MemWrite(uint16_t addr, uint8_t *data, uint16_t length) {
-    IMU_MultiWrite(BANK_SEL, (uint8_t *)&addr, 2);
-    IMU_MultiWrite(MEM_R_W, data, length);
-}
 
-void DMP_LoadFirmware(uint8_t *firmware, uint16_t length, uint16_t start_addr) {
-    uint16_t i = 0;
-    uint16_t this_write = 0;
-#define LOAD_CHUNK  (16)
-   
-    for (i = 0; i < length; i += this_write) {
-        this_write = min(LOAD_CHUNK, length - i);
-        IMU_MultiWrite(i, firmware + i, this_write);
-    }
+//void DMP_LoadFirmware(uint8_t *firmware, uint16_t length, uint16_t start_addr) {
+//    uint16_t i = 0;
+//    uint16_t this_write = 0;
+//#define LOAD_CHUNK  (16)
+//   
+//    for (i = 0; i < length; i += this_write) {
+//        this_write = min(LOAD_CHUNK, length - i);
+//        IMU_MultiWrite(i, firmware + i, this_write);
+//    }
 
-    IMU_MultiRead(PRGM_START_H, (uint8_t *)&start_addr, 2);
+//    IMU_MultiRead(PRGM_START_H, (uint8_t *)&start_addr, 2);
 
-}
+//}
 
-void DMP_EnableFeature(uint16_t mask) {
-    uint8_t tmp[10];
-    
-    tmp[0] = (uint8_t)((GYRO_SF >> 24) & 0xFF);
-    tmp[1] = (uint8_t)((GYRO_SF >> 16) & 0xFF);
-    tmp[2] = (uint8_t)((GYRO_SF >> 8) & 0xFF);
-    tmp[3] = (uint8_t)(GYRO_SF & 0xFF);
-    DMP_MemWrite(104, tmp, 4);
-    
-    tmp[0] = 0xA3;
-    tmp[1] = 0xC0;
-    tmp[2] = 0xC8;
-    tmp[3] = 0xC2;
-    tmp[4] = 0xC4;
-    tmp[5] = 0xCC;
-    tmp[6] = 0xC6;
-    tmp[7] = 0xA3;
-    tmp[8] = 0xA3;
-    tmp[9] = 0xA3;
-    DMP_MemWrite(2727, tmp, 10);
-    
-    tmp[0] = 0xD8;
-    DMP_MemWrite(2742, tmp, 1);
-    
-    tmp[0] = 0xb0;
-    tmp[1] = 0x80;
-    tmp[2] = 0xb4;
-    tmp[3] = 0x90;
-    DMP_MemWrite(2722, tmp, 4);
-    
-    tmp[0] = 0xD8;
-    DMP_MemWrite(2224, tmp, 1);
-    
-    tmp[0] = 0xD8;
-    DMP_MemWrite(1853, tmp, 1);
-    
-    tmp[0] = 0x8b;
-    tmp[1] = 0x8b;
-    tmp[2] = 0x8b;
-    tmp[3] = 0x8b;  
-    DMP_MemWrite(2712, tmp, 4);
-    // mpu_reset_fifo
-    
-    tmp[0] = 0xa3;
-    tmp[1] = 0xa3;
-    tmp[2] = 0xa3;
-    tmp[3] = 0xa3;
-    DMP_MemWrite(2718, tmp, 4);
-    // mpu_reset_fifo
-    
-    // packet length = 12
-}
+//void DMP_EnableFeature(uint16_t mask) {
+//    uint8_t tmp[10];
+//    
+//    tmp[0] = (uint8_t)((GYRO_SF >> 24) & 0xFF);
+//    tmp[1] = (uint8_t)((GYRO_SF >> 16) & 0xFF);
+//    tmp[2] = (uint8_t)((GYRO_SF >> 8) & 0xFF);
+//    tmp[3] = (uint8_t)(GYRO_SF & 0xFF);
+//    DMP_MemWrite(104, tmp, 4);
+//    
+//    tmp[0] = 0xA3;
+//    tmp[1] = 0xC0;
+//    tmp[2] = 0xC8;
+//    tmp[3] = 0xC2;
+//    tmp[4] = 0xC4;
+//    tmp[5] = 0xCC;
+//    tmp[6] = 0xC6;
+//    tmp[7] = 0xA3;
+//    tmp[8] = 0xA3;
+//    tmp[9] = 0xA3;
+//    DMP_MemWrite(2727, tmp, 10);
+//    
+//    tmp[0] = 0xD8;
+//    DMP_MemWrite(2742, tmp, 1);
+//    
+//    tmp[0] = 0xb0;
+//    tmp[1] = 0x80;
+//    tmp[2] = 0xb4;
+//    tmp[3] = 0x90;
+//    DMP_MemWrite(2722, tmp, 4);
+//    
+//    tmp[0] = 0xD8;
+//    DMP_MemWrite(2224, tmp, 1);
+//    
+//    tmp[0] = 0xD8;
+//    DMP_MemWrite(1853, tmp, 1);
+//    
+//    tmp[0] = 0x8b;
+//    tmp[1] = 0x8b;
+//    tmp[2] = 0x8b;
+//    tmp[3] = 0x8b;  
+//    DMP_MemWrite(2712, tmp, 4);
+//    // mpu_reset_fifo
+//    
+//    tmp[0] = 0xa3;
+//    tmp[1] = 0xa3;
+//    tmp[2] = 0xa3;
+//    tmp[3] = 0xa3;
+//    DMP_MemWrite(2718, tmp, 4);
+//    // mpu_reset_fifo
+//    
+//    // packet length = 12
+//}
 
-void DMP_SetFIFORate() {
-    uint8_t regs_end[12] = {0xfe, 0xf2, 0xab,
-        0xc4, 0xaa, 0xf1, 0xdf, 0xdf, 0xBB, 0xAF, 0xdf, 0xdf};
-    uint16_t div = 0;
-        
-    DMP_MemWrite(22+512, (uint8_t *)&div, 2);
-    DMP_MemWrite(2753, regs_end, 12);
-    // fifo_rate = 200 Hz
-}
+//void DMP_SetFIFORate() {
+//    uint8_t regs_end[12] = {0xfe, 0xf2, 0xab,
+//        0xc4, 0xaa, 0xf1, 0xdf, 0xdf, 0xBB, 0xAF, 0xdf, 0xdf};
+//    uint16_t div = 0;
+//        
+//    DMP_MemWrite(22+512, (uint8_t *)&div, 2);
+//    DMP_MemWrite(2753, regs_end, 12);
+//    // fifo_rate = 200 Hz
+//}
 
-void IMU_ResetFIFO() {
-    IMU_WriteByte(INT_ENABLE, 0);
-    IMU_WriteByte(FIFO_EN, 0);
-    IMU_WriteByte(USER_CTRL, 0);
-    
-    IMU_WriteByte(USER_CTRL, 0x04);
-        data = 0x04 | 0x20;
-    IMU_WriteByte(USER_CTRL, 0x04 | 0x20);
-    Delay_ms(50);
+//void IMU_ResetFIFO() {
+//    IMU_WriteByte(INT_ENABLE, 0);
+//    IMU_WriteByte(FIFO_EN, 0);
+//    IMU_WriteByte(USER_CTRL, 0);
+//    
+//    IMU_WriteByte(USER_CTRL, 0x04);
+//        data = 0x04 | 0x20;
+//    IMU_WriteByte(USER_CTRL, 0x04 | 0x20);
+//    Delay_ms(50);
 
-    IMU_WriteByte(INT_ENABLE, BIT_DATA_RDY_EN);
-    
-    if (i2c_write(st.hw->addr, st.reg->fifo_en, 1, &st.chip_cfg.fifo_enable))
-        return -1;
-}
+//    IMU_WriteByte(INT_ENABLE, BIT_DATA_RDY_EN);
+//    
+//    if (i2c_write(st.hw->addr, st.reg->fifo_en, 1, &st.chip_cfg.fifo_enable))
+//        return -1;
+//}
