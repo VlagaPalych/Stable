@@ -16,7 +16,10 @@ void IMU_DMA_Init(void);
 void IMU_DMA_Run(uint8_t *tx, uint8_t *rx, uint8_t size);
 void IMU_Write(uint8_t address, uint8_t *data, uint8_t size);
 void IMU_Read(uint8_t address, uint8_t *data, uint8_t size);
-void DMP_LoadFirmware(uint8_t *firmware, uint16_t length, uint16_t start_addr);
+void MPU_LoadFirmware(uint8_t *firmware, uint16_t length, uint16_t start_addr);
+
+void MPU_MemWrite(uint16_t addr, uint8_t *data, uint16_t size);
+void MPU_MemRead(uint16_t addr, uint8_t *data, uint16_t size);
 
 #define DMP_CODE_SIZE           3062
 extern uint8_t dmp_memory[DMP_CODE_SIZE];

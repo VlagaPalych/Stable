@@ -25,7 +25,9 @@ void Delay_us(uint16_t us) {
     while ((TIM6->CR1 & TIM_CR1_CEN)!=0);
 }
 
-uint8_t answer = 0;
+uint8_t send[4] = {0x21, 0x10, 0x08, 0xff};
+uint8_t recv[4];
+
 int main() {
     RCC_Init();
 //    GPIOA->MODER &= ~(3 << 15*2);
@@ -38,7 +40,7 @@ int main() {
     IMU_Init();
     Mag_Init();
 
-//    //DMP_LoadFirmware(dmp_memory, DMP_CODE_SIZE, startAddress);
+    MPU_LoadFirmware(dmp_memory, DMP_CODE_SIZE, startAddress);
 
     IMU_DMA_Init();
     IMU_EXTI_Init();
