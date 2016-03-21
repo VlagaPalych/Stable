@@ -5,6 +5,13 @@ Logger/Logs/Ordinary/*.txt
 /**/*.d
 /**/*.lst
 /**/*.crf
+/**/*.iex
+/**/*.axf
+/**/*.htm
+/**/*.lnp
+/**/*.map
+/**/*.sct
+/**/*.dep
 
 /**/Listings/*
 /**/*.uvguix.*
