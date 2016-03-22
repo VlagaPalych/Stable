@@ -4,7 +4,6 @@
 #include "stdint.h"
 
 // MPU9250 Accelerometer and gyroscope registers
-
 #define SELF_TEST_X_GYRO            0x00
 #define SELF_TEST_Y_GYRO            0x01
 #define SELF_TEST_Z_GYRO            0x02
@@ -106,6 +105,14 @@
 #define ZA_OFFSET_H                 0x7d
 #define ZA_OFFSET_L                 0x7e
 
+// MPU9250 characteristics
+#define GYRO_SENSITIVITY        131.0f      // LSB/dps
+#define ACCEL_SENSITIVITY       2048.0f     // LSB/g
+#define MAG_SENSITIVITY         0.15f       // uT/LSB
+#define TEMP_SENSITIBITY        338.87f     // LSB/degC
+#define TEMP_OFFSET             21.0f       // degC
+
+
 // Magnetometer AK8963 registers
 #define AK8963_I2C_ADDRESS      0x0c
 
@@ -144,6 +151,13 @@ void MPU_LoadFirmware(uint8_t *firmware, uint16_t length, uint16_t start_addr);
 
 void MPU_MemWrite(uint16_t addr, uint8_t *data, uint16_t size);
 void MPU_MemRead(uint16_t addr, uint8_t *data, uint16_t size);
+
+void MPU_ResetFIFO(void); 
+void DMP_Enable_LP_QUAT(uint8_t enable);
+void DMP_Enable_6X_LP_QUAT(uint8_t enable);
+void DMP_SetFIFORate(uint16_t rate);
+void DMP_EnableFeature(uint16_t features);
+void MPU_SetDMPState(uint8_t enable);
 
 #define DMP_CODE_SIZE           3062
 extern uint8_t dmp_memory[DMP_CODE_SIZE];

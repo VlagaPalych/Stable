@@ -1,5 +1,7 @@
 #include "stm32f4xx.h" 
 #include "mpu9250.h"
+#include "dmp.h"
+#include "string.h"
 
 uint8_t SPI2_SCK    = 13;   // PB
 uint8_t SPI2_MISO   = 14;   // PB
@@ -10,60 +12,12 @@ uint8_t IMU_INT     = 1;    // PA
 #define READ_COMMAND            0x80
 #define WRITE_COMMAND           0x00
 
-#define BANK_SEL                0x6d
-#define MEM_R_W                 0x6f
-#define PRGM_START_H            0x70
-
-#define GYRO_SENSITIVITY        131.0f      // LSB/dps
-#define ACCEL_SENSITIVITY       2048.0f     // LSB/g
-#define MAG_SENSITIVITY         0.15f       // uT/LSB
-#define TEMP_SENSITIBITY        338.87f     // LSB/degC
-#define TEMP_OFFSET             21.0f       // degC
-
-
-#define D_0_104                 104
-#define CFG_15                  2727
-#define CFG_20                  2224
-#define CFG_27                  2742
-#define CFG_GYRO_RAW_DATA       2722
-#define CFG_ANDROID_ORIENT_INT  (1853)
-
-#define DINA20 0x20
-#define DINAC0 0xb0
-#define DINA80 0x80
-#define DINAC2 0xb4
-#define DINA90 0x90
-
-#define TAP_X               (0x01)
-#define TAP_Y               (0x02)
-#define TAP_Z               (0x04)
-#define TAP_XYZ             (0x07)
-
-#define TAP_X_UP            (0x01)
-#define TAP_X_DOWN          (0x02)
-#define TAP_Y_UP            (0x03)
-#define TAP_Y_DOWN          (0x04)
-#define TAP_Z_UP            (0x05)
-#define TAP_Z_DOWN          (0x06)
-
-
-#define DMP_FEATURE_TAP             0x001
-#define DMP_FEATURE_ANDROID_ORIENT  0x002
-#define DMP_FEATURE_LP_QUAT         0x004
-#define DMP_FEATURE_PEDOMETER       0x008
-#define DMP_FEATURE_6X_LP_QUAT      0x010
-#define DMP_FEATURE_GYRO_CAL        0x020
-#define DMP_FEATURE_SEND_RAW_ACCEL  0x040
-#define DMP_FEATURE_SEND_RAW_GYRO   0x080
-#define DMP_FEATURE_SEND_CAL_GYRO   0x100
-#define DMP_FEATURE_SEND_ANY_GYRO   (DMP_FEATURE_SEND_RAW_GYRO | \
-                                     DMP_FEATURE_SEND_CAL_GYRO)
-
+#define min(a,b) ((a<b)?a:b)
 void Delay_ms(uint16_t ms);
 void Delay_us(uint16_t us);
 
-#define MPU_READ_DATA_SIZE 23
-uint8_t imu_dma_tx[MPU_READ_DATA_SIZE] = {0xba};
+#define MPU_READ_DATA_SIZE 16
+uint8_t imu_dma_tx[MPU_READ_DATA_SIZE] = {READ_COMMAND | FIFO_R_W};
 uint8_t imu_dma_rx[MPU_READ_DATA_SIZE];
 
 float accel[3];
@@ -73,7 +27,7 @@ float magField[3];
 
 float mag_sens_adj[3];
 
-#define min(a,b) ((a<b)?a:b)
+uint8_t dmp_on = 0;
 
 
 void IMU_NSS_Init() {
@@ -187,39 +141,48 @@ void MPU_MemRead(uint16_t addr, uint8_t *data, uint16_t size) {
 uint8_t imu_test = 0;
 void IMU_Init() {
     // WHO_AM_I, reset value = 0x71
-    //imu_test = IMU_ReadByte(WHO_AM_I);
+    imu_test = IMU_ReadByte(WHO_AM_I);
     
     // PLL as clock source
     IMU_WriteByte(PWR_MGMT_1, 0x01);
-    //imu_test = IMU_ReadByte(PWR_MGMT_1);
+    imu_test = IMU_ReadByte(PWR_MGMT_1);
 
     // 1000 Hz sample rate, 41 Hz gyro bandwidth
     IMU_WriteByte(CONFIG, 0x03);
-    //imu_test = IMU_ReadByte(CONFIG);   
+    imu_test = IMU_ReadByte(CONFIG);   
     
     // divisor = 5, sample rate -> 200 Hz
     IMU_WriteByte(SMPLRT_DIV, 0x04);
-    //imu_test = IMU_ReadByte(SMPLRT_DIV);
+    imu_test = IMU_ReadByte(SMPLRT_DIV);
     
     // gyro sensitivity - 250 dps
     IMU_WriteByte(GYRO_CONFIG, 0x00);
-    //imu_test = IMU_ReadByte(GYRO_CONFIG);
+    imu_test = IMU_ReadByte(GYRO_CONFIG);
     
     // accel sensitivity - +-16g
     IMU_WriteByte(ACCEL_CONFIG, 0x18);
-    //imu_test = IMU_ReadByte(ACCEL_CONFIG);
+    imu_test = IMU_ReadByte(ACCEL_CONFIG);
     
     // 41 Hz accel bandwidth, 1000 Hz sample rate
     IMU_WriteByte(ACCEL_CONFIG2, 0x03);
-    //imu_test = IMU_ReadByte(ACCEL_CONFIG_2);
-    
+    imu_test = IMU_ReadByte(ACCEL_CONFIG2);
+   
     // Interrupt implemented by constant level, not pulses
     IMU_WriteByte(INT_PIN_CFG, 0x30);
-    //imu_test = IMU_ReadByte(INT_PIN_CFG);
+    imu_test = IMU_ReadByte(INT_PIN_CFG);
     
     // Raw data ready interrupt enable
     IMU_WriteByte(INT_ENABLE, 0x01);
-    //imu_test = IMU_ReadByte(INT_ENABLE);
+    imu_test = IMU_ReadByte(INT_ENABLE);
+    
+    // enable FIFO
+    IMU_WriteByte(USER_CTRL, 0x40);
+    imu_test = IMU_ReadByte(USER_CTRL);
+    
+    // accel, gyro, temp data to fifo
+    IMU_WriteByte(FIFO_EN, 0xf8);
+    imu_test = IMU_ReadByte(FIFO_EN);
+    Delay_ms(20);
 }
 
 void IMU_EXTI_Init() {
@@ -234,11 +197,14 @@ void IMU_EXTI_Init() {
 }
 
 void EXTI1_IRQHandler() {
+    uint16_t fifo_count = 0;
     if (EXTI->PR & EXTI_PR_PR1) {
         EXTI->PR = EXTI_PR_PR1;
         
-        GPIOA->BSRRL |= 1 << 15;
-        IMU_DMA_Run(imu_dma_tx, imu_dma_rx, MPU_READ_DATA_SIZE);
+        IMU_Read(FIFO_COUNTH, (uint8_t *)&fifo_count, 2);
+        if (fifo_count) {
+            IMU_DMA_Run(imu_dma_tx, imu_dma_rx, 15);
+        }
     }
 }
 
@@ -278,22 +244,22 @@ void DMA1_Stream3_IRQHandler() {
         IMU_NSS_High();
         
         for (i = 0; i < 3; i++) {
-            tmp = (imu_dma_rx[2*i+2] << 8) | imu_dma_rx[2*i+3];
+            tmp = (imu_dma_rx[2*i+9] << 8) | imu_dma_rx[2*i+10];
             accel[i] = tmp / ACCEL_SENSITIVITY;
         }
         
-        tmp = (imu_dma_rx[8] << 8) | imu_dma_rx[9];
+        tmp = (imu_dma_rx[1] << 8) | imu_dma_rx[2];
         temp = tmp / TEMP_SENSITIBITY + TEMP_OFFSET;
         
         for (i = 0; i < 3; i++) {
-            tmp = (imu_dma_rx[2*i+10] << 8) | imu_dma_rx[2*i+11];
+            tmp = (imu_dma_rx[2*i+3] << 8) | imu_dma_rx[2*i+4];
             angleRate[i] = tmp / GYRO_SENSITIVITY;
         }
         
-        for (i = 0; i < 3; i++) {
-            tmp = imu_dma_rx[2*i+16] | (imu_dma_rx[2*i+17] << 8);
-            magField[i] = tmp * MAG_SENSITIVITY * mag_sens_adj[i];
-        }
+//        for (i = 0; i < 3; i++) {
+//            tmp = imu_dma_rx[2*i+16] | (imu_dma_rx[2*i+17] << 8);
+//            magField[i] = tmp * MAG_SENSITIVITY * mag_sens_adj[i];
+//        }
     }
 }
 
@@ -581,7 +547,7 @@ void MPU_LoadFirmware(uint8_t *firmware, uint16_t size, uint16_t start_addr) {
     MPU_MemWrite(PRGM_START_H, (uint8_t *)&start_addr, 2);
 }
 
-void MPU_EnableFeature(uint16_t features) {
+void DMP_EnableFeature(uint16_t features) {
     uint8_t tmp[10];
     
     /* Set integration scale factor. */
@@ -668,18 +634,20 @@ void MPU_EnableFeature(uint16_t features) {
         tmp[0] = 0xD8;
     MPU_MemWrite(CFG_ANDROID_ORIENT_INT, tmp, 1);
     
-//    if (mask & DMP_FEATURE_LP_QUAT)
-//        dmp_enable_lp_quat(1);
-//    else
-//        dmp_enable_lp_quat(0);
+    if (features & DMP_FEATURE_LP_QUAT) {
+        DMP_Enable_LP_QUAT(1);
+    } else {
+        DMP_Enable_LP_QUAT(0);
+    }
 
-//    if (mask & DMP_FEATURE_6X_LP_QUAT)
-//        dmp_enable_6x_lp_quat(1);
-//    else
-//        dmp_enable_6x_lp_quat(0);
+    if (features & DMP_FEATURE_6X_LP_QUAT) {
+        DMP_Enable_6X_LP_QUAT(1);
+    } else {
+        DMP_Enable_6X_LP_QUAT(0);
+    }
     /* Pedometer is always enabled. */
 //    dmp.feature_mask = mask | DMP_FEATURE_PEDOMETER;
-//    mpu_reset_fifo();
+    MPU_ResetFIFO();
     
 //    dmp.packet_length = 0;
 //    if (mask & DMP_FEATURE_SEND_RAW_ACCEL)
@@ -692,28 +660,113 @@ void MPU_EnableFeature(uint16_t features) {
 //        dmp.packet_length += 4;
 }
 
-//void DMP_SetFIFORate() {
-//    uint8_t regs_end[12] = {0xfe, 0xf2, 0xab,
-//        0xc4, 0xaa, 0xf1, 0xdf, 0xdf, 0xBB, 0xAF, 0xdf, 0xdf};
-//    uint16_t div = 0;
-//        
-//    DMP_MemWrite(22+512, (uint8_t *)&div, 2);
-//    DMP_MemWrite(2753, regs_end, 12);
-//    // fifo_rate = 200 Hz
-//}
+void DMP_Enable_LP_QUAT(uint8_t enable) {
+    unsigned char regs[4];
+    if (enable) {
+        regs[0] = DINBC0;
+        regs[1] = DINBC2;
+        regs[2] = DINBC4;
+        regs[3] = DINBC6;
+    }
+    else
+        memset(regs, 0x8B, 4);
 
-//void IMU_ResetFIFO() {
-//    IMU_WriteByte(INT_ENABLE, 0);
-//    IMU_WriteByte(FIFO_EN, 0);
-//    IMU_WriteByte(USER_CTRL, 0);
-//    
-//    IMU_WriteByte(USER_CTRL, 0x04);
-//        data = 0x04 | 0x20;
-//    IMU_WriteByte(USER_CTRL, 0x04 | 0x20);
-//    Delay_ms(50);
+    MPU_MemWrite(CFG_LP_QUAT, regs, 4);
 
-//    IMU_WriteByte(INT_ENABLE, BIT_DATA_RDY_EN);
-//    
-//    if (i2c_write(st.hw->addr, st.reg->fifo_en, 1, &st.chip_cfg.fifo_enable))
-//        return -1;
-//}
+    MPU_ResetFIFO();
+}
+
+void DMP_Enable_6X_LP_QUAT(uint8_t enable)
+{
+    unsigned char regs[4];
+    if (enable) {
+        regs[0] = DINA20;
+        regs[1] = DINA28;
+        regs[2] = DINA30;
+        regs[3] = DINA38;
+    } else
+        memset(regs, 0xA3, 4);
+
+    MPU_MemWrite(CFG_8, regs, 4);
+
+    MPU_ResetFIFO();
+}
+
+void DMP_SetFIFORate(uint16_t rate) {
+    uint8_t regs_end[12] = {DINAFE, DINAF2, DINAAB,
+        0xc4, DINAAA, DINAF1, DINADF, DINADF, 0xBB, 0xAF, DINADF, DINADF};
+    uint16_t div;
+
+    div = DMP_SAMPLE_RATE / rate - 1;
+    MPU_MemWrite(D_0_22, (uint8_t *)&div, 2);
+
+    MPU_MemWrite(CFG_6, regs_end, 12);
+}
+
+void MPU_ResetFIFO() {
+    IMU_WriteByte(INT_ENABLE, 0x00);        // no interrupts
+    IMU_WriteByte(FIFO_EN, 0x00);           // no records to fifo
+    IMU_WriteByte(USER_CTRL, 0x00);         // everything disabled
+
+    if (dmp_on) {
+        IMU_WriteByte(USER_CTRL, 0x0c);     // reset dmp and fifo
+        Delay_ms(50);
+        IMU_WriteByte(USER_CTRL, 0xe0);     // enable dmp, fifo and magnetometer
+        IMU_WriteByte(INT_ENABLE, 0x20);    // enable dmp interrupt
+        IMU_WriteByte(FIFO_EN, 0x00);       // no sensors write to fifo
+    } else {
+        IMU_WriteByte(USER_CTRL, 0x04);     // reset fifo
+        IMU_WriteByte(USER_CTRL, 0x60);     // enable fifo and magnetometer
+        Delay_ms(50);
+        IMU_WriteByte(INT_ENABLE, 0x01);    // enable data ready interrupt
+        IMU_WriteByte(FIFO_EN, 0x00);       // no sensors write to fifo
+    }
+}
+
+void MPU_SetIntEnable(uint8_t enable) {
+    unsigned char tmp;
+
+    if (dmp_on) {
+        if (enable) {
+            IMU_WriteByte(INT_ENABLE, 0x20); // enable dmp interrupt
+        } else {
+            IMU_WriteByte(INT_ENABLE, 0x00); // disable all interupts
+        }
+    } else {
+        if (enable) {
+            IMU_WriteByte(INT_ENABLE, 0x01);    // enable data ready interrupt
+        } else {
+            IMU_WriteByte(INT_ENABLE, 0x00); // disable all interupts
+        }
+    }
+}
+
+void MPU_SetDMPState(uint8_t enable)
+{
+    unsigned char tmp;
+    if (dmp_on == enable)
+        return;
+
+    if (enable) {
+        /* Disable data ready interrupt. */
+        MPU_SetIntEnable(0);
+        /* Disable bypass mode. */
+        //mpu_set_bypass(0);
+        /* Keep constant sample rate, FIFO rate controlled by DMP. */
+        //mpu_set_sample_rate(st.chip_cfg.dmp_sample_rate);
+        /* Remove FIFO elements. */
+        tmp = 0;
+        
+        dmp_on = 1;
+        /* Enable DMP interrupt. */
+        MPU_SetIntEnable(1);
+        MPU_ResetFIFO();
+    } else {
+        /* Disable DMP interrupt. */
+        MPU_SetIntEnable(0);
+        /* Restore FIFO settings. */
+        IMU_WriteByte(FIFO_EN, 0x00);
+        dmp_on = 0;
+        MPU_ResetFIFO();
+    }
+}

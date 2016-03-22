@@ -1,5 +1,6 @@
 #include "stm32f4xx.h" 
 #include "mpu9250.h"
+#include "dmp.h"
 
 void RCC_Init() {
     RCC->APB1ENR |= RCC_APB1ENR_SPI2EN | RCC_APB1ENR_TIM6EN;
@@ -35,9 +36,12 @@ int main() {
     SPI2_Init();
 
     IMU_Init();
-    Mag_Init();
+//    Mag_Init();
 
-    MPU_LoadFirmware(dmp_memory, DMP_CODE_SIZE, startAddress);
+//    MPU_LoadFirmware(dmp_memory, DMP_CODE_SIZE, startAddress);
+//    DMP_EnableFeature(DMP_FEATURE_SEND_RAW_ACCEL | DMP_FEATURE_SEND_RAW_GYRO);
+//    DMP_SetFIFORate(200);
+//    MPU_SetDMPState(1);
 
     IMU_DMA_Init();
     IMU_EXTI_Init();
