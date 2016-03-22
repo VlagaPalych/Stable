@@ -10,59 +10,9 @@ uint8_t IMU_INT     = 1;    // PA
 #define READ_COMMAND            0x80
 #define WRITE_COMMAND           0x00
 
-#define WHO_AM_I                0x75
-
-#define PWR_MGMT_1              0x68
-#define PWR_MGMT_1_VALUE        0x01
-
-#define CONFIG                  0x1a
-#define CONFIG_VALUE            0x03
-
-#define SMPLRT_DIV              0x19
-#define SMPLRT_DIV_VALUE        0x04
-
-#define GYRO_CONFIG             0x1b
-#define GYRO_CONFIG_VALUE       0x00
-
-#define ACCEL_CONFIG            0x1c
-#define ACCEL_CONFIG_VALUE      0x18
-
-#define ACCEL_CONFIG_2          0x1d
-#define ACCEL_CONFIG_2_VALUE    0x03
-
-#define INT_PIN_CFG             0x37
-#define INT_PIN_CFG_VALUE       0x30
-
-#define INT_ENABLE              0x38
-#define INT_ENABLE_VALUE        0x01
-
-#define I2C_SLV0_DO             0x63
-#define I2C_SLV0_DO_VALUE       0x16
-
-#define USER_CTRL               0x6a
-#define USER_CTRL_VALUE         0x20
-
 #define BANK_SEL                0x6d
 #define MEM_R_W                 0x6f
 #define PRGM_START_H            0x70
-
-#define I2C_MST_CTRL            0x24
-#define I2C_MST_CTRL_VALUE      0x40
-
-#define I2C_SLV0_ADDR           0x25      
-#define I2C_SLV0_REG            0x26
-#define I2C_SLV0_CTRL           0x27
-#define I2C_SLV0_CTRL_1_BYTE    0x81
-#define I2C_SLV0_CTRL_7_BYTES   0x87
-
-#define EXT_SENS_DATA_00        0x49
-
-#define AK8963_I2C_ADDRESS      0x0c
-
-#define AK8963_CNTL1            0x0a
-#define AK8963_CNTL1_VALUE      0x16
-#define AK8963_HXL              0x03
-#define AK8963_ASAX             0x10
 
 #define GYRO_SENSITIVITY        131.0f      // LSB/dps
 #define ACCEL_SENSITIVITY       2048.0f     // LSB/g
@@ -236,40 +186,40 @@ void MPU_MemRead(uint16_t addr, uint8_t *data, uint16_t size) {
 
 uint8_t imu_test = 0;
 void IMU_Init() {
-    // WHO_AM_I
-    imu_test = IMU_ReadByte(0xf5);
+    // WHO_AM_I, reset value = 0x71
+    //imu_test = IMU_ReadByte(WHO_AM_I);
     
     // PLL as clock source
-    IMU_WriteByte(PWR_MGMT_1, PWR_MGMT_1_VALUE);
-    imu_test = IMU_ReadByte(PWR_MGMT_1);
+    IMU_WriteByte(PWR_MGMT_1, 0x01);
+    //imu_test = IMU_ReadByte(PWR_MGMT_1);
 
     // 1000 Hz sample rate, 41 Hz gyro bandwidth
-    IMU_WriteByte(CONFIG, CONFIG_VALUE);
-    imu_test = IMU_ReadByte(CONFIG);   
+    IMU_WriteByte(CONFIG, 0x03);
+    //imu_test = IMU_ReadByte(CONFIG);   
     
     // divisor = 5, sample rate -> 200 Hz
-    IMU_WriteByte(SMPLRT_DIV, SMPLRT_DIV_VALUE);
-    imu_test = IMU_ReadByte(SMPLRT_DIV);
+    IMU_WriteByte(SMPLRT_DIV, 0x04);
+    //imu_test = IMU_ReadByte(SMPLRT_DIV);
     
     // gyro sensitivity - 250 dps
-    IMU_WriteByte(GYRO_CONFIG, GYRO_CONFIG_VALUE);
-    imu_test = IMU_ReadByte(GYRO_CONFIG);
+    IMU_WriteByte(GYRO_CONFIG, 0x00);
+    //imu_test = IMU_ReadByte(GYRO_CONFIG);
     
     // accel sensitivity - +-16g
-    IMU_WriteByte(ACCEL_CONFIG, ACCEL_CONFIG_VALUE);
-    imu_test = IMU_ReadByte(ACCEL_CONFIG);
+    IMU_WriteByte(ACCEL_CONFIG, 0x18);
+    //imu_test = IMU_ReadByte(ACCEL_CONFIG);
     
     // 41 Hz accel bandwidth, 1000 Hz sample rate
-    IMU_WriteByte(ACCEL_CONFIG_2, ACCEL_CONFIG_2_VALUE);
-    imu_test = IMU_ReadByte(ACCEL_CONFIG_2);
+    IMU_WriteByte(ACCEL_CONFIG2, 0x03);
+    //imu_test = IMU_ReadByte(ACCEL_CONFIG_2);
     
     // Interrupt implemented by constant level, not pulses
-    IMU_WriteByte(INT_PIN_CFG, INT_PIN_CFG_VALUE);
-    imu_test = IMU_ReadByte(INT_PIN_CFG);
+    IMU_WriteByte(INT_PIN_CFG, 0x30);
+    //imu_test = IMU_ReadByte(INT_PIN_CFG);
     
     // Raw data ready interrupt enable
-    IMU_WriteByte(INT_ENABLE, INT_ENABLE_VALUE);
-    imu_test = IMU_ReadByte(INT_ENABLE);
+    IMU_WriteByte(INT_ENABLE, 0x01);
+    //imu_test = IMU_ReadByte(INT_ENABLE);
 }
 
 void IMU_EXTI_Init() {
@@ -360,18 +310,18 @@ void Mag_WriteByte(uint8_t address, uint8_t data) {
     IMU_WriteByte(I2C_SLV0_REG, address);
     IMU_WriteByte(I2C_SLV0_DO, data);
     // I2C on, 1 byte
-    IMU_WriteByte(I2C_SLV0_CTRL, I2C_SLV0_CTRL_1_BYTE);
+    IMU_WriteByte(I2C_SLV0_CTRL, 0x81);
 }
 
 void Mag_Init() {
     uint8_t tmp[3], i = 0;
     
     // Enable I2C master
-    IMU_WriteByte(USER_CTRL, USER_CTRL_VALUE);
+    IMU_WriteByte(USER_CTRL, 0x20);
     
-    Mag_WriteByte(AK8963_CNTL1, 0x00); // Power down magnetometer  
+    Mag_WriteByte(AK8963_CNTL, 0x00); // Power down magnetometer  
     Delay_ms(10);   
-    Mag_WriteByte(AK8963_CNTL1, 0x0f); // Enter Fuse ROM access mode
+    Mag_WriteByte(AK8963_CNTL, 0x0f); // Enter Fuse ROM access mode
     Delay_ms(10);
     
     // I2C address for reading
@@ -387,21 +337,21 @@ void Mag_Init() {
         mag_sens_adj[i] = (tmp[i] - 128)*0.5 / 128.0f + 1.0f;
     }
     
-    Mag_WriteByte(AK8963_CNTL1, 0x00); // Power down magnetometer  
+    Mag_WriteByte(AK8963_CNTL, 0x00); // Power down magnetometer  
     Delay_ms(10);
     
 
-    Mag_WriteByte(AK8963_CNTL1, AK8963_CNTL1_VALUE); // Continuous measurement mode 2 (100 Hz), 16 bit output
+    Mag_WriteByte(AK8963_CNTL, 0x16); // Continuous measurement mode 2 (100 Hz), 16 bit output
     Delay_ms(10);
     
     // Data ready interrupt waits for external sensor data
-    IMU_WriteByte(I2C_MST_CTRL, I2C_MST_CTRL_VALUE);
+    IMU_WriteByte(I2C_MST_CTRL, 0x40);
     // I2C address for reading
     IMU_WriteByte(I2C_SLV0_ADDR, READ_COMMAND | AK8963_I2C_ADDRESS);
     // reading from HXL register
     IMU_WriteByte(I2C_SLV0_REG, AK8963_HXL);
     // Read 7 bytes
-    IMU_WriteByte(I2C_SLV0_CTRL, I2C_SLV0_CTRL_7_BYTES);
+    IMU_WriteByte(I2C_SLV0_CTRL, 0x87);
 }
 
 
