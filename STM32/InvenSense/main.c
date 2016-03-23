@@ -1,6 +1,16 @@
 #include "stm32f4xx.h" 
 #include "mpu9250.h"
 #include "dmp.h"
+#include "extra_math.h"
+#include "string.h"
+
+extern float angleRate[3];
+extern float accel[3];
+extern float magField[3];
+extern Quat orientation;
+float euler[3];
+float eulerRate[3];
+
 
 void RCC_Init() {
     RCC->APB1ENR |= RCC_APB1ENR_SPI2EN | RCC_APB1ENR_TIM6EN;
@@ -26,7 +36,10 @@ void Delay_us(uint16_t us) {
     while ((TIM6->CR1 & TIM_CR1_CEN)!=0);
 }
 
+extern uint8_t process;
+
 int main() {
+    QUEST_Init();
     RCC_Init();
 //    GPIOA->MODER &= ~(3 << 15*2);
 //    GPIOA->MODER |= 1 << 15*2;
@@ -36,7 +49,7 @@ int main() {
     SPI2_Init();
 
     IMU_Init();
-//    Mag_Init();
+    Mag_Init();
 
 //    MPU_LoadFirmware(dmp_memory, DMP_CODE_SIZE, startAddress);
 //    DMP_EnableFeature(DMP_FEATURE_SEND_RAW_ACCEL | DMP_FEATURE_SEND_RAW_GYRO);
@@ -44,9 +57,32 @@ int main() {
 //    MPU_SetDMPState(1);
 
     IMU_DMA_Init();
+    Delay_ms(100);
     IMU_EXTI_Init();
     EXTI->SWIER |= EXTI_SWIER_SWIER1;
 
     while (1) {
+        if (process) {
+            process = 0;
+            QUEST();          
+            
+//            degrees_to_radians(angleRate);
+//            memcpy(zk_data, angleRate, VECT_SIZE*sizeof(float));
+//            zk_data[3] = orientation.w;
+//            memcpy(zk_data+VECT_SIZE+1, orientation.v, VECT_SIZE*sizeof(float));
+//            
+//            Kalman();
+//            orientation.w = x_aposteriori_data[3];
+//            memcpy(orientation.v, x_aposteriori_data+VECT_SIZE+1, VECT_SIZE*sizeof(float));
+            Quat_ToEuler(orientation, euler);
+            
+            //angleRate_to_eulerRate(angleRate, euler, eulerRate);
+            
+            radians_to_degrees(euler);
+            //radians_to_degrees(eulerRate);
+            
+            // telemetry
+
+        }
     }
 }

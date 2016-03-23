@@ -147,6 +147,8 @@ void IMU_DMA_Init(void);
 void IMU_DMA_Run(uint8_t *tx, uint8_t *rx, uint8_t size);
 void IMU_Write(uint8_t address, uint8_t *data, uint8_t size);
 void IMU_Read(uint8_t address, uint8_t *data, uint8_t size);
+void IMU_WriteByte(uint8_t address, uint8_t data);
+uint8_t IMU_ReadByte(uint8_t address);
 void MPU_LoadFirmware(uint8_t *firmware, uint16_t length, uint16_t start_addr);
 
 void MPU_MemWrite(uint16_t addr, uint8_t *data, uint16_t size);

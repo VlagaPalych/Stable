@@ -1,18 +1,18 @@
 Logger/Logs/Ordinary/*.txt
 
 /**/Objects/*
-/**/*.o
-/**/*.d
-/**/*.lst
-/**/*.crf
-/**/*.iex
-/**/*.axf
-/**/*.htm
-/**/*.html
-/**/*.lnp
-/**/*.map
-/**/*.sct
-/**/*.dep
+*.o
+*.d
+*.lst
+*.crf
+*.iex
+*.axf
+*.htm
+*.html
+*.lnp
+*.map
+*.sct
+*.dep
 
 /**/Listings/*
 /**/*.uvguix.*
@@ -27,6 +27,7 @@ Logger/Logs/Ordinary/*.txt
 *.vcxproj.filters
 *.vcxproj.user
 *.v12.suo
+*.opensdf
 
 Matlab/**/*.asv
 Matlab/**/*.m~

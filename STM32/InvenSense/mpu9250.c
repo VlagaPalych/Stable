@@ -2,6 +2,7 @@
 #include "mpu9250.h"
 #include "dmp.h"
 #include "string.h"
+#include "extra_math.h"
 
 uint8_t SPI2_SCK    = 13;   // PB
 uint8_t SPI2_MISO   = 14;   // PB
@@ -16,8 +17,8 @@ uint8_t IMU_INT     = 1;    // PA
 void Delay_ms(uint16_t ms);
 void Delay_us(uint16_t us);
 
-#define MPU_READ_DATA_SIZE 16
-uint8_t imu_dma_tx[MPU_READ_DATA_SIZE] = {READ_COMMAND | FIFO_R_W};
+#define MPU_READ_DATA_SIZE 23
+uint8_t imu_dma_tx[MPU_READ_DATA_SIZE] = {READ_COMMAND | ACCEL_XOUT_H};
 uint8_t imu_dma_rx[MPU_READ_DATA_SIZE];
 
 float accel[3];
@@ -28,6 +29,13 @@ float magField[3];
 float mag_sens_adj[3];
 
 uint8_t dmp_on = 0;
+
+uint8_t meas1 = 1;
+uint8_t process = 0;
+extern float w1[3];
+extern float w2[3];
+extern float v1[3];
+extern float v2[3];
 
 
 void IMU_NSS_Init() {
@@ -129,12 +137,18 @@ void IMU_Write(uint8_t address, uint8_t *data, uint8_t size) {
 }
 
 void MPU_MemWrite(uint16_t addr, uint8_t *data, uint16_t size) {
-    IMU_Write(BANK_SEL, (uint8_t *)&addr, 2);
+    uint8_t tmp[2];
+    tmp[0] = (uint8_t)(addr >> 8);
+    tmp[1] = (uint8_t)(addr & 0xff);
+    IMU_Write(BANK_SEL, tmp, 2);
     IMU_Write(MEM_R_W, data, size);
 }
 
 void MPU_MemRead(uint16_t addr, uint8_t *data, uint16_t size) {
-    IMU_Write(BANK_SEL, (uint8_t *)&addr, 2);
+    uint8_t tmp[2];
+    tmp[0] = (uint8_t)(addr >> 8);
+    tmp[1] = (uint8_t)(addr & 0xff);
+    IMU_Write(BANK_SEL, tmp, 2);
     IMU_Read(MEM_R_W, data, size);
 }
 
@@ -176,13 +190,24 @@ void IMU_Init() {
     imu_test = IMU_ReadByte(INT_ENABLE);
     
     // enable FIFO
-    IMU_WriteByte(USER_CTRL, 0x40);
-    imu_test = IMU_ReadByte(USER_CTRL);
+//    IMU_WriteByte(USER_CTRL, 0x40);
+//    imu_test = IMU_ReadByte(USER_CTRL);
+//    
+//    // accel, gyro, temp data to fifo
+//    IMU_WriteByte(FIFO_EN, 0xf8);
+//    imu_test = IMU_ReadByte(FIFO_EN);
     
-    // accel, gyro, temp data to fifo
-    IMU_WriteByte(FIFO_EN, 0xf8);
-    imu_test = IMU_ReadByte(FIFO_EN);
-    Delay_ms(20);
+    // enable DMP and FIFO
+//    IMU_WriteByte(USER_CTRL, 0xc0);
+//    imu_test = IMU_ReadByte(USER_CTRL);
+//    
+//    // no sensors data to FIFO
+//    IMU_WriteByte(FIFO_EN, 0x00);
+//    imu_test = IMU_ReadByte(FIFO_EN);
+//    
+//    // DMP interrupt enable
+//    IMU_WriteByte(INT_ENABLE, 0x20);
+//    imu_test = IMU_ReadByte(INT_ENABLE);
 }
 
 void IMU_EXTI_Init() {
@@ -197,14 +222,14 @@ void IMU_EXTI_Init() {
 }
 
 void EXTI1_IRQHandler() {
-    uint16_t fifo_count = 0;
+//    uint16_t fifo_count = 0;
     if (EXTI->PR & EXTI_PR_PR1) {
         EXTI->PR = EXTI_PR_PR1;
         
-        IMU_Read(FIFO_COUNTH, (uint8_t *)&fifo_count, 2);
-        if (fifo_count) {
-            IMU_DMA_Run(imu_dma_tx, imu_dma_rx, 15);
-        }
+//        IMU_Read(FIFO_COUNTH, (uint8_t *)&fifo_count, 2);
+//        if (fifo_count) {
+            IMU_DMA_Run(imu_dma_tx, imu_dma_rx, MPU_READ_DATA_SIZE);
+        //}
     }
 }
 
@@ -235,6 +260,12 @@ void IMU_DMA_Run(uint8_t *tx, uint8_t *rx, uint8_t size) {
     DMA1_Stream4->CR    |= DMA_SxCR_EN;     
 }
 
+void swap(float *a, float *b) {
+    float tmp = *a;
+    *a = *b;
+    *b = tmp;
+}
+
 void DMA1_Stream3_IRQHandler() {
     uint8_t i = 0;
     int16_t tmp = 0;
@@ -244,22 +275,40 @@ void DMA1_Stream3_IRQHandler() {
         IMU_NSS_High();
         
         for (i = 0; i < 3; i++) {
-            tmp = (imu_dma_rx[2*i+9] << 8) | imu_dma_rx[2*i+10];
+            tmp = (imu_dma_rx[2*i+1] << 8) | imu_dma_rx[2*i+2];
             accel[i] = tmp / ACCEL_SENSITIVITY;
         }
         
-        tmp = (imu_dma_rx[1] << 8) | imu_dma_rx[2];
+        tmp = (imu_dma_rx[7] << 8) | imu_dma_rx[8];
         temp = tmp / TEMP_SENSITIBITY + TEMP_OFFSET;
         
         for (i = 0; i < 3; i++) {
-            tmp = (imu_dma_rx[2*i+3] << 8) | imu_dma_rx[2*i+4];
+            tmp = (imu_dma_rx[2*i+9] << 8) | imu_dma_rx[2*i+10];
             angleRate[i] = tmp / GYRO_SENSITIVITY;
         }
         
-//        for (i = 0; i < 3; i++) {
-//            tmp = imu_dma_rx[2*i+16] | (imu_dma_rx[2*i+17] << 8);
-//            magField[i] = tmp * MAG_SENSITIVITY * mag_sens_adj[i];
-//        }
+        for (i = 0; i < 3; i++) {
+            tmp = imu_dma_rx[2*i+15] | (imu_dma_rx[2*i+16] << 8);
+            magField[i] = tmp * MAG_SENSITIVITY * mag_sens_adj[i];
+        }
+        magField[2] = -magField[2];
+        swap(&magField[0], &magField[1]);  
+        
+        if (meas1) {
+            meas1 = 0;
+            memcpy(w1, accel, VECT_SIZE*sizeof(float));
+            memcpy(w2, magField, VECT_SIZE*sizeof(float));
+            
+            Vect_Norm(w1);
+            Vect_Norm(w2);
+        } else {
+            process = 1;
+            memcpy(v1, accel, VECT_SIZE*sizeof(float));
+            memcpy(v2, magField, VECT_SIZE*sizeof(float));
+            
+            Vect_Norm(v1);
+            Vect_Norm(v2);
+        }
     }
 }
 
@@ -539,12 +588,31 @@ void MPU_LoadFirmware(uint8_t *firmware, uint16_t size, uint16_t start_addr) {
     uint16_t i = 0;
     uint16_t this_write = 0;
 #define LOAD_CHUNK  (16)
+    uint8_t cur[LOAD_CHUNK];
    
     for (i = 0; i < size; i += this_write) {
         this_write = min(LOAD_CHUNK, size - i);
-        MPU_MemWrite(i, firmware + i, this_write);
+        MPU_MemWrite(i, (uint8_t *)&firmware[i], this_write);
+        MPU_MemRead(i, cur, this_write);
+        if (memcmp(&firmware[i], cur, this_write)) {
+            // @TODO: signalize about error
+            this_write = 0xff;
+        }
+        
     }
-    MPU_MemWrite(PRGM_START_H, (uint8_t *)&start_addr, 2);
+    cur[0] = (uint8_t)(start_addr >> 8);
+    cur[1] = (uint8_t)(start_addr & 0xff);
+    MPU_MemWrite(PRGM_START_H, cur, 2);
+}
+
+void DMP_EnableGyroCal(uint8_t enable) {
+    if (enable) {
+        uint8_t regs[9] = {0xb8, 0xaa, 0xb3, 0x8d, 0xb4, 0x98, 0x0d, 0x35, 0x5d};
+        MPU_MemWrite(CFG_MOTION_BIAS, regs, 9);
+    } else {
+        uint8_t regs[9] = {0xb8, 0xaa, 0xaa, 0xaa, 0xb0, 0x88, 0xc3, 0xc5, 0xc7};
+        MPU_MemWrite(CFG_MOTION_BIAS, regs, 9);
+    }
 }
 
 void DMP_EnableFeature(uint16_t features) {
@@ -555,7 +623,7 @@ void DMP_EnableFeature(uint16_t features) {
     tmp[1] = (uint8_t)((GYRO_SF >> 16) & 0xFF);
     tmp[2] = (uint8_t)((GYRO_SF >> 8) & 0xFF);
     tmp[3] = (uint8_t)(GYRO_SF & 0xFF);
-    MPU_MemWrite(104, tmp, 4);
+    MPU_MemWrite(D_0_104, tmp, 4);
     
     /* Send sensor data to the FIFO. */
     tmp[0] = 0xA3;
@@ -590,10 +658,11 @@ void DMP_EnableFeature(uint16_t features) {
     }
     MPU_MemWrite(CFG_27, tmp, 1);
     
-//    if (mask & DMP_FEATURE_GYRO_CAL)
-//        dmp_enable_gyro_cal(1);
-//    else
-//        dmp_enable_gyro_cal(0);
+    if (features & DMP_FEATURE_GYRO_CAL) {
+        DMP_EnableGyroCal(1);
+    } else {
+        DMP_EnableGyroCal(0);
+    }
     
     if (features & DMP_FEATURE_SEND_ANY_GYRO) {
         if (features & DMP_FEATURE_SEND_CAL_GYRO) {
@@ -696,9 +765,12 @@ void DMP_SetFIFORate(uint16_t rate) {
     uint8_t regs_end[12] = {DINAFE, DINAF2, DINAAB,
         0xc4, DINAAA, DINAF1, DINADF, DINADF, 0xBB, 0xAF, DINADF, DINADF};
     uint16_t div;
+    uint8_t tmp[2];
 
     div = DMP_SAMPLE_RATE / rate - 1;
-    MPU_MemWrite(D_0_22, (uint8_t *)&div, 2);
+    tmp[0] = (uint8_t)(div >> 8);
+    tmp[1] = (uint8_t)(div & 0xff);
+    MPU_MemWrite(D_0_22, tmp, 2);
 
     MPU_MemWrite(CFG_6, regs_end, 12);
 }
@@ -716,7 +788,7 @@ void MPU_ResetFIFO() {
         IMU_WriteByte(FIFO_EN, 0x00);       // no sensors write to fifo
     } else {
         IMU_WriteByte(USER_CTRL, 0x04);     // reset fifo
-        IMU_WriteByte(USER_CTRL, 0x60);     // enable fifo and magnetometer
+        IMU_WriteByte(USER_CTRL, 0x40);     // enable fifo and magnetometer
         Delay_ms(50);
         IMU_WriteByte(INT_ENABLE, 0x01);    // enable data ready interrupt
         IMU_WriteByte(FIFO_EN, 0x00);       // no sensors write to fifo
@@ -724,7 +796,7 @@ void MPU_ResetFIFO() {
 }
 
 void MPU_SetIntEnable(uint8_t enable) {
-    unsigned char tmp;
+//    unsigned char tmp;
 
     if (dmp_on) {
         if (enable) {
@@ -743,7 +815,7 @@ void MPU_SetIntEnable(uint8_t enable) {
 
 void MPU_SetDMPState(uint8_t enable)
 {
-    unsigned char tmp;
+//    unsigned char tmp;
     if (dmp_on == enable)
         return;
 
@@ -755,7 +827,7 @@ void MPU_SetDMPState(uint8_t enable)
         /* Keep constant sample rate, FIFO rate controlled by DMP. */
         //mpu_set_sample_rate(st.chip_cfg.dmp_sample_rate);
         /* Remove FIFO elements. */
-        tmp = 0;
+//        tmp = 0;
         
         dmp_on = 1;
         /* Enable DMP interrupt. */
