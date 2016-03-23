@@ -133,33 +133,323 @@
 #define AK8963_ASAY                 0x11
 #define AK8963_ASAZ                 0x12
 
+/* Filter configurations. */
+enum lpf_e {
+    INV_FILTER_256HZ_NOLPF2 = 0,
+    INV_FILTER_188HZ,
+    INV_FILTER_98HZ,
+    INV_FILTER_42HZ,
+    INV_FILTER_20HZ,
+    INV_FILTER_10HZ,
+    INV_FILTER_5HZ,
+    INV_FILTER_2100HZ_NOLPF,
+    NUM_FILTER
+};
 
-void SPI2_Init(void);
-uint8_t SPI2_Transfer(uint8_t byte);
-void IMU_NSS_Low(void);
-void IMU_NSS_High(void);
-void IMU_NSS_Init(void);
-uint8_t SPI2_Read(uint8_t address); 
-void IMU_Init(void);
-void IMU_EXTI_Init(void);
+/* Full scale ranges. */
+enum gyro_fsr_e {
+    INV_FSR_250DPS = 0,
+    INV_FSR_500DPS,
+    INV_FSR_1000DPS,
+    INV_FSR_2000DPS,
+    NUM_GYRO_FSR
+};
+
+/* Full scale ranges. */
+enum accel_fsr_e {
+    INV_FSR_2G = 0,
+    INV_FSR_4G,
+    INV_FSR_8G,
+    INV_FSR_16G,
+    NUM_ACCEL_FSR
+};
+
+/* Clock sources. */
+enum clock_sel_e {
+    INV_CLK_INTERNAL = 0,
+    INV_CLK_PLL,
+    NUM_CLK
+};
+
+//  IMU hardware device defines
+#define INV_X_GYRO      (0x40)
+#define INV_Y_GYRO      (0x20)
+#define INV_Z_GYRO      (0x10)
+#define INV_XYZ_GYRO    (INV_X_GYRO | INV_Y_GYRO | INV_Z_GYRO)
+#define INV_XYZ_ACCEL   (0x08)
+#define INV_XYZ_COMPASS (0x01)
+
+
+#define BIT_I2C_MST_VDDIO   (0x80)
+#define BIT_FIFO_EN         (0x40)
+#define BIT_DMP_EN          (0x80)
+#define BIT_FIFO_RST        (0x04)
+#define BIT_DMP_RST         (0x08)
+#define BIT_FIFO_OVERFLOW   (0x10)
+#define BIT_DATA_RDY_EN     (0x01)
+#define BIT_DMP_INT_EN      (0x02)
+#define BIT_MOT_INT_EN      (0x40)
+#define BITS_FSR            (0x18)
+#define BITS_LPF            (0x07)
+#define BITS_HPF            (0x07)
+#define BITS_CLK            (0x07)
+#define BIT_FIFO_SIZE_1024  (0x40)
+#define BIT_FIFO_SIZE_2048  (0x80)
+#define BIT_FIFO_SIZE_4096  (0xC0)
+#define BIT_RESET           (0x80)
+#define BIT_SLEEP           (0x40)
+#define BIT_S0_DELAY_EN     (0x01)
+#define BIT_S2_DELAY_EN     (0x04)
+#define BITS_SLAVE_LENGTH   (0x0F)
+#define BIT_SLAVE_BYTE_SW   (0x40)
+#define BIT_SLAVE_GROUP     (0x10)
+#define BIT_SLAVE_EN        (0x80)
+#define BIT_I2C_READ        (0x80)
+#define BITS_I2C_MASTER_DLY (0x1F)
+#define BIT_AUX_IF_EN       (0x20)
+#define BIT_ACTL            (0x80)
+#define BIT_LATCH_EN        (0x20)
+#define BIT_ANY_RD_CLR      (0x10)
+#define BIT_BYPASS_EN       (0x02)
+#define BITS_WOM_EN         (0xC0)
+#define BIT_LPA_CYCLE       (0x20)
+#define BIT_STBY_XA         (0x20)
+#define BIT_STBY_YA         (0x10)
+#define BIT_STBY_ZA         (0x08)
+#define BIT_STBY_XG         (0x04)
+#define BIT_STBY_YG         (0x02)
+#define BIT_STBY_ZG         (0x01)
+#define BIT_STBY_XYZA       (BIT_STBY_XA | BIT_STBY_YA | BIT_STBY_ZA)
+#define BIT_STBY_XYZG       (BIT_STBY_XG | BIT_STBY_YG | BIT_STBY_ZG)
+
+#define AK8963_SECONDARY
+
+#if defined AK8975_SECONDARY || defined AK8963_SECONDARY
+#define AK89xx_SECONDARY
+#else
+/* #warning "No compass = less profit for Invensense. Lame." */
+#endif
+
+#if defined AK8975_SECONDARY
+#define SUPPORTS_AK89xx_HIGH_SENS   (0x00)
+#define AK89xx_FSR                  (9830)
+#elif defined AK8963_SECONDARY
+#define SUPPORTS_AK89xx_HIGH_SENS   (0x10)
+#define AK89xx_FSR                  (4915)
+#endif
+
+#ifdef AK89xx_SECONDARY
+#define AKM_REG_WHOAMI      (0x00)
+
+#define AKM_REG_ST1         (0x02)
+#define AKM_REG_HXL         (0x03)
+#define AKM_REG_ST2         (0x09)
+
+#define AKM_REG_CNTL        (0x0A)
+#define AKM_REG_ASTC        (0x0C)
+#define AKM_REG_ASAX        (0x10)
+#define AKM_REG_ASAY        (0x11)
+#define AKM_REG_ASAZ        (0x12)
+
+#define AKM_DATA_READY      (0x01)
+#define AKM_DATA_OVERRUN    (0x02)
+#define AKM_OVERFLOW        (0x80)
+#define AKM_DATA_ERROR      (0x40)
+
+#define AKM_BIT_SELF_TEST   (0x40)
+
+#define AKM_POWER_DOWN          (0x00 | SUPPORTS_AK89xx_HIGH_SENS)
+#define AKM_SINGLE_MEASUREMENT  (0x01 | SUPPORTS_AK89xx_HIGH_SENS)
+#define AKM_FUSE_ROM_ACCESS     (0x0F | SUPPORTS_AK89xx_HIGH_SENS)
+#define AKM_MODE_SELF_TEST      (0x08 | SUPPORTS_AK89xx_HIGH_SENS)
+
+#define AKM_WHOAMI      (0x48)
+#endif
+
+/* Hardware registers needed by driver. */
+typedef struct {
+    uint8_t who_am_i;
+    uint8_t rate_div;
+    uint8_t lpf;
+    uint8_t prod_id;
+    uint8_t user_ctrl;
+    uint8_t fifo_en;
+    uint8_t gyro_cfg;
+    uint8_t accel_cfg;
+    uint8_t accel_cfg2;
+    uint8_t lp_accel_odr;
+    uint8_t motion_thr;
+    uint8_t motion_dur;
+    uint8_t fifo_count_h;
+    uint8_t fifo_r_w;
+    uint8_t raw_gyro;
+    uint8_t raw_accel;
+    uint8_t temp;
+    uint8_t int_enable;
+    uint8_t dmp_int_status;
+    uint8_t int_status;
+    uint8_t accel_intel;
+    uint8_t pwr_mgmt_1;
+    uint8_t pwr_mgmt_2;
+    uint8_t int_pin_cfg;
+    uint8_t mem_r_w;
+    uint8_t accel_offs;
+    uint8_t i2c_mst;
+    uint8_t bank_sel;
+    uint8_t mem_start_addr;
+    uint8_t prgm_start_h;
+#if defined AK89xx_SECONDARY
+    uint8_t s0_addr;
+    uint8_t s0_reg;
+    uint8_t s0_ctrl;
+    uint8_t s1_addr;
+    uint8_t s1_reg;
+    uint8_t s1_ctrl;
+    uint8_t s4_ctrl;
+    uint8_t s0_do;
+    uint8_t s1_do;
+    uint8_t i2c_delay_ctrl;
+    uint8_t raw_compass;
+    /* The I2C_MST_VDDIO bit is in this register. */
+    uint8_t yg_offs_tc;
+#endif
+} MPU_Regs;
+
+/* Information specific to a particular device. */
+typedef struct {
+    uint8_t addr;
+    uint16_t max_fifo;
+    uint8_t num_reg;
+    uint16_t temp_sens;
+    int16_t temp_offset;
+    uint16_t bank_size;
+#if defined AK89xx_SECONDARY
+    uint16_t compass_fsr;
+#endif
+} HW;
+
+typedef struct {
+    uint16_t gyro_fsr;
+    uint8_t accel_fsr;
+    uint16_t lpf;
+    uint16_t sample_rate;
+    uint8_t sensors_on;
+    uint8_t fifo_sensors;
+    uint8_t dmp_on;
+} MotionIntCache;
+
+/* Cached chip configuration data.
+ * TODO: A lot of these can be handled with a bitmask.
+ */
+typedef struct {
+    /* Matches gyro_cfg >> 3 & 0x03 */
+    uint8_t gyro_fsr;
+    /* Matches accel_cfg >> 3 & 0x03 */
+    uint8_t accel_fsr;
+    /* Enabled sensors. Uses same masks as fifo_en, NOT pwr_mgmt_2. */
+    uint8_t sensors;
+    /* Matches config register. */
+    uint8_t lpf;
+    uint8_t clk_src;
+    /* Sample rate, NOT rate divider. */
+    uint16_t sample_rate;
+    /* Matches fifo_en register. */
+    uint8_t fifo_enable;
+    /* Matches int enable register. */
+    uint8_t int_enable;
+    /* 1 if devices on auxiliary I2C bus appear on the primary. */
+    uint8_t bypass_mode;
+    /* 1 if half-sensitivity.
+     * NOTE: This doesn't belong here, but everything else in hw_s is const,
+     * and this allows us to save some precious RAM.
+     */
+    uint8_t accel_half;
+    /* 1 if device in low-power accel-only mode. */
+    uint8_t lp_accel_mode;
+    /* 1 if interrupts are only triggered on motion events. */
+    uint8_t int_motion_only;
+    MotionIntCache cache;
+    /* 1 for active low interrupts. */
+    uint8_t active_low_int;
+    /* 1 for latched interrupts. */
+    uint8_t latched_int;
+    /* 1 if DMP is enabled. */
+    uint8_t dmp_on;
+    /* Ensures that DMP will only be loaded once. */
+    uint8_t dmp_loaded;
+    /* Sampling rate used when DMP is enabled. */
+    uint16_t dmp_sample_rate;
+    /* Compass sample rate. */
+#ifdef AK89xx_SECONDARY
+    uint16_t compass_sample_rate;
+    uint8_t compass_addr;
+    int16_t mag_sens_adj[3];
+#endif
+} MPU_Config;
+
+typedef struct {
+    uint32_t gyro_sens;
+    uint32_t accel_sens;
+    uint8_t reg_rate_div;
+    uint8_t reg_lpf;
+    uint8_t reg_gyro_fsr;
+    uint8_t reg_accel_fsr;
+    uint16_t wait_ms;
+    uint8_t packet_thresh;
+    float min_dps;
+    float max_dps;
+    float max_gyro_var;
+    float min_g;
+    float max_g;
+    float max_accel_var;
+} MPU_Test;
+
+typedef struct {
+    const MPU_Regs *reg;
+    const HW *hw;
+    MPU_Config chip_cfg;
+    MPU_Test *test;
+} MPU_State;
+
+typedef struct {
+    void (*cb)(void);
+    uint8_t pin;
+    uint8_t lp_exit;
+    uint8_t active_low;
+} MPU_IntParams;
+
+
+void MPU_EXTI_Init(void);
 void Mag_Init(void);
-void IMU_DMA_Init(void);
-void IMU_DMA_Run(uint8_t *tx, uint8_t *rx, uint8_t size);
-void IMU_Write(uint8_t address, uint8_t *data, uint8_t size);
-void IMU_Read(uint8_t address, uint8_t *data, uint8_t size);
-void IMU_WriteByte(uint8_t address, uint8_t data);
-uint8_t IMU_ReadByte(uint8_t address);
+
+
 void MPU_LoadFirmware(uint8_t *firmware, uint16_t length, uint16_t start_addr);
 
 void MPU_MemWrite(uint16_t addr, uint8_t *data, uint16_t size);
 void MPU_MemRead(uint16_t addr, uint8_t *data, uint16_t size);
 
-void MPU_ResetFIFO(void); 
+
 void DMP_Enable_LP_QUAT(uint8_t enable);
 void DMP_Enable_6X_LP_QUAT(uint8_t enable);
 void DMP_SetFIFORate(uint16_t rate);
 void DMP_EnableFeature(uint16_t features);
 void MPU_SetDMPState(uint8_t enable);
+
+int MPU_SetGyroFsr(uint16_t fsr);
+int MPU_SetAccelFsr(uint16_t fsr);
+int MPU_SetLPF(uint16_t lpf);
+int MPU_SetIntLatched(uint8_t enable);
+int MPU_LowPowerAccelMode(uint8_t rate);
+int MPU_SetSampleRate(uint16_t rate);
+int MPU_ResetFIFO(void); 
+int MPU_ConfigureFIFO(uint8_t sensors);
+int MPU_SetCompassSampleRate(uint8_t rate);
+int MPU_SetSensors(uint8_t sensors);
+int MPU_SetBypass(uint8_t bypass_on);
+
+int MPU_SelectDevice(int device);
+void MPU_InitStructures(void);
+int MPU_Init(MPU_IntParams *int_param);
 
 #define DMP_CODE_SIZE           3062
 extern uint8_t dmp_memory[DMP_CODE_SIZE];

@@ -3,23 +3,17 @@
 #include "dmp.h"
 #include "string.h"
 #include "extra_math.h"
+#include "spi.h"
+#include "dma.h"
 
-uint8_t SPI2_SCK    = 13;   // PB
-uint8_t SPI2_MISO   = 14;   // PB
-uint8_t SPI2_MOSI   = 15;   // PB
-uint8_t IMU_NSS     = 12;   // PB
-uint8_t IMU_INT     = 1;    // PA
-
-#define READ_COMMAND            0x80
-#define WRITE_COMMAND           0x00
 
 #define min(a,b) ((a<b)?a:b)
 void Delay_ms(uint16_t ms);
 void Delay_us(uint16_t us);
 
 #define MPU_READ_DATA_SIZE 23
-uint8_t imu_dma_tx[MPU_READ_DATA_SIZE] = {READ_COMMAND | ACCEL_XOUT_H};
-uint8_t imu_dma_rx[MPU_READ_DATA_SIZE];
+uint8_t MPU_DMA_tx[MPU_READ_DATA_SIZE] = {READ_COMMAND | ACCEL_XOUT_H};
+uint8_t MPU_DMA_rx[MPU_READ_DATA_SIZE];
 
 float accel[3];
 float temp;
@@ -37,180 +31,983 @@ extern float w2[3];
 extern float v1[3];
 extern float v2[3];
 
+static int MPU_SetIntEnable(uint8_t enable);
 
-void IMU_NSS_Init() {
-    GPIOB->MODER    |= 1 << IMU_NSS*2;
-    GPIOB->OSPEEDR 	|= 3 << IMU_NSS*2;
-    GPIOB->OTYPER	&= ~(1 << IMU_NSS);
+#define MPU_MAX_DEVICES 1
+
+MPU_Regs regArray[MPU_MAX_DEVICES];
+HW hwArray[MPU_MAX_DEVICES];
+MPU_Test testArray[MPU_MAX_DEVICES];
+MPU_State gyroArray[MPU_MAX_DEVICES];
+
+MPU_Regs *reg;
+HW *hw;
+MPU_Test *test;
+MPU_State *st;
+static int deviceIndex = 0;
+
+static int reg_int_cb(MPU_IntParams *int_param) {
+    int_param->active_low = 0;
+    int_param->pin = 1;
+    return 0;
 }
 
-void IMU_NSS_Low() {
-    GPIOB->BSRRH |= (1 << IMU_NSS);
+#ifdef AK89xx_SECONDARY
+static int setup_compass(void);
+#define MAX_COMPASS_SAMPLE_RATE (100)
+#endif
+
+int MPU_SelectDevice(int device) {
+  if ((device < 0) || (device >= MPU_MAX_DEVICES))
+    return -1;
+
+  deviceIndex = device;
+  reg = regArray + device;
+  hw = hwArray + device;
+  test = testArray + device;
+  st = gyroArray + device;
+  return 0;
 }
 
-void IMU_NSS_High() {
-    GPIOB->BSRRL |= (1 << IMU_NSS);
-}
+void MPU_InitStructures() {
+    reg->who_am_i         = WHO_AM_I;
+    reg->rate_div         = SMPLRT_DIV;
+    reg->lpf              = CONFIG;
+    reg->prod_id          = 0x0C;
+    reg->user_ctrl        = USER_CTRL;
+    reg->fifo_en          = FIFO_EN;
+    reg->gyro_cfg         = GYRO_CONFIG;
+    reg->accel_cfg        = ACCEL_CONFIG;
+    reg->accel_cfg2       = ACCEL_CONFIG2;
+    reg->lp_accel_odr     = LP_ACCEL_ODR;
+    reg->motion_thr       = WOM_THR;
+    reg->motion_dur       = 0x20;
+    reg->fifo_count_h     = FIFO_COUNTH;
+    reg->fifo_r_w         = FIFO_R_W;
+    reg->raw_gyro         = GYRO_XOUT_H;
+    reg->raw_accel        = ACCEL_XOUT_H;
+    reg->temp             = TEMP_OUT_H;
+    reg->int_enable       = INT_ENABLE;
+    reg->dmp_int_status   = 0x39;
+    reg->int_status       = INT_STATUS;
+    reg->accel_intel      = MOT_DETECT_CTRL;
+    reg->pwr_mgmt_1       = PWR_MGMT_1;
+    reg->pwr_mgmt_2       = PWR_MGMT_2;
+    reg->int_pin_cfg      = INT_PIN_CFG;
+    reg->mem_r_w          = MEM_R_W;
+    reg->accel_offs       = XA_OFFSET_H;
+    reg->i2c_mst          = I2C_MST_CTRL;
+    reg->bank_sel         = BANK_SEL;
+    reg->mem_start_addr   = 0x6E;
+    reg->prgm_start_h     = PRGM_START_H;
+#ifdef AK89xx_SECONDARY
+    reg->raw_compass      = EXT_SENS_DATA_00;
+    reg->yg_offs_tc       = YG_OFFSET_H;
+    reg->s0_addr          = I2C_SLV0_ADDR;
+    reg->s0_reg           = I2C_SLV0_REG;
+    reg->s0_ctrl          = I2C_SLV0_CTRL;
+    reg->s1_addr          = I2C_SLV1_ADDR;
+    reg->s1_reg           = I2C_SLV1_REG;
+    reg->s1_ctrl          = I2C_SLV1_CTRL;
+    reg->s4_ctrl          = I2C_SLV4_CTRL;
+    reg->s0_do            = I2C_SLV0_DO;
+    reg->s1_do            = I2C_SLV1_DO;
+    reg->i2c_delay_ctrl   = I2C_MST_DELAY_CTRL;
+#endif
+    switch (deviceIndex) {
+      case 0:
+        hw->addr = 0x68;
+        break;
 
-void SPI2_GPIO_Init() {
-	GPIOB->MODER 	|= (2 << SPI2_SCK*2) | (2 << SPI2_MISO*2) | (2 << SPI2_MOSI*2);
-	GPIOB->OSPEEDR 	|= (3 << SPI2_SCK*2) | (3 << SPI2_MISO*2) | (3 << SPI2_MOSI*2);
-	GPIOB->AFR[1] 	|= (5 << (SPI2_SCK-8)*4) | (5 << (SPI2_MISO-8)*4) | (5 << (SPI2_MOSI-8)*4);                         // AF5
-	GPIOB->OTYPER	&= ~((1 << SPI2_SCK) | (1 << SPI2_MISO) | (1 << SPI2_MOSI)); 
-    GPIOB->PUPDR    |= (1 << SPI2_MISO*2); // Pull-up MISO
-	
-	IMU_NSS_High();
-}
-
-void SPI2_Init() {
-    SPI2_GPIO_Init();
-    
-	SPI2->CR1 = 0;
-	//SPI2->CR1 |= SPI_CR1_DFF;                                                   // 16 bits
-	
-	SPI2->CR1 |= SPI_CR1_BR_1; 							                        // baudrate = Fpclk / 8
-	SPI2->CR1 |= SPI_CR1_CPOL;													// polarity
-	SPI2->CR1 |= SPI_CR1_CPHA;													// phase	
-	SPI2->CR1 &= ~(SPI_CR1_LSBFIRST);										    // MSBFIRST		
-	SPI2->CR1 |= SPI_CR1_SSM | SPI_CR1_SSI;										// Software slave management		
-
-	SPI2->CR1 |= SPI_CR1_MSTR;													// Master configuration	
-	SPI2->CR1 |= SPI_CR1_SPE;                                                   // Enable SPI                  
-}
-
-uint8_t SPI2_Transfer(uint8_t byte) { 
-	while ((SPI2->SR & SPI_SR_TXE)==0);
-	SPI2->DR = byte;
-	
-	while ((SPI2->SR & SPI_SR_RXNE)==0);
-	return (SPI2->DR);
-}
-
-uint8_t SPI2_Read(uint8_t address) {
-    uint8_t tmp = 0;
-    
-    address |= READ_COMMAND;
-    SPI2_Transfer(address);
-    tmp = SPI2_Transfer(0x00);
-    
-    return tmp;
-}
-
-void SPI2_Write(uint8_t address, uint8_t data) {
-    address |= WRITE_COMMAND;
-    SPI2_Transfer(address);
-    SPI2_Transfer(data);
-}
-
-uint8_t IMU_ReadByte(uint8_t address) {
-    uint8_t retval = 0;
-    IMU_NSS_Low();
-    retval = SPI2_Read(address);
-    IMU_NSS_High();
-    return retval;
-}
-
-void IMU_WriteByte(uint8_t address, uint8_t data) { 
-    IMU_NSS_Low();
-    SPI2_Write(address, data);
-    IMU_NSS_High();
-}
-
-void IMU_Read(uint8_t address, uint8_t *data, uint8_t size) {
-    uint8_t i = 0;
-    IMU_NSS_Low();
-    data[0] = SPI2_Read(address);
-    for (i = 1; i < size; i++) {
-        data[i] = SPI2_Transfer(0x00);
+      case 1:
+        hw->addr = 0x69;
+        break;
     }
-    IMU_NSS_High();
-}
+    hw->max_fifo          = 1024;
+    hw->num_reg           = 128;
+    hw->temp_sens         = 321;
+    hw->temp_offset       = 0;
+    hw->bank_size         = 256;
+#if defined AK89xx_SECONDARY
+    hw->compass_fsr      = AK89xx_FSR;
+#endif
 
-void IMU_Write(uint8_t address, uint8_t *data, uint8_t size) {
-    uint8_t i = 0;    
-    IMU_NSS_Low();
-    SPI2_Write(address, data[0]);
-    for (i = 1; i < size; i++) {
-        SPI2_Transfer(data[i]);
-    }
-    IMU_NSS_High();
+    test->gyro_sens      = 32768/250;
+    test->accel_sens     = 32768/16;
+    test->reg_rate_div   = 0;    /* 1kHz. */
+    test->reg_lpf        = 1;    /* 188Hz. */
+    test->reg_gyro_fsr   = 0;    /* 250dps. */
+    test->reg_accel_fsr  = 0x18; /* 16g. */
+    test->wait_ms        = 50;
+    test->packet_thresh  = 5;    /* 5% */
+    test->min_dps        = 10.f;
+    test->max_dps        = 105.f;
+    test->max_gyro_var   = 0.14f;
+    test->min_g          = 0.3f;
+    test->max_g          = 0.95f;
+    test->max_accel_var  = 0.14f;
+
+    st->reg = reg;
+    st->hw = hw;
+    st->test = test;
+};
+
+// 0 if check passed
+int MPU_WriteByteAndCheck(uint8_t address, uint8_t data) {
+    uint8_t test;
+    MPU_WriteByte(address, data);
+    test = MPU_ReadByte(address);
+    return (test != data);
 }
 
 void MPU_MemWrite(uint16_t addr, uint8_t *data, uint16_t size) {
     uint8_t tmp[2];
     tmp[0] = (uint8_t)(addr >> 8);
     tmp[1] = (uint8_t)(addr & 0xff);
-    IMU_Write(BANK_SEL, tmp, 2);
-    IMU_Write(MEM_R_W, data, size);
+    MPU_Write(BANK_SEL, tmp, 2);
+    MPU_Write(MEM_R_W, data, size);
 }
 
 void MPU_MemRead(uint16_t addr, uint8_t *data, uint16_t size) {
     uint8_t tmp[2];
     tmp[0] = (uint8_t)(addr >> 8);
     tmp[1] = (uint8_t)(addr & 0xff);
-    IMU_Write(BANK_SEL, tmp, 2);
-    IMU_Read(MEM_R_W, data, size);
+    MPU_Write(BANK_SEL, tmp, 2);
+    MPU_Read(MEM_R_W, data, size);
 }
 
-uint8_t imu_test = 0;
-void IMU_Init() {
-    // WHO_AM_I, reset value = 0x71
-    imu_test = IMU_ReadByte(WHO_AM_I);
-    
-    // PLL as clock source
-    IMU_WriteByte(PWR_MGMT_1, 0x01);
-    imu_test = IMU_ReadByte(PWR_MGMT_1);
+int MPU_Init(MPU_IntParams *int_param) {
+    uint8_t data[6], rev;
+    int errCode;
 
-    // 1000 Hz sample rate, 41 Hz gyro bandwidth
-    IMU_WriteByte(CONFIG, 0x03);
-    imu_test = IMU_ReadByte(CONFIG);   
-    
-    // divisor = 5, sample rate -> 200 Hz
-    IMU_WriteByte(SMPLRT_DIV, 0x04);
-    imu_test = IMU_ReadByte(SMPLRT_DIV);
-    
-    // gyro sensitivity - 250 dps
-    IMU_WriteByte(GYRO_CONFIG, 0x00);
-    imu_test = IMU_ReadByte(GYRO_CONFIG);
-    
-    // accel sensitivity - +-16g
-    IMU_WriteByte(ACCEL_CONFIG, 0x18);
-    imu_test = IMU_ReadByte(ACCEL_CONFIG);
-    
-    // 41 Hz accel bandwidth, 1000 Hz sample rate
-    IMU_WriteByte(ACCEL_CONFIG2, 0x03);
-    imu_test = IMU_ReadByte(ACCEL_CONFIG2);
-   
-    // Interrupt implemented by constant level, not pulses
-    IMU_WriteByte(INT_PIN_CFG, 0x30);
-    imu_test = IMU_ReadByte(INT_PIN_CFG);
-    
-    // Raw data ready interrupt enable
-    IMU_WriteByte(INT_ENABLE, 0x01);
-    imu_test = IMU_ReadByte(INT_ENABLE);
-    
-    // enable FIFO
-//    IMU_WriteByte(USER_CTRL, 0x40);
-//    imu_test = IMU_ReadByte(USER_CTRL);
-//    
-//    // accel, gyro, temp data to fifo
-//    IMU_WriteByte(FIFO_EN, 0xf8);
-//    imu_test = IMU_ReadByte(FIFO_EN);
-    
-    // enable DMP and FIFO
-//    IMU_WriteByte(USER_CTRL, 0xc0);
-//    imu_test = IMU_ReadByte(USER_CTRL);
-//    
-//    // no sensors data to FIFO
-//    IMU_WriteByte(FIFO_EN, 0x00);
-//    imu_test = IMU_ReadByte(FIFO_EN);
-//    
-//    // DMP interrupt enable
-//    IMU_WriteByte(INT_ENABLE, 0x20);
-//    imu_test = IMU_ReadByte(INT_ENABLE);
+    /* Reset device. */
+    MPU_WriteByte(st->reg->pwr_mgmt_1, BIT_RESET);
+    Delay_ms(100);
+
+    /* Wake up chip. */
+    MPU_WriteByte(st->reg->pwr_mgmt_1, 0x00);
+
+#if defined MPU6050
+    /* Check product revision. */
+    MPU_Read(st->reg->accel_offs, data, 6);
+    rev = ((data[5] & 0x01) << 2) | ((data[3] & 0x01) << 1) |
+        (data[1] & 0x01);
+
+    if (rev) {
+        /* Congrats, these parts are better. */
+        if (rev == 1)
+            st->chip_cfg.accel_half = 1;
+        else if (rev == 2)
+            st->chip_cfg.accel_half = 0;
+        else {
+            return -4;
+        }
+    } else {
+        MPU_ReadByte(st->reg->prod_id, &data[0]);
+        rev = data[0] & 0x0F;
+        if (!rev) {
+            return -6;
+        } else if (rev == 4) {
+            st->chip_cfg.accel_half = 1;
+        } else
+            st->chip_cfg.accel_half = 0;
+    }
+#elif defined MPU6500
+#define MPU6500_MEM_REV_ADDR    (0x17)
+    MPU_MemRead(MPU6500_MEM_REV_ADDR, &rev, 1);
+    if (rev == 0x1)
+        st->chip_cfg.accel_half = 0;
+    else {
+        return -8;
+    }
+
+    /* MPU6500 shares 4kB of memory between the DMP and the FIFO. Since the
+     * first 3kB are needed by the DMP, we'll use the last 1kB for the FIFO.
+     */
+    data[0] = ;
+    MPU_WriteByte(st->reg->accel_cfg2, 1, BIT_FIFO_SIZE_1024 | 0x8);
+#endif
+
+    /* Set to invalid values to ensure no I2C writes are skipped. */
+    st->chip_cfg.sensors = 0xFF;
+    st->chip_cfg.gyro_fsr = 0xFF;
+    st->chip_cfg.accel_fsr = 0xFF;
+    st->chip_cfg.lpf = 0xFF;
+    st->chip_cfg.sample_rate = 0xFFFF;
+    st->chip_cfg.fifo_enable = 0xFF;
+    st->chip_cfg.bypass_mode = 0xFF;
+#ifdef AK89xx_SECONDARY
+    st->chip_cfg.compass_sample_rate = 0xFFFF;
+#endif
+    /* mpu_set_sensors always preserves this setting. */
+    st->chip_cfg.clk_src = INV_CLK_PLL;
+    /* Handled in next call to mpu_set_bypass. */
+    st->chip_cfg.active_low_int = 1;
+    st->chip_cfg.latched_int = 0;
+    st->chip_cfg.int_motion_only = 0;
+    st->chip_cfg.lp_accel_mode = 0;
+    memset(&st->chip_cfg.cache, 0, sizeof(st->chip_cfg.cache));
+    st->chip_cfg.dmp_on = 0;
+    st->chip_cfg.dmp_loaded = 0;
+    st->chip_cfg.dmp_sample_rate = 0;
+
+    if (MPU_SetGyroFsr(2000))
+        return -10;
+    if (MPU_SetAccelFsr(2))
+        return -11;
+    if (MPU_SetLPF(42))
+        return -12;
+    if (MPU_SetSampleRate(50))
+        return -13;
+    if (MPU_ConfigureFIFO(0))
+        return -14;
+
+    if (int_param)
+        reg_int_cb(int_param);
+
+#ifdef AK89xx_SECONDARY
+    errCode = setup_compass();
+    if (errCode != 0) {
+    }
+    if (MPU_SetCompassSampleRate(10))
+        return -15;
+#else
+    /* Already disabled by setup_compass. */
+    if (MPU_SetBypass(0))
+        return -16;
+#endif
+
+    MPU_SetSensors(0);
+    return 0;
 }
 
-void IMU_EXTI_Init() {
+int MPU_SetGyroFsr(uint16_t fsr) {
+    uint8_t data, test;
+
+    if (!(st->chip_cfg.sensors))
+        return -1;
+
+    switch (fsr) {
+    case 250:
+        data = INV_FSR_250DPS << 3;
+        break;
+    case 500:
+        data = INV_FSR_500DPS << 3;
+        break;
+    case 1000:
+        data = INV_FSR_1000DPS << 3;
+        break;
+    case 2000:
+        data = INV_FSR_2000DPS << 3;
+        break;
+    default:
+        return -2;
+    }
+
+    if (st->chip_cfg.gyro_fsr == (data >> 3))
+        return 0;
+    if (MPU_WriteByteAndCheck(st->reg->gyro_cfg, data)) {
+        return -3;
+    }
+    
+    st->chip_cfg.gyro_fsr = data >> 3;
+    return 0;
+}
+
+int MPU_SetAccelFsr(uint16_t fsr) {
+    uint8_t data, test;
+
+    if (!(st->chip_cfg.sensors))
+        return -1;
+
+    switch (fsr) {
+    case 2:
+        data = INV_FSR_2G << 3;
+        break;
+    case 4:
+        data = INV_FSR_4G << 3;
+        break;
+    case 8:
+        data = INV_FSR_8G << 3;
+        break;
+    case 16:
+        data = INV_FSR_16G << 3;
+        break;
+    default:
+        return -2;
+    }
+
+    if (st->chip_cfg.accel_fsr == (data >> 3))
+        return 0;
+    if (MPU_WriteByteAndCheck(st->reg->accel_cfg, data)) {
+        return -3;
+    }
+    
+    st->chip_cfg.accel_fsr = data >> 3;
+    return 0;
+}
+
+/**
+ *  @brief      Set digital low pass filter.
+ *  The following LPF settings are supported: 188, 98, 42, 20, 10, 5.
+ *  @param[in]  lpf Desired LPF setting.
+ *  @return     0 if successful.
+ */
+int MPU_SetLPF(uint16_t lpf) {
+    uint8_t data, test;
+    if (!(st->chip_cfg.sensors))
+        return -1;
+
+    if (lpf >= 188)
+        data = INV_FILTER_188HZ;
+    else if (lpf >= 98)
+        data = INV_FILTER_98HZ;
+    else if (lpf >= 42)
+        data = INV_FILTER_42HZ;
+    else if (lpf >= 20)
+        data = INV_FILTER_20HZ;
+    else if (lpf >= 10)
+        data = INV_FILTER_10HZ;
+    else
+        data = INV_FILTER_5HZ;
+
+    if (st->chip_cfg.lpf == data)
+        return 0;
+    if (MPU_WriteByteAndCheck(st->reg->lpf, data)) {
+        return -3;
+    }
+    
+    st->chip_cfg.lpf = data;
+    return 0;
+}
+
+/**
+ *  @brief      Set sampling rate.
+ *  Sampling rate must be between 4Hz and 1kHz.
+ *  @param[in]  rate    Desired sampling rate (Hz).
+ *  @return     0 if successful.
+ */
+int MPU_SetSampleRate(uint16_t rate) {
+    uint8_t data, test;
+
+    if (!(st->chip_cfg.sensors))
+        return -1;
+
+    if (st->chip_cfg.dmp_on)
+        return -1;
+    else {
+        if (st->chip_cfg.lp_accel_mode) {
+            if (rate && (rate <= 40)) {
+                /* Just stay in low-power accel mode. */
+                MPU_LowPowerAccelMode(rate);
+                return 0;
+            }
+            /* Requested rate exceeds the allowed frequencies in LP accel mode,
+             * switch back to full-power mode.
+             */
+            MPU_LowPowerAccelMode(0);
+        }
+        if (rate < 4)
+            rate = 4;
+        else if (rate > 1000)
+            rate = 1000;
+
+        data = 1000 / rate - 1;
+        if (MPU_WriteByteAndCheck(st->reg->rate_div, data)) {
+            return -3;
+        }
+        
+        st->chip_cfg.sample_rate = 1000 / (1 + data);
+
+#ifdef AK89xx_SECONDARY
+        MPU_SetCompassSampleRate(min(st->chip_cfg.compass_sample_rate, MAX_COMPASS_SAMPLE_RATE));
+#endif
+
+        /* Automatically set LPF to 1/2 sampling rate. */
+        MPU_SetLPF(st->chip_cfg.sample_rate >> 1);
+        return 0;
+    }
+}
+
+/**
+ *  @brief      Enter low-power accel-only mode.
+ *  In low-power accel mode, the chip goes to sleep and only wakes up to sample
+ *  the accelerometer at one of the following frequencies:
+ *  \n MPU6050: 1.25Hz, 5Hz, 20Hz, 40Hz
+ *  \n MPU6500: 1.25Hz, 2.5Hz, 5Hz, 10Hz, 20Hz, 40Hz, 80Hz, 160Hz, 320Hz, 640Hz
+ *  \n If the requested rate is not one listed above, the device will be set to
+ *  the next highest rate. Requesting a rate above the maximum supported
+ *  frequency will result in an error.
+ *  \n To select a fractional wake-up frequency, round down the value passed to
+ *  @e rate.
+ *  @param[in]  rate        Minimum sampling rate, or zero to disable LP
+ *                          accel mode.
+ *  @return     0 if successful.
+ */
+int MPU_LowPowerAccelMode(uint8_t rate) {
+    uint8_t tmp[2];
+
+    if (rate > 40)
+        return -1;
+
+    if (!rate) {
+        MPU_SetIntLatched(0);
+        tmp[0] = 0;
+        tmp[1] = BIT_STBY_XYZG;
+        MPU_Write(st->reg->pwr_mgmt_1, tmp, 2);
+        st->chip_cfg.lp_accel_mode = 0;
+        return 0;
+    }
+    /* For LP accel, we automatically configure the hardware to produce latched
+     * interrupts. In LP accel mode, the hardware cycles into sleep mode before
+     * it gets a chance to deassert the interrupt pin; therefore, we shift this
+     * responsibility over to the MCU.
+     *
+     * Any register read will clear the interrupt.
+     */
+    MPU_SetIntLatched(1);
+#if defined MPU6050
+    tmp[0] = BIT_LPA_CYCLE;
+    if (rate == 1) {
+        tmp[1] = INV_LPA_1_25HZ;
+        mpu_set_lpf(5);
+    } else if (rate <= 5) {
+        tmp[1] = INV_LPA_5HZ;
+        mpu_set_lpf(5);
+    } else if (rate <= 20) {
+        tmp[1] = INV_LPA_20HZ;
+        mpu_set_lpf(10);
+    } else {
+        tmp[1] = INV_LPA_40HZ;
+        mpu_set_lpf(20);
+    }
+    tmp[1] = (tmp[1] << 6) | BIT_STBY_XYZG;
+    if (i2c_write(st->hw->addr, st->reg->pwr_mgmt_1, 2, tmp))
+        return -1;
+#elif defined MPU6500
+    /* Set wake frequency. */
+    if (rate == 1)
+        tmp[0] = INV_LPA_1_25HZ;
+    else if (rate == 2)
+        tmp[0] = INV_LPA_2_5HZ;
+    else if (rate <= 5)
+        tmp[0] = INV_LPA_5HZ;
+    else if (rate <= 10)
+        tmp[0] = INV_LPA_10HZ;
+    else if (rate <= 20)
+        tmp[0] = INV_LPA_20HZ;
+    else if (rate <= 40)
+        tmp[0] = INV_LPA_40HZ;
+    else if (rate <= 80)
+        tmp[0] = INV_LPA_80HZ;
+    else if (rate <= 160)
+        tmp[0] = INV_LPA_160HZ;
+    else if (rate <= 320)
+        tmp[0] = INV_LPA_320HZ;
+    else
+        tmp[0] = INV_LPA_640HZ;
+    if (i2c_write(st->hw->addr, st->reg->lp_accel_odr, 1, tmp))
+        return -1;
+    tmp[0] = BIT_LPA_CYCLE;
+    if (i2c_write(st->hw->addr, st->reg->pwr_mgmt_1, 1, tmp))
+        return -1;
+#endif
+    st->chip_cfg.sensors = INV_XYZ_ACCEL;
+    st->chip_cfg.clk_src = 0;
+    st->chip_cfg.lp_accel_mode = 1;
+    MPU_ConfigureFIFO(0);
+
+    return 0;
+}
+
+/**
+ *  @brief      Enable latched interrupts.
+ *  Any MPU register will clear the interrupt.
+ *  @param[in]  enable  1 to enable, 0 to disable.
+ *  @return     0 if successful.
+ */
+int MPU_SetIntLatched(uint8_t enable) {
+    uint8_t tmp;
+    if (st->chip_cfg.latched_int == enable)
+        return 0;
+
+    if (enable)
+        tmp = BIT_LATCH_EN | BIT_ANY_RD_CLR;
+    else
+        tmp = 0;
+    if (st->chip_cfg.bypass_mode)
+        tmp |= BIT_BYPASS_EN;
+    if (st->chip_cfg.active_low_int)
+        tmp |= BIT_ACTL;
+    MPU_WriteByte(st->reg->int_pin_cfg, tmp);
+    st->chip_cfg.latched_int = enable;
+    return 0;
+}
+
+
+/**
+ *  @brief      Select which sensors are pushed to FIFO.
+ *  @e sensors can contain a combination of the following flags:
+ *  \n INV_X_GYRO, INV_Y_GYRO, INV_Z_GYRO
+ *  \n INV_XYZ_GYRO
+ *  \n INV_XYZ_ACCEL
+ *  @param[in]  sensors Mask of sensors to push to FIFO.
+ *  @return     0 if successful.
+ */
+int MPU_ConfigureFIFO(uint8_t sensors) {
+    uint8_t prev;
+    int result = 0;
+
+    /* Compass data isn't going into the FIFO. Stop trying. */
+    sensors &= ~INV_XYZ_COMPASS;
+
+    if (st->chip_cfg.dmp_on)
+        return 0;
+    else {
+        if (!(st->chip_cfg.sensors))
+            return -1;
+        prev = st->chip_cfg.fifo_enable;
+        st->chip_cfg.fifo_enable = sensors & st->chip_cfg.sensors;
+        if (st->chip_cfg.fifo_enable != sensors)
+            /* You're not getting what you asked for. Some sensors are
+             * asleep.
+             */
+            result = -1;
+        else
+            result = 0;
+        if (sensors || st->chip_cfg.lp_accel_mode)
+            MPU_SetIntEnable(1);
+        else
+            MPU_SetIntEnable(0);
+        if (sensors) {
+            if (MPU_ResetFIFO()) {
+                st->chip_cfg.fifo_enable = prev;
+                return -1;
+            }
+        }
+    }
+    return result;
+}
+
+/**
+ *  @brief  Reset FIFO read/write pointers.
+ *  @return 0 if successful.
+ */
+int MPU_ResetFIFO(void) {
+    uint8_t data;
+
+    if (!(st->chip_cfg.sensors))
+        return -1;
+
+    data = 0;
+    MPU_WriteByte(st->reg->int_enable, 0x00);
+    MPU_WriteByte(st->reg->fifo_en, 0x00);
+    MPU_WriteByte(st->reg->user_ctrl, 0x00);
+
+    if (st->chip_cfg.dmp_on) {
+        if (MPU_WriteByteAndCheck(st->reg->user_ctrl, BIT_FIFO_RST | BIT_DMP_RST)) {
+            return -3;
+        }
+        Delay_ms(50);
+        data = BIT_DMP_EN | BIT_FIFO_EN;
+        if (st->chip_cfg.sensors & INV_XYZ_COMPASS)
+            data |= BIT_AUX_IF_EN;
+        if (MPU_WriteByteAndCheck(st->reg->user_ctrl, data)) {
+            return -3;
+        }
+        if (st->chip_cfg.int_enable)
+            data = BIT_DMP_INT_EN;
+        else
+            data = 0;
+        if (MPU_WriteByteAndCheck(st->reg->int_enable, data)) {
+            return -3;
+        }
+        if (MPU_WriteByteAndCheck(st->reg->fifo_en, 0x00)) {
+            return -3;
+        }
+    } else {
+        if (MPU_WriteByteAndCheck(st->reg->user_ctrl, BIT_FIFO_RST)) {
+            return -3;
+        } 
+        if (st->chip_cfg.bypass_mode || !(st->chip_cfg.sensors & INV_XYZ_COMPASS))
+            data = BIT_FIFO_EN;
+        else
+            data = BIT_FIFO_EN | BIT_AUX_IF_EN;
+        if (MPU_WriteByteAndCheck(st->reg->user_ctrl, data)) {
+            return -3;
+        }
+        Delay_ms(50);
+        if (st->chip_cfg.int_enable)
+            data = BIT_DATA_RDY_EN;
+        else
+            data = 0;
+        if (MPU_WriteByteAndCheck(st->reg->int_enable,data)) {
+            return -3;
+        }
+        if (MPU_WriteByteAndCheck(st->reg->fifo_en, st->chip_cfg.fifo_enable)) {
+            return -3;
+        }
+    }
+    return 0;
+}
+
+/**
+ *  @brief      Enable/disable data ready interrupt.
+ *  If the DMP is on, the DMP interrupt is enabled. Otherwise, the data ready
+ *  interrupt is used.
+ *  @param[in]  enable      1 to enable interrupt.
+ *  @return     0 if successful.
+ */
+static int MPU_SetIntEnable(uint8_t enable) {
+    uint8_t tmp;
+
+    if (st->chip_cfg.dmp_on) {
+        if (enable)
+            tmp = BIT_DMP_INT_EN;
+        else
+            tmp = 0x00;
+        if (MPU_WriteByteAndCheck(st->reg->int_enable, tmp)) {
+            return -3;
+        }
+        st->chip_cfg.int_enable = tmp;
+    } else {
+        if (!st->chip_cfg.sensors)
+            return -1;
+        if (enable && st->chip_cfg.int_enable)
+            return 0;
+        if (enable)
+            tmp = BIT_DATA_RDY_EN;
+        else
+            tmp = 0x00;
+        if (MPU_WriteByteAndCheck(st->reg->int_enable, tmp)) {
+            return -3;
+        }
+        st->chip_cfg.int_enable = tmp;
+    }
+    return 0;
+}
+
+/**
+ *  @brief      Set compass sampling rate.
+ *  The compass on the auxiliary I2C bus is read by the MPU hardware at a
+ *  maximum of 100Hz. The actual rate can be set to a fraction of the gyro
+ *  sampling rate.
+ *
+ *  \n WARNING: The new rate may be different than what was requested. Call
+ *  mpu_get_compass_sample_rate to check the actual setting.
+ *  @param[in]  rate    Desired compass sampling rate (Hz).
+ *  @return     0 if successful.
+ */
+int MPU_SetCompassSampleRate(uint8_t rate) {
+#ifdef AK89xx_SECONDARY
+    uint8_t div;
+    if (!rate || rate > st->chip_cfg.sample_rate || rate > MAX_COMPASS_SAMPLE_RATE)
+        return -1;
+
+    div = st->chip_cfg.sample_rate / rate - 1;
+    MPU_WriteByte(st->reg->s4_ctrl, div);
+    st->chip_cfg.compass_sample_rate = st->chip_cfg.sample_rate / (div + 1);
+    return 0;
+#else
+    return -1;
+#endif
+}
+
+/**
+ *  @brief      Turn specific sensors on/off.
+ *  @e sensors can contain a combination of the following flags:
+ *  \n INV_X_GYRO, INV_Y_GYRO, INV_Z_GYRO
+ *  \n INV_XYZ_GYRO
+ *  \n INV_XYZ_ACCEL
+ *  \n INV_XYZ_COMPASS
+ *  @param[in]  sensors    Mask of sensors to wake.
+ *  @return     0 if successful.
+ */
+int MPU_SetSensors(uint8_t sensors)  {
+    uint8_t data, test;
+#ifdef AK89xx_SECONDARY
+    uint8_t user_ctrl;
+#endif
+
+    if (sensors & INV_XYZ_GYRO)
+        data = INV_CLK_PLL;
+    else if (sensors)
+        data = 0;
+    else
+        data = BIT_SLEEP;
+    if (MPU_WriteByteAndCheck(st->reg->pwr_mgmt_1, data)) {
+        return -3;
+    }
+    
+    st->chip_cfg.clk_src = data & ~BIT_SLEEP;
+
+    data = 0;
+    if (!(sensors & INV_X_GYRO))
+        data |= BIT_STBY_XG;
+    if (!(sensors & INV_Y_GYRO))
+        data |= BIT_STBY_YG;
+    if (!(sensors & INV_Z_GYRO))
+        data |= BIT_STBY_ZG;
+    if (!(sensors & INV_XYZ_ACCEL))
+        data |= BIT_STBY_XYZA;
+    if (MPU_WriteByteAndCheck(st->reg->pwr_mgmt_2, data)) {
+        return -3;
+    }
+
+    if (sensors && (sensors != INV_XYZ_ACCEL))
+        /* Latched interrupts only used in LP accel mode. */
+        MPU_SetIntLatched(0);
+
+#ifdef AK89xx_SECONDARY
+#ifdef AK89xx_BYPASS
+    if (sensors & INV_XYZ_COMPASS)
+        mpu_set_bypass(1);
+    else
+        mpu_set_bypass(0);
+#else
+    user_ctrl = MPU_ReadByte(st->reg->user_ctrl);
+    /* Handle AKM power management. */
+    if (sensors & INV_XYZ_COMPASS) {
+        data = AKM_SINGLE_MEASUREMENT;
+        user_ctrl |= BIT_AUX_IF_EN;
+    } else {
+        data = AKM_POWER_DOWN;
+        user_ctrl &= ~BIT_AUX_IF_EN;
+    }
+    if (st->chip_cfg.dmp_on)
+        user_ctrl |= BIT_DMP_EN;
+    else
+        user_ctrl &= ~BIT_DMP_EN;
+    if (MPU_WriteByteAndCheck(st->reg->s1_do, data)) {
+        return -3;
+    }
+    /* Enable/disable I2C master mode. */
+    if (MPU_WriteByteAndCheck(st->reg->user_ctrl, user_ctrl)) {
+        return -3;
+    }
+#endif
+#endif
+    st->chip_cfg.sensors = sensors;
+    st->chip_cfg.lp_accel_mode = 0;
+    Delay_ms(50);
+    return 0;
+}
+
+void Mag_WriteByte(uint8_t address, uint8_t data) {
+    // Mag I2C address
+    MPU_WriteByte(I2C_SLV0_ADDR, WRITE_COMMAND | AK8963_I2C_ADDRESS);
+    MPU_WriteByte(I2C_SLV0_REG, address);
+    MPU_WriteByte(I2C_SLV0_DO, data);
+    // I2C on, 1 byte
+    MPU_WriteByte(I2C_SLV0_CTRL, 0x81);
+}
+
+uint8_t Mag_ReadByte(uint8_t address) {
+    uint8_t tmp;
+    // Mag I2C address
+    MPU_WriteByte(I2C_SLV0_ADDR, READ_COMMAND | AK8963_I2C_ADDRESS);
+    MPU_WriteByte(I2C_SLV0_REG, address);
+    // I2C on, 1 byte
+    MPU_WriteByte(I2C_SLV0_CTRL, 0x81);
+    Delay_ms(1);
+    tmp = MPU_ReadByte(EXT_SENS_DATA_00);
+    return tmp;
+}
+
+void Mag_Read(uint8_t address, uint8_t *data, uint8_t size) {
+    // I2C address for reading
+    MPU_WriteByte(I2C_SLV0_ADDR, READ_COMMAND | AK8963_I2C_ADDRESS);
+    // reading from ASAX register
+    MPU_WriteByte(I2C_SLV0_REG, address);
+    // Read 3 bytes
+    MPU_WriteByte(I2C_SLV0_CTRL, 0x80 | size);
+    Delay_ms(1);
+    MPU_Read(EXT_SENS_DATA_00, data, 3);
+}
+
+/* This initialization is similar to the one in ak8975.c. */
+static int setup_compass(void)
+{
+#ifdef AK89xx_SECONDARY
+    uint8_t data[4], akm_addr;
+
+    MPU_SetBypass(1);
+
+    /* Find compass. Possible addresses range from 0x0C to 0x0F. */
+    for (akm_addr = 0x0C; akm_addr <= 0x0F; akm_addr++) {
+        data[0] = Mag_ReadByte(AKM_REG_WHOAMI);
+        if (data[0] == AKM_WHOAMI)
+            break;
+    }
+
+    if (akm_addr > 0x0F) {
+        /* TODO: Handle this case in all compass-related functions. */
+        return -1;
+    }
+
+    st->chip_cfg.compass_addr = akm_addr;
+
+    Mag_WriteByte(AKM_REG_CNTL, AKM_POWER_DOWN);
+    Delay_ms(1);
+
+    data[0] = AKM_FUSE_ROM_ACCESS;
+    Mag_WriteByte(AKM_REG_CNTL, AKM_FUSE_ROM_ACCESS);
+    Delay_ms(1);
+
+    /* Get sensitivity adjustment data from fuse ROM. */
+    Mag_Read(AKM_REG_ASAX, data, 3);
+    st->chip_cfg.mag_sens_adj[0] = (long)data[0] + 128;
+    st->chip_cfg.mag_sens_adj[1] = (long)data[1] + 128;
+    st->chip_cfg.mag_sens_adj[2] = (long)data[2] + 128;
+
+    data[0] = AKM_POWER_DOWN;
+    Mag_WriteByte(AKM_REG_CNTL, AKM_POWER_DOWN);
+    Delay_ms(1);
+
+    MPU_SetBypass(0);
+
+    /* Set up master mode, master clock, and ES bit. */
+    MPU_WriteByte(st->reg->i2c_mst, 0x40);
+
+    /* Slave 0 reads from AKM data registers. */
+    MPU_WriteByte(st->reg->s0_addr, BIT_I2C_READ | st->chip_cfg.compass_addr);
+
+    /* Compass reads start at this register. */
+    MPU_WriteByte(st->reg->s0_reg, AKM_REG_ST1);
+
+    /* Enable slave 0, 8-byte reads. */
+    MPU_WriteByte(st->reg->s0_ctrl, BIT_SLAVE_EN | 8);
+
+    /* Slave 1 changes AKM measurement mode. */
+    MPU_WriteByte(st->reg->s1_addr, st->chip_cfg.compass_addr);
+
+    /* AKM measurement mode register. */
+    MPU_WriteByte(st->reg->s1_reg, AKM_REG_CNTL);
+
+    /* Enable slave 1, 1-byte writes. */
+    MPU_WriteByte(st->reg->s1_ctrl, BIT_SLAVE_EN | 1);
+
+    /* Set slave 1 data. */
+    MPU_WriteByte(st->reg->s1_do, AKM_SINGLE_MEASUREMENT);
+
+    /* Trigger slave 0 and slave 1 actions at each sample. */
+    MPU_WriteByte(st->reg->i2c_delay_ctrl, 0x03);
+
+#ifdef MPU9150
+    /* For the MPU9150, the auxiliary I2C bus needs to be set to VDD. */
+    MPU_WriteByte(st->reg->yg_offs_tc, BIT_I2C_MST_VDDIO);
+#endif
+
+    return 0;
+#else
+    return -16;
+#endif
+}
+
+/**
+ *  @brief      Set device to bypass mode.
+ *  @param[in]  bypass_on   1 to enable bypass mode.
+ *  @return     0 if successful.
+ */
+int MPU_SetBypass(uint8_t bypass_on) {
+    uint8_t tmp;
+
+    if (st->chip_cfg.bypass_mode == bypass_on)
+        return 0;
+
+    if (bypass_on) {
+        MPU_WriteByte(st->reg->user_ctrl, tmp);
+        tmp &= ~BIT_AUX_IF_EN;
+        MPU_WriteByte(st->reg->user_ctrl, tmp);
+        Delay_ms(3);
+        tmp = BIT_BYPASS_EN;
+        if (st->chip_cfg.active_low_int)
+            tmp |= BIT_ACTL;
+        if (st->chip_cfg.latched_int)
+            tmp |= BIT_LATCH_EN | BIT_ANY_RD_CLR;
+        MPU_WriteByte(st->reg->int_pin_cfg, tmp);
+    } else {
+        /* Enable I2C master mode if compass is being used. */
+        MPU_WriteByte(st->reg->user_ctrl, tmp);
+ 
+        if (st->chip_cfg.sensors & INV_XYZ_COMPASS)
+            tmp |= BIT_AUX_IF_EN;
+        else
+            tmp &= ~BIT_AUX_IF_EN;
+        MPU_WriteByte(st->reg->user_ctrl, tmp);
+        Delay_ms(3);
+        if (st->chip_cfg.active_low_int)
+            tmp = BIT_ACTL;
+        else
+            tmp = 0;
+        if (st->chip_cfg.latched_int)
+            tmp |= BIT_LATCH_EN | BIT_ANY_RD_CLR;
+        MPU_WriteByte(st->reg->int_pin_cfg, tmp);
+    }
+    st->chip_cfg.bypass_mode = bypass_on;
+    return 0;
+}
+
+
+//uint8_t imu_test = 0;
+//void MPU_Init() {
+//    // WHO_AM_I, reset value = 0x71
+//    imu_test = MPU_ReadByte(WHO_AM_I);
+//    
+//    // PLL as clock source
+//    MPU_WriteByte(PWR_MGMT_1, 0x01);
+//    imu_test = MPU_ReadByte(PWR_MGMT_1);
+
+//    // 1000 Hz sample rate, 41 Hz gyro bandwidth
+//    MPU_WriteByte(CONFIG, 0x03);
+//    imu_test = MPU_ReadByte(CONFIG);   
+//    
+//    // divisor = 5, sample rate -> 200 Hz
+//    MPU_WriteByte(SMPLRT_DIV, 0x04);
+//    imu_test = MPU_ReadByte(SMPLRT_DIV);
+//    
+//    // gyro sensitivity - 250 dps
+//    MPU_WriteByte(GYRO_CONFIG, 0x00);
+//    imu_test = MPU_ReadByte(GYRO_CONFIG);
+//    
+//    // accel sensitivity - +-16g
+//    MPU_WriteByte(ACCEL_CONFIG, 0x18);
+//    imu_test = MPU_ReadByte(ACCEL_CONFIG);
+//    
+//    // 41 Hz accel bandwidth, 1000 Hz sample rate
+//    MPU_WriteByte(ACCEL_CONFIG2, 0x03);
+//    imu_test = MPU_ReadByte(ACCEL_CONFIG2);
+//   
+//    // Interrupt implemented by constant level, not pulses
+//    MPU_WriteByte(INT_PIN_CFG, 0x30);
+//    imu_test = MPU_ReadByte(INT_PIN_CFG);
+//    
+//    // Raw data ready interrupt enable
+//    MPU_WriteByte(INT_ENABLE, 0x01);
+//    imu_test = MPU_ReadByte(INT_ENABLE);
+//    
+//    // enable FIFO
+////    MPU_WriteByte(USER_CTRL, 0x40);
+////    imu_test = MPU_ReadByte(USER_CTRL);
+////    
+////    // accel, gyro, temp data to fifo
+////    MPU_WriteByte(FIFO_EN, 0xf8);
+////    imu_test = MPU_ReadByte(FIFO_EN);
+//    
+//    // enable DMP and FIFO
+////    MPU_WriteByte(USER_CTRL, 0xc0);
+////    imu_test = MPU_ReadByte(USER_CTRL);
+////    
+////    // no sensors data to FIFO
+////    MPU_WriteByte(FIFO_EN, 0x00);
+////    imu_test = MPU_ReadByte(FIFO_EN);
+////    
+////    // DMP interrupt enable
+////    MPU_WriteByte(INT_ENABLE, 0x20);
+////    imu_test = MPU_ReadByte(INT_ENABLE);
+//}
+
+void MPU_EXTI_Init() {
     GPIOA->OSPEEDR |= 3 << IMU_INT*2;
     
     SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI1_PA;
@@ -226,39 +1023,14 @@ void EXTI1_IRQHandler() {
     if (EXTI->PR & EXTI_PR_PR1) {
         EXTI->PR = EXTI_PR_PR1;
         
-//        IMU_Read(FIFO_COUNTH, (uint8_t *)&fifo_count, 2);
+//        MPU_Read(FIFO_COUNTH, (uint8_t *)&fifo_count, 2);
 //        if (fifo_count) {
-            IMU_DMA_Run(imu_dma_tx, imu_dma_rx, MPU_READ_DATA_SIZE);
+            MPU_DMA_Run(MPU_DMA_tx, MPU_DMA_rx, MPU_READ_DATA_SIZE);
         //}
     }
 }
 
-void IMU_DMA_Init() {
-    SPI2->CR2 |= SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN;
-    
-    NVIC_SetPriority(DMA1_Stream3_IRQn, 0x02);    
-    NVIC_SetPriority(DMA1_Stream4_IRQn, 0x02);    
-    NVIC_EnableIRQ(DMA1_Stream3_IRQn);
-    NVIC_EnableIRQ(DMA1_Stream4_IRQn);
-    
-    DMA1_Stream3->PAR   = (uint32_t)&(SPI2->DR);
-    DMA1_Stream3->CR    = DMA_SxCR_MINC | DMA_SxCR_TCIE | DMA_SxCR_PL; 
-    
-    DMA1_Stream4->PAR   = (uint32_t)&(SPI2->DR);
-    DMA1_Stream4->CR    |= DMA_SxCR_MINC | DMA_SxCR_TCIE | DMA_SxCR_DIR_0 | DMA_SxCR_PL; 
-}
 
-void IMU_DMA_Run(uint8_t *tx, uint8_t *rx, uint8_t size) {
-    IMU_NSS_Low();
-    
-    DMA1_Stream3->M0AR  = (uint32_t)rx;
-    DMA1_Stream3->NDTR  = size;
-    DMA1_Stream3->CR    |= DMA_SxCR_EN; 
-
-    DMA1_Stream4->M0AR  = (uint32_t)tx;     
-    DMA1_Stream4->NDTR  = size;
-    DMA1_Stream4->CR    |= DMA_SxCR_EN;     
-}
 
 void swap(float *a, float *b) {
     float tmp = *a;
@@ -272,23 +1044,23 @@ void DMA1_Stream3_IRQHandler() {
     if (DMA1->LISR & DMA_LISR_TCIF3) {
         DMA1->LIFCR = DMA_LIFCR_CTCIF3 | DMA_LIFCR_CHTIF3;
         DMA1_Stream3->CR &= ~DMA_SxCR_EN;
-        IMU_NSS_High();
+        MPU_NSS_High();
         
         for (i = 0; i < 3; i++) {
-            tmp = (imu_dma_rx[2*i+1] << 8) | imu_dma_rx[2*i+2];
+            tmp = (MPU_DMA_rx[2*i+1] << 8) | MPU_DMA_rx[2*i+2];
             accel[i] = tmp / ACCEL_SENSITIVITY;
         }
         
-        tmp = (imu_dma_rx[7] << 8) | imu_dma_rx[8];
+        tmp = (MPU_DMA_rx[7] << 8) | MPU_DMA_rx[8];
         temp = tmp / TEMP_SENSITIBITY + TEMP_OFFSET;
         
         for (i = 0; i < 3; i++) {
-            tmp = (imu_dma_rx[2*i+9] << 8) | imu_dma_rx[2*i+10];
+            tmp = (MPU_DMA_rx[2*i+9] << 8) | MPU_DMA_rx[2*i+10];
             angleRate[i] = -tmp / GYRO_SENSITIVITY; // for QUEST algorithm
         }
         
         for (i = 0; i < 3; i++) {
-            tmp = imu_dma_rx[2*i+15] | (imu_dma_rx[2*i+16] << 8);
+            tmp = MPU_DMA_rx[2*i+15] | (MPU_DMA_rx[2*i+16] << 8);
             magField[i] = tmp * MAG_SENSITIVITY * mag_sens_adj[i];
         }
         magField[2] = -magField[2];
@@ -312,27 +1084,11 @@ void DMA1_Stream3_IRQHandler() {
     }
 }
 
-void DMA1_Stream4_IRQHandler() {
-    if (DMA1->HISR & DMA_HISR_TCIF4) {
-        DMA1->HIFCR = DMA_HIFCR_CTCIF4 | DMA_HIFCR_CHTIF4;
-        DMA1_Stream4->CR &= ~DMA_SxCR_EN;
-    } 
-}
-
-void Mag_WriteByte(uint8_t address, uint8_t data) {
-    // Mag I2C address
-    IMU_WriteByte(I2C_SLV0_ADDR, WRITE_COMMAND | AK8963_I2C_ADDRESS);
-    IMU_WriteByte(I2C_SLV0_REG, address);
-    IMU_WriteByte(I2C_SLV0_DO, data);
-    // I2C on, 1 byte
-    IMU_WriteByte(I2C_SLV0_CTRL, 0x81);
-}
-
 void Mag_Init() {
     uint8_t tmp[3], i = 0;
     
     // Enable I2C master
-    IMU_WriteByte(USER_CTRL, 0x20);
+    MPU_WriteByte(USER_CTRL, 0x20);
     
     Mag_WriteByte(AK8963_CNTL, 0x00); // Power down magnetometer  
     Delay_ms(10);   
@@ -340,13 +1096,13 @@ void Mag_Init() {
     Delay_ms(10);
     
     // I2C address for reading
-    IMU_WriteByte(I2C_SLV0_ADDR, READ_COMMAND | AK8963_I2C_ADDRESS);
+    MPU_WriteByte(I2C_SLV0_ADDR, READ_COMMAND | AK8963_I2C_ADDRESS);
     // reading from ASAX register
-    IMU_WriteByte(I2C_SLV0_REG, AK8963_ASAX);
+    MPU_WriteByte(I2C_SLV0_REG, AK8963_ASAX);
     // Read 3 bytes
-    IMU_WriteByte(I2C_SLV0_CTRL, 0x83);
+    MPU_WriteByte(I2C_SLV0_CTRL, 0x83);
     Delay_ms(10);
-    IMU_Read(EXT_SENS_DATA_00, tmp, 3);
+    MPU_Read(EXT_SENS_DATA_00, tmp, 3);
     
     for (i = 0; i < 3; i++) {
         mag_sens_adj[i] = (tmp[i] - 128)*0.5 / 128.0f + 1.0f;
@@ -360,13 +1116,13 @@ void Mag_Init() {
     Delay_ms(10);
     
     // Data ready interrupt waits for external sensor data
-    IMU_WriteByte(I2C_MST_CTRL, 0x40);
+    MPU_WriteByte(I2C_MST_CTRL, 0x40);
     // I2C address for reading
-    IMU_WriteByte(I2C_SLV0_ADDR, READ_COMMAND | AK8963_I2C_ADDRESS);
+    MPU_WriteByte(I2C_SLV0_ADDR, READ_COMMAND | AK8963_I2C_ADDRESS);
     // reading from HXL register
-    IMU_WriteByte(I2C_SLV0_REG, AK8963_HXL);
+    MPU_WriteByte(I2C_SLV0_REG, AK8963_HXL);
     // Read 7 bytes
-    IMU_WriteByte(I2C_SLV0_CTRL, 0x87);
+    MPU_WriteByte(I2C_SLV0_CTRL, 0x87);
 }
 
 
@@ -775,43 +1531,43 @@ void DMP_SetFIFORate(uint16_t rate) {
     MPU_MemWrite(CFG_6, regs_end, 12);
 }
 
-void MPU_ResetFIFO() {
-    IMU_WriteByte(INT_ENABLE, 0x00);        // no interrupts
-    IMU_WriteByte(FIFO_EN, 0x00);           // no records to fifo
-    IMU_WriteByte(USER_CTRL, 0x00);         // everything disabled
+//void MPU_ResetFIFO() {
+//    MPU_WriteByte(INT_ENABLE, 0x00);        // no interrupts
+//    MPU_WriteByte(FIFO_EN, 0x00);           // no records to fifo
+//    MPU_WriteByte(USER_CTRL, 0x00);         // everything disabled
 
-    if (dmp_on) {
-        IMU_WriteByte(USER_CTRL, 0x0c);     // reset dmp and fifo
-        Delay_ms(50);
-        IMU_WriteByte(USER_CTRL, 0xe0);     // enable dmp, fifo and magnetometer
-        IMU_WriteByte(INT_ENABLE, 0x20);    // enable dmp interrupt
-        IMU_WriteByte(FIFO_EN, 0x00);       // no sensors write to fifo
-    } else {
-        IMU_WriteByte(USER_CTRL, 0x04);     // reset fifo
-        IMU_WriteByte(USER_CTRL, 0x40);     // enable fifo and magnetometer
-        Delay_ms(50);
-        IMU_WriteByte(INT_ENABLE, 0x01);    // enable data ready interrupt
-        IMU_WriteByte(FIFO_EN, 0x00);       // no sensors write to fifo
-    }
-}
+//    if (dmp_on) {
+//        MPU_WriteByte(USER_CTRL, 0x0c);     // reset dmp and fifo
+//        Delay_ms(50);
+//        MPU_WriteByte(USER_CTRL, 0xe0);     // enable dmp, fifo and magnetometer
+//        MPU_WriteByte(INT_ENABLE, 0x20);    // enable dmp interrupt
+//        MPU_WriteByte(FIFO_EN, 0x00);       // no sensors write to fifo
+//    } else {
+//        MPU_WriteByte(USER_CTRL, 0x04);     // reset fifo
+//        MPU_WriteByte(USER_CTRL, 0x40);     // enable fifo and magnetometer
+//        Delay_ms(50);
+//        MPU_WriteByte(INT_ENABLE, 0x01);    // enable data ready interrupt
+//        MPU_WriteByte(FIFO_EN, 0x00);       // no sensors write to fifo
+//    }
+//}
 
-void MPU_SetIntEnable(uint8_t enable) {
-//    unsigned char tmp;
+//void MPU_SetIntEnable(uint8_t enable) {
+////    unsigned char tmp;
 
-    if (dmp_on) {
-        if (enable) {
-            IMU_WriteByte(INT_ENABLE, 0x20); // enable dmp interrupt
-        } else {
-            IMU_WriteByte(INT_ENABLE, 0x00); // disable all interupts
-        }
-    } else {
-        if (enable) {
-            IMU_WriteByte(INT_ENABLE, 0x01);    // enable data ready interrupt
-        } else {
-            IMU_WriteByte(INT_ENABLE, 0x00); // disable all interupts
-        }
-    }
-}
+//    if (dmp_on) {
+//        if (enable) {
+//            MPU_WriteByte(INT_ENABLE, 0x20); // enable dmp interrupt
+//        } else {
+//            MPU_WriteByte(INT_ENABLE, 0x00); // disable all interupts
+//        }
+//    } else {
+//        if (enable) {
+//            MPU_WriteByte(INT_ENABLE, 0x01);    // enable data ready interrupt
+//        } else {
+//            MPU_WriteByte(INT_ENABLE, 0x00); // disable all interupts
+//        }
+//    }
+//}
 
 void MPU_SetDMPState(uint8_t enable)
 {
@@ -837,7 +1593,7 @@ void MPU_SetDMPState(uint8_t enable)
         /* Disable DMP interrupt. */
         MPU_SetIntEnable(0);
         /* Restore FIFO settings. */
-        IMU_WriteByte(FIFO_EN, 0x00);
+        MPU_WriteByte(FIFO_EN, 0x00);
         dmp_on = 0;
         MPU_ResetFIFO();
     }
