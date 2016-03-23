@@ -7,6 +7,7 @@
 #include "serialportreader.h"
 #include <qwt_plot_curve.h>
 #include <qtimer.h>
+#include "glwidget.h"
 
 class BoardConsole : public QWidget
 {
@@ -21,6 +22,8 @@ private:
 
 	QSerialPort *stm;
 	SerialPortReader *stmReader;
+
+	GLWidget *glwidget;
 
 	QVector<QwtPlotCurve *> plot1_curves;
 	QVector<QwtPlotCurve *> plot2_curves;
@@ -101,7 +104,7 @@ void handleProgramButton();
 	//void handleEveryNButton();
 	void handleFreshMessage(Message);
 
-
+	void handleRotationButton();
 };
 
 #endif // BOARDCONSOLE_H

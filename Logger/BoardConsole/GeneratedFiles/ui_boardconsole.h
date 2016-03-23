@@ -33,13 +33,15 @@ QT_BEGIN_NAMESPACE
 class Ui_BoardConsoleClass
 {
 public:
+    QHBoxLayout *horizontalLayout_15;
+    QVBoxLayout *verticalLayout;
     QHBoxLayout *horizontalLayout_6;
-    QVBoxLayout *verticalLayout_12;
     QGroupBox *connectGroupBox;
     QHBoxLayout *horizontalLayout;
     QComboBox *serialComboBox;
     QPushButton *connectButton;
     QPushButton *programButton;
+    QPushButton *rotationButton;
     QHBoxLayout *horizontalLayout_3;
     QGroupBox *researchGroupBox;
     QVBoxLayout *verticalLayout_4;
@@ -121,14 +123,17 @@ public:
     {
         if (BoardConsoleClass->objectName().isEmpty())
             BoardConsoleClass->setObjectName(QStringLiteral("BoardConsoleClass"));
-        BoardConsoleClass->resize(839, 1227);
-        horizontalLayout_6 = new QHBoxLayout(BoardConsoleClass);
+        BoardConsoleClass->resize(839, 1427);
+        horizontalLayout_15 = new QHBoxLayout(BoardConsoleClass);
+        horizontalLayout_15->setSpacing(6);
+        horizontalLayout_15->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout_15->setObjectName(QStringLiteral("horizontalLayout_15"));
+        verticalLayout = new QVBoxLayout();
+        verticalLayout->setSpacing(6);
+        verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
+        horizontalLayout_6 = new QHBoxLayout();
         horizontalLayout_6->setSpacing(6);
-        horizontalLayout_6->setContentsMargins(11, 11, 11, 11);
         horizontalLayout_6->setObjectName(QStringLiteral("horizontalLayout_6"));
-        verticalLayout_12 = new QVBoxLayout();
-        verticalLayout_12->setSpacing(6);
-        verticalLayout_12->setObjectName(QStringLiteral("verticalLayout_12"));
         connectGroupBox = new QGroupBox(BoardConsoleClass);
         connectGroupBox->setObjectName(QStringLiteral("connectGroupBox"));
         QSizePolicy sizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -162,7 +167,15 @@ public:
         horizontalLayout->addWidget(programButton);
 
 
-        verticalLayout_12->addWidget(connectGroupBox);
+        horizontalLayout_6->addWidget(connectGroupBox);
+
+        rotationButton = new QPushButton(BoardConsoleClass);
+        rotationButton->setObjectName(QStringLiteral("rotationButton"));
+
+        horizontalLayout_6->addWidget(rotationButton);
+
+
+        verticalLayout->addLayout(horizontalLayout_6);
 
         horizontalLayout_3 = new QHBoxLayout();
         horizontalLayout_3->setSpacing(6);
@@ -419,7 +432,7 @@ public:
         horizontalLayout_3->addWidget(stabGroupBox);
 
 
-        verticalLayout_12->addLayout(horizontalLayout_3);
+        verticalLayout->addLayout(horizontalLayout_3);
 
         horizontalLayout_2 = new QHBoxLayout();
         horizontalLayout_2->setSpacing(6);
@@ -547,7 +560,7 @@ public:
         horizontalLayout_2->addWidget(groupBox_5);
 
 
-        verticalLayout_12->addLayout(horizontalLayout_2);
+        verticalLayout->addLayout(horizontalLayout_2);
 
         groupBox = new QGroupBox(BoardConsoleClass);
         groupBox->setObjectName(QStringLiteral("groupBox"));
@@ -618,10 +631,10 @@ public:
         verticalLayout_5->addLayout(horizontalLayout_8);
 
 
-        verticalLayout_12->addWidget(groupBox);
+        verticalLayout->addWidget(groupBox);
 
 
-        horizontalLayout_6->addLayout(verticalLayout_12);
+        horizontalLayout_15->addLayout(verticalLayout);
 
         verticalLayout_10 = new QVBoxLayout();
         verticalLayout_10->setSpacing(6);
@@ -687,7 +700,7 @@ public:
         verticalLayout_10->addWidget(groupBox_6);
 
 
-        horizontalLayout_6->addLayout(verticalLayout_10);
+        horizontalLayout_15->addLayout(verticalLayout_10);
 
 
         retranslateUi(BoardConsoleClass);
@@ -701,6 +714,7 @@ public:
         connectGroupBox->setTitle(QApplication::translate("BoardConsoleClass", "STM", 0));
         connectButton->setText(QApplication::translate("BoardConsoleClass", "Connect", 0));
         programButton->setText(QApplication::translate("BoardConsoleClass", "Program", 0));
+        rotationButton->setText(QApplication::translate("BoardConsoleClass", "Rotation", 0));
         researchGroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Research", 0));
         lowpassFilterCheckBox->setText(QApplication::translate("BoardConsoleClass", "lowpass", 0));
         turnUselessCheckBox->setText(QApplication::translate("BoardConsoleClass", "Turn Useless", 0));

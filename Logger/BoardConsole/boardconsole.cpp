@@ -18,6 +18,8 @@ BoardConsole::BoardConsole(QWidget *parent)
 	}
 	ui.serialComboBox->setCurrentText("COM22");
 
+	connect(ui.rotationButton, SIGNAL(clicked()), SLOT(handleRotationButton()));
+
 	connect(ui.programButton, SIGNAL(clicked()), SLOT(handleProgramButton()));
 	connect(ui.connectButton, SIGNAL(clicked()), SLOT(handleConnectButton()));
 	connect(ui.stopMotorsButton, SIGNAL(clicked()), SLOT(handleStopMotorsButton()));
@@ -213,6 +215,11 @@ void BoardConsole::handleConnectButton() {
 void BoardConsole::STM_Init() {
 	stm->write(command(TURN_EVERYTHING_OFF));
 	stm->write(number_command(ACCEL_DEVIATION, "0"));
+}
+
+void BoardConsole::handleRotationButton() {
+	glwidget = new GLWidget();
+	glwidget->show();
 }
 
 void BoardConsole::handleStopMotorsButton() {	
