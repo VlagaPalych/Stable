@@ -68,10 +68,8 @@ typedef qint8 int8_t;
 typedef quint16 uint16_t;
 
 typedef struct {
-	float angleRate[3];
-	int8_t temp;
+	float euler[3];
 } Message;
-
 extern uint8_t Message_Size;
 #define MESSAGE_HEADER  0x21
 

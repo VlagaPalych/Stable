@@ -284,7 +284,7 @@ void DMA1_Stream3_IRQHandler() {
         
         for (i = 0; i < 3; i++) {
             tmp = (imu_dma_rx[2*i+9] << 8) | imu_dma_rx[2*i+10];
-            angleRate[i] = tmp / GYRO_SENSITIVITY;
+            angleRate[i] = -tmp / GYRO_SENSITIVITY; // for QUEST algorithm
         }
         
         for (i = 0; i < 3; i++) {

@@ -150,9 +150,10 @@ BoardConsole::~BoardConsole() {
 QString BoardConsole::defineLogFile() {
 	QString logFileName = "";
 	if (ui.saveToFileCheckBox->isChecked()) {
-		QDir curDir = QDir::current();
+		QString dirPath = QDir::currentPath() + "/../Logs/Ordinary/";
+		QDir workDir = QDir(dirPath);
 		int maxLogNumber = 0;
-		foreach(QString entry, curDir.entryList()) {
+		foreach(QString entry, workDir.entryList()) {
 			int logIndex = entry.indexOf("log");
 			if (logIndex != -1) {
 				int txtIndex = entry.indexOf(".txt");
@@ -347,6 +348,9 @@ float angle = 0;
 void BoardConsole::handleFreshMessage(Message msg) {
 	qint64 time = QDateTime::currentMSecsSinceEpoch() - startTime;
 
+	glwidget->setXRotation(msg.euler[0] * 16.0f);
+	glwidget->setYRotation(msg.euler[1] * 16.0f);
+	glwidget->setZRotation(msg.euler[2] * 16.0f);
 	//if (ui.angleCheckBox->isChecked()) {
 	//	if (angleX.size() == maxSize) {
 	//		angleX.pop_front();

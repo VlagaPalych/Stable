@@ -3,6 +3,7 @@
 #include "dmp.h"
 #include "extra_math.h"
 #include "string.h"
+#include "telemetry.h"
 
 extern float angleRate[3];
 extern float accel[3];
@@ -11,11 +12,12 @@ extern Quat orientation;
 float euler[3];
 float eulerRate[3];
 
+uint8_t Message_Size = 0;
 
 void RCC_Init() {
     RCC->APB1ENR |= RCC_APB1ENR_SPI2EN | RCC_APB1ENR_TIM6EN;
-    RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
-    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN | RCC_AHB1ENR_GPIOBEN | RCC_AHB1ENR_DMA1EN;    
+    RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN | RCC_APB2ENR_USART1EN;
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN | RCC_AHB1ENR_GPIOBEN | RCC_AHB1ENR_DMA1EN | RCC_AHB1ENR_DMA2EN;    
 }
 
 
@@ -40,6 +42,7 @@ extern uint8_t process;
 
 int main() {
     QUEST_Init();
+    Message_Size = sizeof(Message);
     RCC_Init();
 //    GPIOA->MODER &= ~(3 << 15*2);
 //    GPIOA->MODER |= 1 << 15*2;
@@ -60,28 +63,33 @@ int main() {
     Delay_ms(100);
     IMU_EXTI_Init();
     EXTI->SWIER |= EXTI_SWIER_SWIER1;
+    
+    USART1_Init();
+    Telemetry_DMA_Init();
 
     while (1) {
         if (process) {
             process = 0;
             QUEST();          
             
-//            degrees_to_radians(angleRate);
-//            memcpy(zk_data, angleRate, VECT_SIZE*sizeof(float));
-//            zk_data[3] = orientation.w;
-//            memcpy(zk_data+VECT_SIZE+1, orientation.v, VECT_SIZE*sizeof(float));
-//            
-//            Kalman();
-//            orientation.w = x_aposteriori_data[3];
-//            memcpy(orientation.v, x_aposteriori_data+VECT_SIZE+1, VECT_SIZE*sizeof(float));
+            degrees_to_radians(angleRate);
+            memcpy(zk_data, angleRate, VECT_SIZE*sizeof(float));
+            zk_data[3] = orientation.w;
+            memcpy(zk_data+VECT_SIZE+1, orientation.v, VECT_SIZE*sizeof(float));
+            
+            Kalman();
+            orientation.w = x_aposteriori_data[3];
+            memcpy(orientation.v, x_aposteriori_data+VECT_SIZE+1, VECT_SIZE*sizeof(float));
             Quat_ToEuler(orientation, euler);
             
-            //angleRate_to_eulerRate(angleRate, euler, eulerRate);
+            memcpy(angleRate, x_aposteriori_data, VECT_SIZE*sizeof(float));
+            angleRate_to_eulerRate(angleRate, euler, eulerRate);
             
             radians_to_degrees(euler);
-            //radians_to_degrees(eulerRate);
+            radians_to_degrees(eulerRate);
             
-            // telemetry
+            memcpy(message.euler, euler, 3*sizeof(float));
+            Telemetry_Send(&message);
 
         }
     }
