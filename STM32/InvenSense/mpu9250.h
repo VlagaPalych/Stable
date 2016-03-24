@@ -446,6 +446,7 @@ int MPU_ConfigureFIFO(uint8_t sensors);
 int MPU_SetCompassSampleRate(uint8_t rate);
 int MPU_SetSensors(uint8_t sensors);
 int MPU_SetBypass(uint8_t bypass_on);
+int MPU_SetIntEnable(uint8_t enable);
 
 int MPU_SelectDevice(int device);
 void MPU_InitStructures(void);

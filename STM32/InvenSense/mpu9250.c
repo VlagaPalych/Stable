@@ -11,8 +11,8 @@
 void Delay_ms(uint16_t ms);
 void Delay_us(uint16_t us);
 
-#define MPU_READ_DATA_SIZE 23
-uint8_t MPU_DMA_tx[MPU_READ_DATA_SIZE] = {READ_COMMAND | ACCEL_XOUT_H};
+#define MPU_READ_DATA_SIZE 13
+uint8_t MPU_DMA_tx[MPU_READ_DATA_SIZE] = {READ_COMMAND | FIFO_R_W};
 uint8_t MPU_DMA_rx[MPU_READ_DATA_SIZE];
 
 float accel[3];
@@ -30,8 +30,6 @@ extern float w1[3];
 extern float w2[3];
 extern float v1[3];
 extern float v2[3];
-
-static int MPU_SetIntEnable(uint8_t enable);
 
 #define MPU_MAX_DEVICES 1
 
@@ -242,8 +240,8 @@ int MPU_Init(MPU_IntParams *int_param) {
     /* mpu_set_sensors always preserves this setting. */
     st->chip_cfg.clk_src = INV_CLK_PLL;
     /* Handled in next call to mpu_set_bypass. */
-    st->chip_cfg.active_low_int = 1;
-    st->chip_cfg.latched_int = 0;
+    st->chip_cfg.active_low_int = 0;
+    st->chip_cfg.latched_int = 1;
     st->chip_cfg.int_motion_only = 0;
     st->chip_cfg.lp_accel_mode = 0;
     memset(&st->chip_cfg.cache, 0, sizeof(st->chip_cfg.cache));
@@ -251,9 +249,9 @@ int MPU_Init(MPU_IntParams *int_param) {
     st->chip_cfg.dmp_loaded = 0;
     st->chip_cfg.dmp_sample_rate = 0;
 
-    if (MPU_SetGyroFsr(2000))
+    if (MPU_SetGyroFsr(250))
         return -10;
-    if (MPU_SetAccelFsr(2))
+    if (MPU_SetAccelFsr(16))
         return -11;
     if (MPU_SetLPF(42))
         return -12;
@@ -282,7 +280,7 @@ int MPU_Init(MPU_IntParams *int_param) {
 }
 
 int MPU_SetGyroFsr(uint16_t fsr) {
-    uint8_t data, test;
+    uint8_t data;
 
     if (!(st->chip_cfg.sensors))
         return -1;
@@ -315,7 +313,7 @@ int MPU_SetGyroFsr(uint16_t fsr) {
 }
 
 int MPU_SetAccelFsr(uint16_t fsr) {
-    uint8_t data, test;
+    uint8_t data;
 
     if (!(st->chip_cfg.sensors))
         return -1;
@@ -354,7 +352,7 @@ int MPU_SetAccelFsr(uint16_t fsr) {
  *  @return     0 if successful.
  */
 int MPU_SetLPF(uint16_t lpf) {
-    uint8_t data, test;
+    uint8_t data;
     if (!(st->chip_cfg.sensors))
         return -1;
 
@@ -388,7 +386,7 @@ int MPU_SetLPF(uint16_t lpf) {
  *  @return     0 if successful.
  */
 int MPU_SetSampleRate(uint16_t rate) {
-    uint8_t data, test;
+    uint8_t data;
 
     if (!(st->chip_cfg.sensors))
         return -1;
@@ -600,14 +598,18 @@ int MPU_ResetFIFO(void) {
         return -1;
 
     data = 0;
-    MPU_WriteByte(st->reg->int_enable, 0x00);
-    MPU_WriteByte(st->reg->fifo_en, 0x00);
-    MPU_WriteByte(st->reg->user_ctrl, 0x00);
+    if (MPU_WriteByteAndCheck(st->reg->int_enable, 0x00)) {
+        return -3;
+    }
+    if (MPU_WriteByteAndCheck(st->reg->fifo_en, 0x00)) {
+        return -3;
+    }
+    if (MPU_WriteByteAndCheck(st->reg->user_ctrl, 0x00)) {
+        return -3;
+    }
 
     if (st->chip_cfg.dmp_on) {
-        if (MPU_WriteByteAndCheck(st->reg->user_ctrl, BIT_FIFO_RST | BIT_DMP_RST)) {
-            return -3;
-        }
+        MPU_WriteByte(st->reg->user_ctrl, BIT_FIFO_RST | BIT_DMP_RST);
         Delay_ms(50);
         data = BIT_DMP_EN | BIT_FIFO_EN;
         if (st->chip_cfg.sensors & INV_XYZ_COMPASS)
@@ -626,9 +628,7 @@ int MPU_ResetFIFO(void) {
             return -3;
         }
     } else {
-        if (MPU_WriteByteAndCheck(st->reg->user_ctrl, BIT_FIFO_RST)) {
-            return -3;
-        } 
+        MPU_WriteByte(st->reg->user_ctrl, BIT_FIFO_RST);
         if (st->chip_cfg.bypass_mode || !(st->chip_cfg.sensors & INV_XYZ_COMPASS))
             data = BIT_FIFO_EN;
         else
@@ -658,7 +658,7 @@ int MPU_ResetFIFO(void) {
  *  @param[in]  enable      1 to enable interrupt.
  *  @return     0 if successful.
  */
-static int MPU_SetIntEnable(uint8_t enable) {
+int MPU_SetIntEnable(uint8_t enable) {
     uint8_t tmp;
 
     if (st->chip_cfg.dmp_on) {
@@ -724,7 +724,7 @@ int MPU_SetCompassSampleRate(uint8_t rate) {
  *  @return     0 if successful.
  */
 int MPU_SetSensors(uint8_t sensors)  {
-    uint8_t data, test;
+    uint8_t data;
 #ifdef AK89xx_SECONDARY
     uint8_t user_ctrl;
 #endif
@@ -1019,14 +1019,16 @@ void MPU_EXTI_Init() {
 }
 
 void EXTI1_IRQHandler() {
-//    uint16_t fifo_count = 0;
+    uint16_t fifo_count = 0;
+    uint8_t tmp[2];
     if (EXTI->PR & EXTI_PR_PR1) {
         EXTI->PR = EXTI_PR_PR1;
         
-//        MPU_Read(FIFO_COUNTH, (uint8_t *)&fifo_count, 2);
-//        if (fifo_count) {
+        MPU_Read(FIFO_COUNTH, tmp, 2);
+        fifo_count = (tmp[0] << 8) | tmp[1];
+        if (fifo_count) {
             MPU_DMA_Run(MPU_DMA_tx, MPU_DMA_rx, MPU_READ_DATA_SIZE);
-        //}
+        }
     }
 }
 
@@ -1051,36 +1053,36 @@ void DMA1_Stream3_IRQHandler() {
             accel[i] = tmp / ACCEL_SENSITIVITY;
         }
         
-        tmp = (MPU_DMA_rx[7] << 8) | MPU_DMA_rx[8];
-        temp = tmp / TEMP_SENSITIBITY + TEMP_OFFSET;
+//        tmp = (MPU_DMA_rx[7] << 8) | MPU_DMA_rx[8];
+//        temp = tmp / TEMP_SENSITIBITY + TEMP_OFFSET;
         
         for (i = 0; i < 3; i++) {
-            tmp = (MPU_DMA_rx[2*i+9] << 8) | MPU_DMA_rx[2*i+10];
+            tmp = (MPU_DMA_rx[2*i+7] << 8) | MPU_DMA_rx[2*i+8];
             angleRate[i] = -tmp / GYRO_SENSITIVITY; // for QUEST algorithm
         }
         
-        for (i = 0; i < 3; i++) {
-            tmp = MPU_DMA_rx[2*i+15] | (MPU_DMA_rx[2*i+16] << 8);
-            magField[i] = tmp * MAG_SENSITIVITY * mag_sens_adj[i];
-        }
-        magField[2] = -magField[2];
-        swap(&magField[0], &magField[1]);  
+//        for (i = 0; i < 3; i++) {
+//            tmp = MPU_DMA_rx[2*i+15] | (MPU_DMA_rx[2*i+16] << 8);
+//            magField[i] = tmp * MAG_SENSITIVITY * mag_sens_adj[i];
+//        }
+//        magField[2] = -magField[2];
+//        swap(&magField[0], &magField[1]);  
         
-        if (meas1) {
-            meas1 = 0;
-            memcpy(w1, accel, VECT_SIZE*sizeof(float));
-            memcpy(w2, magField, VECT_SIZE*sizeof(float));
-            
-            Vect_Norm(w1);
-            Vect_Norm(w2);
-        } else {
-            process = 1;
-            memcpy(v1, accel, VECT_SIZE*sizeof(float));
-            memcpy(v2, magField, VECT_SIZE*sizeof(float));
-            
-            Vect_Norm(v1);
-            Vect_Norm(v2);
-        }
+//        if (meas1) {
+//            meas1 = 0;
+//            memcpy(w1, accel, VECT_SIZE*sizeof(float));
+//            memcpy(w2, magField, VECT_SIZE*sizeof(float));
+//            
+//            Vect_Norm(w1);
+//            Vect_Norm(w2);
+//        } else {
+//            process = 1;
+//            memcpy(v1, accel, VECT_SIZE*sizeof(float));
+//            memcpy(v2, magField, VECT_SIZE*sizeof(float));
+//            
+//            Vect_Norm(v1);
+//            Vect_Norm(v2);
+//        }
     }
 }
 

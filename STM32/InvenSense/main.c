@@ -5,6 +5,7 @@
 #include "string.h"
 #include "telemetry.h"
 #include "spi.h"
+#include "dma.h"
 
 extern float angleRate[3];
 extern float accel[3];
@@ -53,6 +54,13 @@ int main() {
     MPU_InitStructures();
     res = MPU_Init(NULL);
 
+    
+    MPU_DMA_Init();
+    MPU_EXTI_Init();
+    
+    res = MPU_SetSensors(INV_XYZ_ACCEL | INV_XYZ_GYRO);
+    res = MPU_ConfigureFIFO(INV_XYZ_ACCEL | INV_XYZ_GYRO);
+ 
 //    MPU_Init();
 //    Mag_Init();
 
