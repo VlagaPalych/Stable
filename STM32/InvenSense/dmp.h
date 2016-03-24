@@ -351,6 +351,15 @@
 #define DINBC4 0xc4
 #define DINBC6 0xc6
 
+typedef struct {
+    void (*tap_cb)(unsigned char count, unsigned char direction);
+    void (*android_orient_cb)(unsigned char orientation);
+    unsigned short orient;
+    unsigned short feature_mask;
+    unsigned short fifo_rate;
+    unsigned char packet_length;
+} DMP;
+
 int DMP_SelectDevice(int device);
 void DMP_InitStructures(void);
 int DMP_LoadMotionDriverFirmware(void);
@@ -359,5 +368,6 @@ int DMP_EnableGyroCal(uint8_t enable);
 int DMP_EnableLPQuat(uint8_t enable); 
 int DMP_Enable6XLPQuat(uint8_t enable);
 int DMP_EnableFeature(uint16_t mask);
+void DMP_ParseFIFOData(uint8_t *fifo_data);
 
 #endif // DMP_H

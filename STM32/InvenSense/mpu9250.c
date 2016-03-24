@@ -13,10 +13,15 @@ void Delay_ms(uint16_t ms);
 void Delay_us(uint16_t us);
 
 #define MPU_READ_DATA_SIZE 13
-uint8_t MPU_DMA_tx[MPU_READ_DATA_SIZE] = {READ_COMMAND | FIFO_R_W};
-uint8_t MPU_DMA_rx[MPU_READ_DATA_SIZE];
+uint8_t MPU_DMA_tx[100] = {READ_COMMAND | FIFO_R_W};
+uint8_t MPU_DMA_rx[100];
+
+int16_t accel_data[3];
+int16_t gyro_data[3];
+int32_t quat_data[4];
 
 float accel[3];
+float quat[4];
 float temp;
 float angleRate[3];
 float magField[3];
@@ -302,9 +307,9 @@ int MPU_Init(MPU_IntParams *int_param) {
     st->chip_cfg.dmp_loaded = 0;
     st->chip_cfg.dmp_sample_rate = 0;
 
-    if (MPU_SetGyroFsr(250))
+    if (MPU_SetGyroFsr(2000))
         return -10;
-    if (MPU_SetAccelFsr(16))
+    if (MPU_SetAccelFsr(2))
         return -11;
     if (MPU_SetLPF(42))
         return -12;
@@ -1071,6 +1076,8 @@ void MPU_EXTI_Init() {
     NVIC_EnableIRQ(EXTI1_IRQn);
 }
 
+extern DMP *dmp;
+
 void EXTI1_IRQHandler() {
     uint16_t fifo_count = 0;
     uint8_t tmp[2];
@@ -1080,7 +1087,7 @@ void EXTI1_IRQHandler() {
         MPU_Read(FIFO_COUNTH, tmp, 2);
         fifo_count = (tmp[0] << 8) | tmp[1];
         if (fifo_count) {
-            MPU_DMA_Run(MPU_DMA_tx, MPU_DMA_rx, MPU_READ_DATA_SIZE);
+            MPU_DMA_Run(MPU_DMA_tx, MPU_DMA_rx, dmp->packet_length + 1);
         }
     }
 }
@@ -1099,18 +1106,22 @@ void DMA1_Stream3_IRQHandler() {
         DMA1_Stream3->CR &= ~DMA_SxCR_EN;
         MPU_NSS_High();
         
-        for (i = 0; i < 3; i++) {
-            tmp = (MPU_DMA_rx[2*i+1] << 8) | MPU_DMA_rx[2*i+2];
-            accel[i] = tmp / ACCEL_SENSITIVITY;
-        }
+        DMP_ParseFIFOData(MPU_DMA_rx + 1); 
+        
+//        for (i = 0; i < 3; i++) {
+//            tmp = (MPU_DMA_rx[2*i+1] << 8) | MPU_DMA_rx[2*i+2];
+//            accel[i] = tmp / ACCEL_SENSITIVITY;
+//        }
         
 //        tmp = (MPU_DMA_rx[7] << 8) | MPU_DMA_rx[8];
 //        temp = tmp / TEMP_SENSITIBITY + TEMP_OFFSET;
         
-        for (i = 0; i < 3; i++) {
-            tmp = (MPU_DMA_rx[2*i+7] << 8) | MPU_DMA_rx[2*i+8];
-            angleRate[i] = tmp / GYRO_SENSITIVITY; // for QUEST algorithm
-        }
+//        for (i = 0; i < 3; i++) {
+//            tmp = (MPU_DMA_rx[2*i+7] << 8) | MPU_DMA_rx[2*i+8];
+//            angleRate[i] = tmp / GYRO_SENSITIVITY; // for QUEST algorithm
+//        }
+        
+        
         
 //        for (i = 0; i < 3; i++) {
 //            tmp = MPU_DMA_rx[2*i+15] | (MPU_DMA_rx[2*i+16] << 8);

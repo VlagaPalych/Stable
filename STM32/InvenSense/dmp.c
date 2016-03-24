@@ -1,6 +1,7 @@
 #include "dmp.h"
 #include "mpu9250.h"
 #include "string.h" // for NULL
+#include "extra_math.h"
 
 uint8_t dmp_memory[DMP_CODE_SIZE] = {
     /* bank # 0 */
@@ -212,14 +213,7 @@ uint8_t dmp_memory[DMP_CODE_SIZE] = {
 
 uint16_t sStartAddress = 0x0400;
 
-typedef struct {
-    void (*tap_cb)(unsigned char count, unsigned char direction);
-    void (*android_orient_cb)(unsigned char orientation);
-    unsigned short orient;
-    unsigned short feature_mask;
-    unsigned short fifo_rate;
-    unsigned char packet_length;
-} DMP;
+
 
 DMP dmpArray[MPU_MAX_DEVICES];
 
@@ -476,4 +470,95 @@ int DMP_Enable6XLPQuat(uint8_t enable) {
     MPU_MemWrite(CFG_8, regs, 4);
 
     return MPU_ResetFIFO();
+}
+
+#include "math.h"
+
+extern int32_t quat_data[4];
+extern int16_t accel_data[3];
+extern int16_t gyro_data[3];
+
+extern float accel[3];
+extern float angleRate[3];
+extern Quat orientation;
+extern float euler[3];
+
+#define EPSILON         0.0001f
+#define PI_2            1.57079632679489661923f
+
+static void quaternionToEuler(Quat *q, float* x, float* y, float* z )
+{
+    float sqy, sqz, sqw, test;
+        sqy = q->v[1] * q->v[1];
+        sqz = q->v[2] * q->v[2];
+        sqw = q->w * q->w;
+
+        test = q->v[0] * q->v[2] - q->w * q->v[1];
+
+        if( test > 0.5f - EPSILON )
+        {
+                *x = 2.f * atan2( q->v[1], q->w );
+                *y = PI_2;
+                *z = 0;
+        }
+        else if( test < -0.5f + EPSILON )
+        {
+                *x = -2.f * atan2( q->v[1], q->w );
+                *y = -PI_2;
+                *z = 0;
+        }
+        else
+        {
+                *x = atan2( 2.f * ( q->v[0] * q->w + q->v[1] * q->v[2] ), 1.f - 2.f * ( sqz + sqw ) );
+                *y = asin( 2.f * test );
+                *z = atan2( 2.f * ( q->v[0] * q->v[1] - q->v[2] * q->w ), 1.f - 2.f * ( sqy + sqz ) );
+        }
+}
+
+void DMP_ParseFIFOData(uint8_t *fifo_data) {
+    int ii = 0;
+    
+        /* Parse DMP packet. */
+    if (dmp->feature_mask & (DMP_FEATURE_LP_QUAT | DMP_FEATURE_6X_LP_QUAT)) {
+        quat_data[0] = ((int32_t)fifo_data[0] << 24) | ((int32_t)fifo_data[1] << 16) |
+            ((int32_t)fifo_data[2] << 8) | fifo_data[3];
+        quat_data[1] = ((int32_t)fifo_data[4] << 24) | ((int32_t)fifo_data[5] << 16) |
+            ((int32_t)fifo_data[6] << 8) | fifo_data[7];
+        quat_data[2] = ((int32_t)fifo_data[8] << 24) | ((int32_t)fifo_data[9] << 16) |
+            ((int32_t)fifo_data[10] << 8) | fifo_data[11];
+        quat_data[3] = ((int32_t)fifo_data[12] << 24) | ((int32_t)fifo_data[13] << 16) |
+            ((int32_t)fifo_data[14] << 8) | fifo_data[15];
+        
+        orientation.w = quat_data[0] / QUAT_SENS;
+        orientation.v[0] = quat_data[1] / QUAT_SENS;
+        orientation.v[1] = quat_data[2] / QUAT_SENS;
+        orientation.v[2] = quat_data[3] / QUAT_SENS;
+        ii += 16;
+    }
+    
+    if (dmp->feature_mask & DMP_FEATURE_SEND_RAW_ACCEL) {
+        accel_data[0] = ((int16_t)fifo_data[ii+0] << 8) | fifo_data[ii+1];
+        accel_data[1] = ((int16_t)fifo_data[ii+2] << 8) | fifo_data[ii+3];
+        accel_data[2] = ((int16_t)fifo_data[ii+4] << 8) | fifo_data[ii+5];
+        
+        accel[0] = accel_data[0] / ACCEL_SENS;
+        accel[1] = accel_data[1] / ACCEL_SENS;
+        accel[2] = accel_data[2] / ACCEL_SENS;
+        ii += 6;
+    }
+
+    if (dmp->feature_mask & DMP_FEATURE_SEND_ANY_GYRO) {
+        gyro_data[0] = ((int16_t)fifo_data[ii+0] << 8) | fifo_data[ii+1];
+        gyro_data[1] = ((int16_t)fifo_data[ii+2] << 8) | fifo_data[ii+3];
+        gyro_data[2] = ((int16_t)fifo_data[ii+4] << 8) | fifo_data[ii+5];
+        
+        angleRate[0] = gyro_data[0] / GYRO_SENS;
+        angleRate[1] = gyro_data[1] / GYRO_SENS;
+        angleRate[2] = gyro_data[2] / GYRO_SENS;
+        ii += 6;
+    }
+    
+    //Quat_ToEuler(orientation, euler);
+    quaternionToEuler(&orientation, &euler[0], &euler[1], &euler[2]);
+    radians_to_degrees(euler);
 }

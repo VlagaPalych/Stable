@@ -7,6 +7,7 @@
 #include "spi.h"
 #include "dma.h"
 
+
 extern float angleRate[3];
 extern float accel[3];
 extern float magField[3];
@@ -68,7 +69,7 @@ int main() {
     res = DMP_LoadMotionDriverFirmware();
     res = DMP_SetFIFORate(200);
     res = MPU_SetDMPState(1);
-    res = DMP_EnableFeature(DMP_FEATURE_SEND_CAL_GYRO | DMP_FEATURE_SEND_RAW_ACCEL);
+    res = DMP_EnableFeature(DMP_FEATURE_6X_LP_QUAT | DMP_FEATURE_SEND_CAL_GYRO | DMP_FEATURE_SEND_RAW_ACCEL);
     
 //    MPU_Init();
 //    Mag_Init();

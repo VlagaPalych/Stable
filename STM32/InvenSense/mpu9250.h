@@ -108,11 +108,12 @@
 #define ZA_OFFSET_L                 0x7e
 
 // MPU9250 characteristics
-#define GYRO_SENSITIVITY        131.0f      // LSB/dps
-#define ACCEL_SENSITIVITY       2048.0f     // LSB/g
-#define MAG_SENSITIVITY         0.15f       // uT/LSB
-#define TEMP_SENSITIBITY        338.87f     // LSB/degC
-#define TEMP_OFFSET             21.0f       // degC
+#define GYRO_SENS                   131.0f          // LSB/dps
+#define ACCEL_SENS                  2048.0f         // LSB/g
+#define MAG_SENS                    0.15f           // uT/LSB
+#define TEMP_SEN                    338.87f         // LSB/degC
+#define TEMP_OFFSET                 21.0f           // degC
+#define QUAT_SENS                   1073741824.f    // 2^30
 
 
 // Magnetometer AK8963 registers
