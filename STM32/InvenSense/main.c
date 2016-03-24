@@ -42,6 +42,9 @@ void Delay_us(uint16_t us) {
 
 extern uint8_t process;
 int res = 0;
+uint8_t send[4] = {0x21, 0x01, 0xff, 0x83};
+uint8_t recv[4];
+
 int main() {
 //    QUEST_Init();
 //    Message_Size = sizeof(Message);
@@ -53,12 +56,11 @@ int main() {
     res = MPU_SelectDevice(0);
     MPU_InitStructures();
     res = MPU_Init(NULL);
-
     
     MPU_DMA_Init();
     MPU_EXTI_Init();
     
-//    res = MPU_SetSensors(INV_XYZ_ACCEL | INV_XYZ_GYRO);
+    res = MPU_SetSensors(INV_XYZ_ACCEL | INV_XYZ_GYRO);
 //    res = MPU_ConfigureFIFO(INV_XYZ_ACCEL | INV_XYZ_GYRO);
 
     DMP_SelectDevice(0);
@@ -66,7 +68,7 @@ int main() {
     res = DMP_LoadMotionDriverFirmware();
     res = DMP_SetFIFORate(200);
     res = MPU_SetDMPState(1);
-    res = DMP_EnableFeature(DMP_FEATURE_6X_LP_QUAT|DMP_FEATURE_SEND_CAL_GYRO|DMP_FEATURE_GYRO_CAL);
+    res = DMP_EnableFeature(DMP_FEATURE_SEND_CAL_GYRO | DMP_FEATURE_SEND_RAW_ACCEL);
     
 //    MPU_Init();
 //    Mag_Init();

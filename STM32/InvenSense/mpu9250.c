@@ -181,17 +181,17 @@ int MPU_WriteAndCheck(uint8_t address, uint8_t *data, uint8_t size) {
 int MPU_MemWrite(uint16_t mem_addr, uint8_t *data, uint16_t length) {
     uint8_t tmp[2];
 
-    if (!data)
-        return -1;
-    if (!st->chip_cfg.sensors)
-        return -2;
+//    if (!data)
+//        return -1;
+//    if (!st->chip_cfg.sensors)
+//        return -2;
 
     tmp[0] = (uint8_t)(mem_addr >> 8);
     tmp[1] = (uint8_t)(mem_addr & 0xFF);
 
     /* Check bank boundaries. */
-    if (tmp[1] + length > st->hw->bank_size)
-        return -3;
+//    if (tmp[1] + length > st->hw->bank_size)
+//        return -3;
 
     MPU_Write(st->reg->bank_sel, tmp, 2);
     MPU_Write(st->reg->mem_r_w, data, length);
@@ -210,17 +210,17 @@ int MPU_MemWrite(uint16_t mem_addr, uint8_t *data, uint16_t length) {
 int MPU_MemRead(uint16_t mem_addr, uint8_t *data, uint16_t length) {
     uint8_t tmp[2];
 
-    if (!data)
-        return -1;
-    if (!st->chip_cfg.sensors)
-        return -2;
+//    if (!data)
+//        return -1;
+//    if (!st->chip_cfg.sensors)
+//        return -2;
 
     tmp[0] = (uint8_t)(mem_addr >> 8);
     tmp[1] = (uint8_t)(mem_addr & 0xFF);
 
     /* Check bank boundaries. */
-    if (tmp[1] + length > st->hw->bank_size)
-        return -3;
+//    if (tmp[1] + length > st->hw->bank_size)
+//        return -3;
 
     MPU_Write(st->reg->bank_sel, tmp, 2);
     MPU_Read(st->reg->mem_r_w, data, length);
@@ -236,7 +236,7 @@ int MPU_Init(MPU_IntParams *int_param) {
     Delay_ms(100);
 
     /* Wake up chip. */
-    MPU_WriteByte(st->reg->pwr_mgmt_1, 0x00);
+    MPU_WriteByte(st->reg->pwr_mgmt_1, 0x01);
 
 #if defined MPU6050
     /* Check product revision. */
@@ -1109,7 +1109,7 @@ void DMA1_Stream3_IRQHandler() {
         
         for (i = 0; i < 3; i++) {
             tmp = (MPU_DMA_rx[2*i+7] << 8) | MPU_DMA_rx[2*i+8];
-            angleRate[i] = -tmp / GYRO_SENSITIVITY; // for QUEST algorithm
+            angleRate[i] = tmp / GYRO_SENSITIVITY; // for QUEST algorithm
         }
         
 //        for (i = 0; i < 3; i++) {
@@ -1204,7 +1204,7 @@ int MPU_LoadFirmware(uint16_t length, const uint8_t *firmware,
         return -2;
         
     for (ii = 0; ii < length; ii += this_write) {
-        this_write = 32;//min(LOAD_CHUNK, length - ii);
+        this_write = min(LOAD_CHUNK, length - ii);
         if (MPU_MemWrite(ii, (uint8_t *)&firmware[ii], this_write)) {
             return -3;
         }
