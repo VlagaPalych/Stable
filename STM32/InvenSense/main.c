@@ -58,21 +58,19 @@ int main() {
     MPU_DMA_Init();
     MPU_EXTI_Init();
     
-    res = MPU_SetSensors(INV_XYZ_ACCEL | INV_XYZ_GYRO);
-    res = MPU_ConfigureFIFO(INV_XYZ_ACCEL | INV_XYZ_GYRO);
- 
+//    res = MPU_SetSensors(INV_XYZ_ACCEL | INV_XYZ_GYRO);
+//    res = MPU_ConfigureFIFO(INV_XYZ_ACCEL | INV_XYZ_GYRO);
+
+    DMP_SelectDevice(0);
+    DMP_InitStructures();
+    res = DMP_LoadMotionDriverFirmware();
+    res = DMP_SetFIFORate(200);
+    res = MPU_SetDMPState(1);
+    res = DMP_EnableFeature(DMP_FEATURE_6X_LP_QUAT|DMP_FEATURE_SEND_CAL_GYRO|DMP_FEATURE_GYRO_CAL);
+    
 //    MPU_Init();
 //    Mag_Init();
 
-////    MPU_LoadFirmware(dmp_memory, DMP_CODE_SIZE, startAddress);
-////    DMP_EnableFeature(DMP_FEATURE_SEND_RAW_ACCEL | DMP_FEATURE_SEND_RAW_GYRO);
-////    DMP_SetFIFORate(200);
-////    MPU_SetDMPState(1);
-
-//    MPU_DMA_Init();
-//    Delay_ms(100);
-//    MPU_EXTI_Init();
-//    EXTI->SWIER |= EXTI_SWIER_SWIER1;
     
 //    USART1_Init();
 //    Telemetry_DMA_Init();

@@ -3,6 +3,8 @@
 
 #include "stdint.h"
 
+#define MPU_MAX_DEVICES 1
+
 // MPU9250 Accelerometer and gyroscope registers
 #define SELF_TEST_X_GYRO            0x00
 #define SELF_TEST_Y_GYRO            0x01
@@ -423,17 +425,8 @@ void MPU_EXTI_Init(void);
 void Mag_Init(void);
 
 
-void MPU_LoadFirmware(uint8_t *firmware, uint16_t length, uint16_t start_addr);
-
-void MPU_MemWrite(uint16_t addr, uint8_t *data, uint16_t size);
-void MPU_MemRead(uint16_t addr, uint8_t *data, uint16_t size);
-
-
-void DMP_Enable_LP_QUAT(uint8_t enable);
-void DMP_Enable_6X_LP_QUAT(uint8_t enable);
-void DMP_SetFIFORate(uint16_t rate);
-void DMP_EnableFeature(uint16_t features);
-void MPU_SetDMPState(uint8_t enable);
+int MPU_MemWrite(uint16_t mem_addr, uint8_t *data, uint16_t length);
+int MPU_MemRead(uint16_t mem_addr, uint8_t *data, uint16_t length);
 
 int MPU_SetGyroFsr(uint16_t fsr);
 int MPU_SetAccelFsr(uint16_t fsr);
@@ -451,6 +444,10 @@ int MPU_SetIntEnable(uint8_t enable);
 int MPU_SelectDevice(int device);
 void MPU_InitStructures(void);
 int MPU_Init(MPU_IntParams *int_param);
+
+int MPU_LoadFirmware(uint16_t length, const uint8_t *firmware,
+    uint16_t start_addr, uint16_t sample_rate);
+int MPU_SetDMPState(uint8_t enable);
 
 #define DMP_CODE_SIZE           3062
 extern uint8_t dmp_memory[DMP_CODE_SIZE];

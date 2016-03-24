@@ -1,6 +1,8 @@
 #ifndef DMP_H
 #define DMP_H
 
+#include "stdint.h"
+
 // Known MPU9250 registers concerning DMP
 #define BANK_SEL                0x6d
 #define MEM_R_W                 0x6f
@@ -144,6 +146,9 @@
 #define DMP_FEATURE_SEND_CAL_GYRO   0x100
 #define DMP_FEATURE_SEND_ANY_GYRO   (DMP_FEATURE_SEND_RAW_GYRO | \
                                      DMP_FEATURE_SEND_CAL_GYRO)
+                                     
+#define DMP_SAMPLE_RATE     (200)
+#define GYRO_SF             (46850825LL * 200 / DMP_SAMPLE_RATE)
 
 
 #define DINA0A 0x0a
@@ -345,5 +350,14 @@
 #define DINBC2 0xc2
 #define DINBC4 0xc4
 #define DINBC6 0xc6
+
+int DMP_SelectDevice(int device);
+void DMP_InitStructures(void);
+int DMP_LoadMotionDriverFirmware(void);
+int DMP_SetFIFORate(uint16_t rate);
+int DMP_EnableGyroCal(uint8_t enable);
+int DMP_EnableLPQuat(uint8_t enable); 
+int DMP_Enable6XLPQuat(uint8_t enable);
+int DMP_EnableFeature(uint16_t mask);
 
 #endif // DMP_H
