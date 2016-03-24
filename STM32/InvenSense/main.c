@@ -48,7 +48,7 @@ uint8_t recv[4];
 
 int main() {
 //    QUEST_Init();
-//    Message_Size = sizeof(Message);
+    Message_Size = sizeof(Message);
     RCC_Init();
 //    GPIOA->MODER &= ~(3 << 15*2);
 //    GPIOA->MODER |= 1 << 15*2;
@@ -75,8 +75,8 @@ int main() {
 //    Mag_Init();
 
     
-//    USART1_Init();
-//    Telemetry_DMA_Init();
+    USART1_Init();
+    Telemetry_DMA_Init();
 
     while (1) {
 //        if (process) {

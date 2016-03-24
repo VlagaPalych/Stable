@@ -2,6 +2,7 @@
 #include "mpu9250.h"
 #include "string.h" // for NULL
 #include "extra_math.h"
+#include "telemetry.h"
 
 uint8_t dmp_memory[DMP_CODE_SIZE] = {
     /* bank # 0 */
@@ -486,6 +487,8 @@ extern float euler[3];
 #define EPSILON         0.0001f
 #define PI_2            1.57079632679489661923f
 
+extern Message message;
+
 static void quaternionToEuler(Quat *q, float* x, float* y, float* z )
 {
     float sqy, sqz, sqw, test;
@@ -561,4 +564,7 @@ void DMP_ParseFIFOData(uint8_t *fifo_data) {
     //Quat_ToEuler(orientation, euler);
     quaternionToEuler(&orientation, &euler[0], &euler[1], &euler[2]);
     radians_to_degrees(euler);
+    
+    memcpy(message.euler, euler, 3 * sizeof(euler[0]));
+    Telemetry_Send(&message);
 }
