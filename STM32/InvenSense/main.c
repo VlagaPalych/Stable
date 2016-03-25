@@ -6,7 +6,7 @@
 #include "telemetry.h"
 #include "spi.h"
 #include "dma.h"
-
+#include "fusion_9axis.h"
 
 extern float angleRate[3];
 extern float accel[3];
