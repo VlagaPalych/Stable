@@ -322,15 +322,8 @@ int MPU_Init(MPU_IntParams *int_param) {
         reg_int_cb(int_param);
 
 #ifdef AK89xx_SECONDARY
-    errCode = setup_compass();
-    if (errCode != 0) {
-    }
-    if (MPU_SetCompassSampleRate(10))
-        return -15;
-#else
-    /* Already disabled by setup_compass. */
-    if (MPU_SetBypass(0))
-        return -16;
+    setup_compass();
+    MPU_SetCompassSampleRate(100);
 #endif
 
     MPU_SetSensors(0);
@@ -758,13 +751,19 @@ int MPU_SetIntEnable(uint8_t enable) {
  */
 int MPU_SetCompassSampleRate(uint8_t rate) {
 #ifdef AK89xx_SECONDARY
-    uint8_t div;
-    if (!rate || rate > st->chip_cfg.sample_rate || rate > MAX_COMPASS_SAMPLE_RATE)
-        return -1;
-
-    div = st->chip_cfg.sample_rate / rate - 1;
-    MPU_WriteByte(st->reg->s4_ctrl, div);
-    st->chip_cfg.compass_sample_rate = st->chip_cfg.sample_rate / (div + 1);
+    switch (rate) {
+        case 8:
+            Compass_WriteByte(AKM_REG_CNTL, 0x12); // Continuous measurement mode 1 (8 Hz), 16 bit output
+            break;
+        case 100:
+            Compass_WriteByte(AKM_REG_CNTL, 0x16); // Continuous measurement mode 2 (100 Hz), 16 bit output
+            break;
+        default:
+            return -1;
+    }
+    st->chip_cfg.compass_sample_rate = rate;
+    Delay_ms(10);
+    MPU_WriteByte(st->reg->s0_ctrl, ~BIT_SLAVE_EN);
     return 0;
 #else
     return -1;
@@ -817,33 +816,31 @@ int MPU_SetSensors(uint8_t sensors)  {
         MPU_SetIntLatched(0);
 
 #ifdef AK89xx_SECONDARY
-#ifdef AK89xx_BYPASS
-    if (sensors & INV_XYZ_COMPASS)
-        mpu_set_bypass(1);
-    else
-        mpu_set_bypass(0);
-#else
+//#ifdef AK89xx_BYPASS
+//    if (sensors & INV_XYZ_COMPASS)
+//        mpu_set_bypass(1);
+//    else
+//        mpu_set_bypass(0);
+//#else
     user_ctrl = MPU_ReadByte(st->reg->user_ctrl);
     /* Handle AKM power management. */
     if (sensors & INV_XYZ_COMPASS) {
-        data = AKM_SINGLE_MEASUREMENT;
+        MPU_SetCompassSampleRate(st->chip_cfg.compass_sample_rate);
         user_ctrl |= BIT_AUX_IF_EN;
     } else {
-        data = AKM_POWER_DOWN;
+        Compass_WriteByte(AKM_REG_CNTL, AKM_POWER_DOWN);
         user_ctrl &= ~BIT_AUX_IF_EN;
     }
     if (st->chip_cfg.dmp_on)
         user_ctrl |= BIT_DMP_EN;
     else
         user_ctrl &= ~BIT_DMP_EN;
-    if (MPU_WriteByteAndCheck(st->reg->s1_do, data)) {
-        return -3;
-    }
+
     /* Enable/disable I2C master mode. */
     if (MPU_WriteByteAndCheck(st->reg->user_ctrl, user_ctrl)) {
         return -3;
     }
-#endif
+//#endif
 #endif
     st->chip_cfg.sensors = sensors;
     st->chip_cfg.lp_accel_mode = 0;
@@ -851,35 +848,35 @@ int MPU_SetSensors(uint8_t sensors)  {
     return 0;
 }
 
-void Mag_WriteByte(uint8_t address, uint8_t data) {
+void Compass_WriteByte(uint8_t reg, uint8_t data) {
     // Mag I2C address
-    MPU_WriteByte(I2C_SLV0_ADDR, WRITE_COMMAND | AK8963_I2C_ADDRESS);
-    MPU_WriteByte(I2C_SLV0_REG, address);
-    MPU_WriteByte(I2C_SLV0_DO, data);
+    MPU_WriteByte(st->reg->s0_addr, WRITE_COMMAND | st->chip_cfg.compass_addr);
+    MPU_WriteByte(st->reg->s0_reg, reg);
+    MPU_WriteByte(st->reg->s0_do, data);
     // I2C on, 1 byte
-    MPU_WriteByte(I2C_SLV0_CTRL, 0x81);
+    MPU_WriteByte(st->reg->s0_ctrl, BIT_SLAVE_EN | 1);
 }
 
-uint8_t Mag_ReadByte(uint8_t address) {
+uint8_t Aux_ReadByte(uint8_t i2c_addr, uint8_t reg) {
     uint8_t tmp;
     // Mag I2C address
-    MPU_WriteByte(I2C_SLV0_ADDR, READ_COMMAND | AK8963_I2C_ADDRESS);
-    MPU_WriteByte(I2C_SLV0_REG, address);
+    MPU_WriteByte(st->reg->s0_addr, READ_COMMAND | i2c_addr);
+    MPU_WriteByte(st->reg->s0_reg, reg);
     // I2C on, 1 byte
-    MPU_WriteByte(I2C_SLV0_CTRL, 0x81);
-    Delay_ms(1);
+    MPU_WriteByte(st->reg->s0_ctrl, BIT_SLAVE_EN | 1);
+    Delay_ms(10); // experimental minimum with sample rate 200 Hz
     tmp = MPU_ReadByte(EXT_SENS_DATA_00);
     return tmp;
 }
 
-void Mag_Read(uint8_t address, uint8_t *data, uint8_t size) {
+void Compass_Read(uint8_t reg, uint8_t *data, uint8_t size) {
     // I2C address for reading
-    MPU_WriteByte(I2C_SLV0_ADDR, READ_COMMAND | AK8963_I2C_ADDRESS);
+    MPU_WriteByte(st->reg->s0_addr, READ_COMMAND | st->chip_cfg.compass_addr);
     // reading from ASAX register
-    MPU_WriteByte(I2C_SLV0_REG, address);
+    MPU_WriteByte(st->reg->s0_reg, reg);
     // Read 3 bytes
-    MPU_WriteByte(I2C_SLV0_CTRL, 0x80 | size);
-    Delay_ms(1);
+    MPU_WriteByte(st->reg->s0_ctrl, BIT_SLAVE_EN | size);
+    Delay_ms(15);
     MPU_Read(EXT_SENS_DATA_00, data, 3);
 }
 
@@ -887,69 +884,55 @@ void Mag_Read(uint8_t address, uint8_t *data, uint8_t size) {
 static int setup_compass(void)
 {
 #ifdef AK89xx_SECONDARY
-    uint8_t data[4], akm_addr;
+    uint8_t data[4], akm_addr, user_ctrl;
 
-    MPU_SetBypass(1);
-
-    /* Find compass. Possible addresses range from 0x0C to 0x0F. */
-    for (akm_addr = 0x0C; akm_addr <= 0x0F; akm_addr++) {
-        data[0] = Mag_ReadByte(AKM_REG_WHOAMI);
-        if (data[0] == AKM_WHOAMI)
-            break;
-    }
-
-    if (akm_addr > 0x0F) {
-        /* TODO: Handle this case in all compass-related functions. */
+    //MPU_SetBypass(1);
+    // Turn auxiliary I2C on
+    user_ctrl = MPU_ReadByte(st->reg->user_ctrl);
+    user_ctrl |= BIT_AUX_IF_EN; 
+    if (MPU_WriteByteAndCheck(st->reg->user_ctrl, user_ctrl)) {
         return -1;
     }
+    Delay_ms(10);
 
+//    /* Find compass. Possible addresses range from 0x0C to 0x0F. */
+//    for (akm_addr = 0x0C; akm_addr <= 0x0F; akm_addr++) {
+//        data[0] = Aux_ReadByte(akm_addr, AKM_REG_WHOAMI);
+//        if (data[0] == AKM_WHOAMI)
+//            break;
+//    }
+
+//    if (akm_addr > 0x0F) {
+//        /* TODO: Handle this case in all compass-related functions. */
+//        return -1;
+//    }
+
+    akm_addr = 0x0c;
     st->chip_cfg.compass_addr = akm_addr;
 
-    Mag_WriteByte(AKM_REG_CNTL, AKM_POWER_DOWN);
-    Delay_ms(1);
-
-    data[0] = AKM_FUSE_ROM_ACCESS;
-    Mag_WriteByte(AKM_REG_CNTL, AKM_FUSE_ROM_ACCESS);
-    Delay_ms(1);
+    Compass_WriteByte(AKM_REG_CNTL, AKM_POWER_DOWN);
+    Delay_ms(10);
+    Compass_WriteByte(AKM_REG_CNTL, AKM_FUSE_ROM_ACCESS);
+    Delay_ms(10);
 
     /* Get sensitivity adjustment data from fuse ROM. */
-    Mag_Read(AKM_REG_ASAX, data, 3);
-    st->chip_cfg.mag_sens_adj[0] = (long)data[0] + 128;
-    st->chip_cfg.mag_sens_adj[1] = (long)data[1] + 128;
-    st->chip_cfg.mag_sens_adj[2] = (long)data[2] + 128;
+    Compass_Read(AKM_REG_ASAX, data, 3);
+    st->chip_cfg.mag_sens_adj[0] = (data[0] - 128)*0.5f / 128.0f + 1.0f;
+    st->chip_cfg.mag_sens_adj[1] = (data[1] - 128)*0.5f / 128.0f + 1.0f;
+    st->chip_cfg.mag_sens_adj[2] = (data[2] - 128)*0.5f / 128.0f + 1.0f;
 
-    data[0] = AKM_POWER_DOWN;
-    Mag_WriteByte(AKM_REG_CNTL, AKM_POWER_DOWN);
-    Delay_ms(1);
+    Compass_WriteByte(AKM_REG_CNTL, AKM_POWER_DOWN);
+    Delay_ms(10);
+    MPU_WriteByte(st->reg->s0_ctrl, ~BIT_SLAVE_EN);
 
-    MPU_SetBypass(0);
-
-    /* Set up master mode, master clock, and ES bit. */
-    MPU_WriteByte(st->reg->i2c_mst, 0x40);
-
-    /* Slave 0 reads from AKM data registers. */
-    MPU_WriteByte(st->reg->s0_addr, BIT_I2C_READ | st->chip_cfg.compass_addr);
-
-    /* Compass reads start at this register. */
-    MPU_WriteByte(st->reg->s0_reg, AKM_REG_ST1);
-
-    /* Enable slave 0, 8-byte reads. */
-    MPU_WriteByte(st->reg->s0_ctrl, BIT_SLAVE_EN | 8);
-
-    /* Slave 1 changes AKM measurement mode. */
-    MPU_WriteByte(st->reg->s1_addr, st->chip_cfg.compass_addr);
-
-    /* AKM measurement mode register. */
-    MPU_WriteByte(st->reg->s1_reg, AKM_REG_CNTL);
-
-    /* Enable slave 1, 1-byte writes. */
-    MPU_WriteByte(st->reg->s1_ctrl, BIT_SLAVE_EN | 1);
-
-    /* Set slave 1 data. */
-    MPU_WriteByte(st->reg->s1_do, AKM_SINGLE_MEASUREMENT);
-
-    /* Trigger slave 0 and slave 1 actions at each sample. */
-    MPU_WriteByte(st->reg->i2c_delay_ctrl, 0x03);
+    //MPU_SetBypass(0);
+    
+    // I2C address for reading
+    MPU_WriteByte(I2C_SLV1_ADDR, READ_COMMAND | AK8963_I2C_ADDRESS);
+    // reading from HXL register
+    MPU_WriteByte(I2C_SLV1_REG, AK8963_HXL);
+    // Read 7 bytes
+    MPU_WriteByte(I2C_SLV1_CTRL, BIT_SLAVE_EN | 7);
 
 #ifdef MPU9150
     /* For the MPU9150, the auxiliary I2C bus needs to be set to VDD. */
@@ -1006,65 +989,6 @@ int MPU_SetBypass(uint8_t bypass_on) {
     return 0;
 }
 
-
-//uint8_t imu_test = 0;
-//void MPU_Init() {
-//    // WHO_AM_I, reset value = 0x71
-//    imu_test = MPU_ReadByte(WHO_AM_I);
-//    
-//    // PLL as clock source
-//    MPU_WriteByte(PWR_MGMT_1, 0x01);
-//    imu_test = MPU_ReadByte(PWR_MGMT_1);
-
-//    // 1000 Hz sample rate, 41 Hz gyro bandwidth
-//    MPU_WriteByte(CONFIG, 0x03);
-//    imu_test = MPU_ReadByte(CONFIG);   
-//    
-//    // divisor = 5, sample rate -> 200 Hz
-//    MPU_WriteByte(SMPLRT_DIV, 0x04);
-//    imu_test = MPU_ReadByte(SMPLRT_DIV);
-//    
-//    // gyro sensitivity - 250 dps
-//    MPU_WriteByte(GYRO_CONFIG, 0x00);
-//    imu_test = MPU_ReadByte(GYRO_CONFIG);
-//    
-//    // accel sensitivity - +-16g
-//    MPU_WriteByte(ACCEL_CONFIG, 0x18);
-//    imu_test = MPU_ReadByte(ACCEL_CONFIG);
-//    
-//    // 41 Hz accel bandwidth, 1000 Hz sample rate
-//    MPU_WriteByte(ACCEL_CONFIG2, 0x03);
-//    imu_test = MPU_ReadByte(ACCEL_CONFIG2);
-//   
-//    // Interrupt implemented by constant level, not pulses
-//    MPU_WriteByte(INT_PIN_CFG, 0x30);
-//    imu_test = MPU_ReadByte(INT_PIN_CFG);
-//    
-//    // Raw data ready interrupt enable
-//    MPU_WriteByte(INT_ENABLE, 0x01);
-//    imu_test = MPU_ReadByte(INT_ENABLE);
-//    
-//    // enable FIFO
-////    MPU_WriteByte(USER_CTRL, 0x40);
-////    imu_test = MPU_ReadByte(USER_CTRL);
-////    
-////    // accel, gyro, temp data to fifo
-////    MPU_WriteByte(FIFO_EN, 0xf8);
-////    imu_test = MPU_ReadByte(FIFO_EN);
-//    
-//    // enable DMP and FIFO
-////    MPU_WriteByte(USER_CTRL, 0xc0);
-////    imu_test = MPU_ReadByte(USER_CTRL);
-////    
-////    // no sensors data to FIFO
-////    MPU_WriteByte(FIFO_EN, 0x00);
-////    imu_test = MPU_ReadByte(FIFO_EN);
-////    
-////    // DMP interrupt enable
-////    MPU_WriteByte(INT_ENABLE, 0x20);
-////    imu_test = MPU_ReadByte(INT_ENABLE);
-//}
-
 void MPU_EXTI_Init() {
     GPIOA->OSPEEDR |= 3 << IMU_INT*2;
     
@@ -1087,6 +1011,7 @@ void EXTI1_IRQHandler() {
         MPU_Read(FIFO_COUNTH, tmp, 2);
         fifo_count = (tmp[0] << 8) | tmp[1];
         if (fifo_count) {
+            MPU_DMA_tx[0] = READ_COMMAND | FIFO_R_W;
             MPU_DMA_Run(MPU_DMA_tx, MPU_DMA_rx, dmp->packet_length + 1);
         }
     }
@@ -1098,6 +1023,8 @@ void swap(float *a, float *b) {
     *b = tmp;
 }
 
+uint8_t compass_data[8];
+
 void DMA1_Stream3_IRQHandler() {
     uint8_t i = 0;
     int16_t tmp = 0;
@@ -1106,7 +1033,21 @@ void DMA1_Stream3_IRQHandler() {
         DMA1_Stream3->CR &= ~DMA_SxCR_EN;
         MPU_NSS_High();
         
-        DMP_ParseFIFOData(MPU_DMA_rx + 1); 
+        if (DMA1_Stream3->M0AR == (uint32_t)MPU_DMA_rx) {
+            DMP_ParseFIFOData(MPU_DMA_rx + 1); 
+            
+            if (st->chip_cfg.sensors & INV_XYZ_COMPASS) {
+                MPU_DMA_tx[0] = READ_COMMAND | EXT_SENS_DATA_00;
+                MPU_DMA_Run(MPU_DMA_tx, compass_data, 8);
+            }
+        } else if (DMA1_Stream3->M0AR == (uint32_t)compass_data) {
+            magField[0] = (compass_data[1] | (compass_data[2] >> 8)) * MAG_SENS * st->chip_cfg.mag_sens_adj[0];
+            magField[1] = (compass_data[3] | (compass_data[6] >> 8)) * MAG_SENS * st->chip_cfg.mag_sens_adj[1];
+            magField[2] = (compass_data[5] | (compass_data[7] >> 8)) * MAG_SENS * st->chip_cfg.mag_sens_adj[2];
+        }
+        
+        
+        
         
 //        for (i = 0; i < 3; i++) {
 //            tmp = (MPU_DMA_rx[2*i+1] << 8) | MPU_DMA_rx[2*i+2];
@@ -1154,9 +1095,9 @@ void Mag_Init() {
     // Enable I2C master
     MPU_WriteByte(USER_CTRL, 0x20);
     
-    Mag_WriteByte(AK8963_CNTL, 0x00); // Power down magnetometer  
+    Compass_WriteByte(AK8963_CNTL, 0x00); // Power down magnetometer  
     Delay_ms(10);   
-    Mag_WriteByte(AK8963_CNTL, 0x0f); // Enter Fuse ROM access mode
+    Compass_WriteByte(AK8963_CNTL, 0x0f); // Enter Fuse ROM access mode
     Delay_ms(10);
     
     // I2C address for reading
@@ -1165,28 +1106,28 @@ void Mag_Init() {
     MPU_WriteByte(I2C_SLV0_REG, AK8963_ASAX);
     // Read 3 bytes
     MPU_WriteByte(I2C_SLV0_CTRL, 0x83);
-    Delay_ms(10);
+    Delay_ms(15);
     MPU_Read(EXT_SENS_DATA_00, tmp, 3);
     
     for (i = 0; i < 3; i++) {
         mag_sens_adj[i] = (tmp[i] - 128)*0.5 / 128.0f + 1.0f;
     }
     
-    Mag_WriteByte(AK8963_CNTL, 0x00); // Power down magnetometer  
+    Compass_WriteByte(AK8963_CNTL, 0x00); // Power down magnetometer  
     Delay_ms(10);
-    
+//    
 
-    Mag_WriteByte(AK8963_CNTL, 0x16); // Continuous measurement mode 2 (100 Hz), 16 bit output
-    Delay_ms(10);
-    
-    // Data ready interrupt waits for external sensor data
-    MPU_WriteByte(I2C_MST_CTRL, 0x40);
-    // I2C address for reading
-    MPU_WriteByte(I2C_SLV0_ADDR, READ_COMMAND | AK8963_I2C_ADDRESS);
-    // reading from HXL register
-    MPU_WriteByte(I2C_SLV0_REG, AK8963_HXL);
-    // Read 7 bytes
-    MPU_WriteByte(I2C_SLV0_CTRL, 0x87);
+////    Mag_WriteByte(AK8963_CNTL, 0x16); // Continuous measurement mode 2 (100 Hz), 16 bit output
+////    Delay_ms(10);
+////    
+////    // Data ready interrupt waits for external sensor data
+////    //MPU_WriteByte(I2C_MST_CTRL, 0x40);
+////    // I2C address for reading
+////    MPU_WriteByte(I2C_SLV0_ADDR, READ_COMMAND | AK8963_I2C_ADDRESS);
+////    // reading from HXL register
+////    MPU_WriteByte(I2C_SLV0_REG, AK8963_HXL);
+////    // Read 7 bytes
+////    MPU_WriteByte(I2C_SLV0_CTRL, 0x87);
 }
 
 /**

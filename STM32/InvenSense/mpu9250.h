@@ -386,7 +386,7 @@ typedef struct {
 #ifdef AK89xx_SECONDARY
     uint16_t compass_sample_rate;
     uint8_t compass_addr;
-    int16_t mag_sens_adj[3];
+    float mag_sens_adj[3];
 #endif
 } MPU_Config;
 
@@ -450,8 +450,6 @@ int MPU_LoadFirmware(uint16_t length, const uint8_t *firmware,
     uint16_t start_addr, uint16_t sample_rate);
 int MPU_SetDMPState(uint8_t enable);
 
-#define DMP_CODE_SIZE           3062
-extern uint8_t dmp_memory[DMP_CODE_SIZE];
-extern uint16_t startAddress;
+void Compass_WriteByte(uint8_t reg, uint8_t data);
 
 #endif

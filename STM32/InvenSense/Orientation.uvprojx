@@ -429,6 +429,26 @@
           <GroupName>Peripherals</GroupName>
           <Files>
             <File>
+              <FileName>dma.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\dma.h</FilePath>
+            </File>
+            <File>
+              <FileName>dma.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\dma.c</FilePath>
+            </File>
+            <File>
+              <FileName>spi.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\spi.h</FilePath>
+            </File>
+            <File>
+              <FileName>spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\spi.c</FilePath>
+            </File>
+            <File>
               <FileName>telemetry.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\telemetry.h</FilePath>
@@ -438,21 +458,26 @@
               <FileType>1</FileType>
               <FilePath>.\telemetry.c</FilePath>
             </File>
-            <File>
-              <FileName>spi.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\spi.c</FilePath>
-            </File>
-            <File>
-              <FileName>dma.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\dma.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
           <GroupName>MPU</GroupName>
           <Files>
+            <File>
+              <FileName>dmp.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\dmp.h</FilePath>
+            </File>
+            <File>
+              <FileName>dmp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\dmp.c</FilePath>
+            </File>
+            <File>
+              <FileName>mpu9250.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mpu9250.h</FilePath>
+            </File>
             <File>
               <FileName>mpu9250.c</FileName>
               <FileType>1</FileType>

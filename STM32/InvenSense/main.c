@@ -61,7 +61,7 @@ int main() {
     MPU_DMA_Init();
     MPU_EXTI_Init();
     
-    res = MPU_SetSensors(INV_XYZ_ACCEL | INV_XYZ_GYRO);
+    res = MPU_SetSensors(INV_XYZ_ACCEL | INV_XYZ_GYRO | INV_XYZ_COMPASS);
 //    res = MPU_ConfigureFIFO(INV_XYZ_ACCEL | INV_XYZ_GYRO);
 
     DMP_SelectDevice(0);

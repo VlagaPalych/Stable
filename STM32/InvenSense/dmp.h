@@ -351,6 +351,8 @@
 #define DINBC4 0xc4
 #define DINBC6 0xc6
 
+#define DMP_CODE_SIZE 3062
+
 typedef struct {
     void (*tap_cb)(unsigned char count, unsigned char direction);
     void (*android_orient_cb)(unsigned char orientation);
