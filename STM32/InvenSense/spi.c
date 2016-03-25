@@ -78,7 +78,7 @@ void MPU_WriteByte(uint8_t address, uint8_t data) {
     MPU_NSS_High();
 }
 
-void MPU_Read(uint8_t address, uint8_t *data, uint8_t size) {
+void MPU_Read(uint8_t address, uint8_t *data, uint16_t size) {
     uint8_t i = 0;
     MPU_NSS_Low();
     data[0] = SPI2_Read(address);

@@ -429,9 +429,14 @@ void Mag_Init(void);
 int MPU_MemWrite(uint16_t mem_addr, uint8_t *data, uint16_t length);
 int MPU_MemRead(uint16_t mem_addr, uint8_t *data, uint16_t length);
 
+int MPU_GetGyroFsr(uint16_t *fsr);
 int MPU_SetGyroFsr(uint16_t fsr);
+int MPU_GetAccelFsr(uint8_t *fsr);
 int MPU_SetAccelFsr(uint16_t fsr);
+int MPU_GetLPF(uint16_t *lpf);
 int MPU_SetLPF(uint16_t lpf);
+
+
 int MPU_SetIntLatched(uint8_t enable);
 int MPU_LowPowerAccelMode(uint8_t rate);
 int MPU_SetSampleRate(uint16_t rate);
@@ -451,5 +456,7 @@ int MPU_LoadFirmware(uint16_t length, const uint8_t *firmware,
 int MPU_SetDMPState(uint8_t enable);
 
 void Compass_WriteByte(uint8_t reg, uint8_t data);
+
+int MPU_RunSelfTest(long *gyro, long *accel);
 
 #endif

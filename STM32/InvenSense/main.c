@@ -43,20 +43,20 @@ void Delay_us(uint16_t us) {
 
 extern uint8_t process;
 int res = 0;
-uint8_t send[4] = {0x21, 0x01, 0xff, 0x83};
-uint8_t recv[4];
+long gyro_self_test[3];
+long accel_self_test[3];
 
 int main() {
 //    QUEST_Init();
     Message_Size = sizeof(Message);
     RCC_Init();
-//    GPIOA->MODER &= ~(3 << 15*2);
-//    GPIOA->MODER |= 1 << 15*2;
 
     SPI2_Init();
     res = MPU_SelectDevice(0);
     MPU_InitStructures();
+    
     res = MPU_Init(NULL);
+    res = MPU_RunSelfTest(gyro_self_test, accel_self_test);
     
     MPU_DMA_Init();
     MPU_EXTI_Init();
@@ -70,11 +70,7 @@ int main() {
     res = DMP_SetFIFORate(200);
     res = MPU_SetDMPState(1);
     res = DMP_EnableFeature(DMP_FEATURE_6X_LP_QUAT | DMP_FEATURE_SEND_CAL_GYRO | DMP_FEATURE_SEND_RAW_ACCEL);
-    
-//    MPU_Init();
-//    Mag_Init();
-
-    
+     
     USART1_Init();
     Telemetry_DMA_Init();
 
