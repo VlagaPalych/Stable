@@ -489,7 +489,7 @@ extern float euler[3];
 
 extern Message message;
 
-static void quaternionToEuler(Quat *q, float* x, float* y, float* z )
+void quaternionToEuler(Quat *q, float* x, float* y, float* z )
 {
     float sqy, sqz, sqw, test;
         sqy = q->v[1] * q->v[1];
@@ -518,53 +518,42 @@ static void quaternionToEuler(Quat *q, float* x, float* y, float* z )
         }
 }
 
+extern MPU_State *st;
 void DMP_ParseFIFOData(uint8_t *fifo_data) {
-    int ii = 0;
+    int index = 0;
+    uint8_t i = 0;
+    int32_t tmp = 0;
     
         /* Parse DMP packet. */
     if (dmp->feature_mask & (DMP_FEATURE_LP_QUAT | DMP_FEATURE_6X_LP_QUAT)) {
-        quat_data[0] = ((int32_t)fifo_data[0] << 24) | ((int32_t)fifo_data[1] << 16) |
-            ((int32_t)fifo_data[2] << 8) | fifo_data[3];
-        quat_data[1] = ((int32_t)fifo_data[4] << 24) | ((int32_t)fifo_data[5] << 16) |
-            ((int32_t)fifo_data[6] << 8) | fifo_data[7];
-        quat_data[2] = ((int32_t)fifo_data[8] << 24) | ((int32_t)fifo_data[9] << 16) |
-            ((int32_t)fifo_data[10] << 8) | fifo_data[11];
-        quat_data[3] = ((int32_t)fifo_data[12] << 24) | ((int32_t)fifo_data[13] << 16) |
-            ((int32_t)fifo_data[14] << 8) | fifo_data[15];
-        
+        for (i = 0; i < 4; i++) {
+            tmp = ((int32_t)fifo_data[4*i] << 24) | ((int32_t)fifo_data[4*i+1] << 16) |
+                    ((int32_t)fifo_data[4*i+2] << 8) | fifo_data[4*i+3];
+            quat_data[i] = tmp;
+        }
         orientation.w = quat_data[0] / QUAT_SENS;
-        orientation.v[0] = quat_data[1] / QUAT_SENS;
-        orientation.v[1] = quat_data[2] / QUAT_SENS;
-        orientation.v[2] = quat_data[3] / QUAT_SENS;
-        ii += 16;
+        for (i = 0; i < 3; i++) {
+            orientation.v[i] = quat_data[i+1] / QUAT_SENS;
+        }
+        index += 16;
     }
     
     if (dmp->feature_mask & DMP_FEATURE_SEND_RAW_ACCEL) {
-        accel_data[0] = ((int16_t)fifo_data[ii+0] << 8) | fifo_data[ii+1];
-        accel_data[1] = ((int16_t)fifo_data[ii+2] << 8) | fifo_data[ii+3];
-        accel_data[2] = ((int16_t)fifo_data[ii+4] << 8) | fifo_data[ii+5];
-        
-        accel[0] = accel_data[0] / ACCEL_SENS;
-        accel[1] = accel_data[1] / ACCEL_SENS;
-        accel[2] = accel_data[2] / ACCEL_SENS;
-        ii += 6;
+        for (i = 0; i < 3; i++) {
+            tmp = (int16_t)(((int16_t)fifo_data[index+2*i] << 8) | fifo_data[index+2*i+1]);
+            accel[i] = tmp / st->chip_cfg.accel_sens;
+        }
+        index += 6;
     }
 
     if (dmp->feature_mask & DMP_FEATURE_SEND_ANY_GYRO) {
-        gyro_data[0] = ((int16_t)fifo_data[ii+0] << 8) | fifo_data[ii+1];
-        gyro_data[1] = ((int16_t)fifo_data[ii+2] << 8) | fifo_data[ii+3];
-        gyro_data[2] = ((int16_t)fifo_data[ii+4] << 8) | fifo_data[ii+5];
-        
-        angleRate[0] = gyro_data[0] / GYRO_SENS;
-        angleRate[1] = gyro_data[1] / GYRO_SENS;
-        angleRate[2] = gyro_data[2] / GYRO_SENS;
-        ii += 6;
+        for (i = 0; i < 3; i++) {
+            tmp = (int16_t)(((int16_t)fifo_data[index+2*i] << 8) | fifo_data[index+2*i+1]);
+            angleRate[i] = tmp / st->chip_cfg.gyro_sens;
+        }
+        index += 6;
     }
     
-    //Quat_ToEuler(orientation, euler);
-    quaternionToEuler(&orientation, &euler[0], &euler[1], &euler[2]);
-    radians_to_degrees(euler);
-    
-    memcpy(message.euler, euler, 3 * sizeof(euler[0]));
-    Telemetry_Send(&message);
+
+    //quaternionToEuler(&orientation, &euler[0], &euler[1], &euler[2]);
 }

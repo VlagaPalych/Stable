@@ -78,7 +78,7 @@ BoardConsole::BoardConsole(QWidget *parent)
 	//connect(ui.turnoffAngleButton, SIGNAL(clicked()), SLOT(handleTurnoffAngleButton()));
 	//connect(ui.maxVelButton, SIGNAL(clicked()), SLOT(handleMaxVelButton()));
 
-	//connect(ui.turnUselessCheckBox, SIGNAL(clicked()), SLOT(handleTurnUselessCheckBox()));
+	connect(ui.turnUselessCheckBox, SIGNAL(clicked()), SLOT(handleTurnUselessCheckBox()));
 	//connect(ui.gyroRecalibrationCheckBox, SIGNAL(clicked()), SLOT(handleGyroRecalibrationCheckBox()));
 	//connect(ui.tranquilityButton, SIGNAL(clicked()), SLOT(handleTranquilityButton()));
 	//connect(ui.pwmStepButton, SIGNAL(clicked()), SLOT(handlePwmStepButton()));

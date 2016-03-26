@@ -64,6 +64,7 @@ void USART1_Send(uint8_t data) {
     USART1->DR = data; 
 }
 
+extern uint8_t dmp_algorithm;
 
 void USART1_IRQHandler() {
     if (USART1->SR & USART_SR_RXNE) {
@@ -72,6 +73,8 @@ void USART1_IRQHandler() {
         
         if (received == 'h') {
             telemetry_on ^= 1;
+        } else if (received == 't') {
+            dmp_algorithm ^= 1;
         }
     }
 }

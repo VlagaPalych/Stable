@@ -387,6 +387,7 @@ int MPU_SetGyroFsr(uint16_t fsr) {
 
     if (st->chip_cfg.gyro_fsr == (data >> 3))
         return 0;
+    st->chip_cfg.gyro_sens = (float)0xffff / 2 / fsr;
     if (MPU_WriteByteAndCheck(st->reg->gyro_cfg, data)) {
         return -3;
     }
@@ -452,6 +453,7 @@ int MPU_SetAccelFsr(uint16_t fsr) {
 
     if (st->chip_cfg.accel_fsr == (data >> 3))
         return 0;
+    st->chip_cfg.accel_sens = (float)0xffff / 2 / fsr;
     if (MPU_WriteByteAndCheck(st->reg->accel_cfg, data)) {
         return -3;
     }
@@ -1160,7 +1162,14 @@ void swap(float *a, float *b) {
     *b = tmp;
 }
 
+#include "telemetry.h"
+#include "extra_math.h"
 uint8_t compass_data[8];
+float base_euler[3];
+extern float euler[3];
+uint8_t dmp_algorithm = 0;
+
+extern Quat orientation;
 
 void DMA1_Stream3_IRQHandler() {
     uint8_t i = 0;
@@ -1181,48 +1190,45 @@ void DMA1_Stream3_IRQHandler() {
             magField[0] = (compass_data[1] | (compass_data[2] >> 8)) * MAG_SENS * st->chip_cfg.mag_sens_adj[0];
             magField[1] = (compass_data[3] | (compass_data[6] >> 8)) * MAG_SENS * st->chip_cfg.mag_sens_adj[1];
             magField[2] = (compass_data[5] | (compass_data[7] >> 8)) * MAG_SENS * st->chip_cfg.mag_sens_adj[2];
+            
+            magField[2] = -magField[2];
+            swap(&magField[0], &magField[1]); 
+            
+            angleRate[0] = -angleRate[0];
+            angleRate[1] = -angleRate[1];
+            angleRate[2] = -angleRate[2];
+            
+            if (meas1) {
+                meas1 = 0;
+                if (dmp_algorithm) {
+                    Quat_ToEuler(orientation, euler);
+                    radians_to_degrees(euler);
+                    memcpy(base_euler, euler, 3*sizeof(euler[0]));
+                } 
+                memcpy(w1, accel, VECT_SIZE*sizeof(float));
+                memcpy(w2, magField, VECT_SIZE*sizeof(float));
+                
+                Vect_Norm(w1);
+                Vect_Norm(w2);
+            } else {
+                if (dmp_algorithm) {
+                    Quat_ToEuler(orientation, euler);
+                    radians_to_degrees(euler);
+                    euler[0] -= base_euler[0];
+                    euler[1] -= base_euler[1];
+                    euler[2] -= base_euler[2];
+                    memcpy(message.euler, euler, 3 * sizeof(euler[0]));
+                    Telemetry_Send(&message);
+                } else {
+                    process = 1;
+                    memcpy(v1, accel, VECT_SIZE*sizeof(float));
+                    memcpy(v2, magField, VECT_SIZE*sizeof(float));
+                    
+                    Vect_Norm(v1);
+                    Vect_Norm(v2);
+                }
+            }
         }
-        
-        
-        
-        
-//        for (i = 0; i < 3; i++) {
-//            tmp = (MPU_DMA_rx[2*i+1] << 8) | MPU_DMA_rx[2*i+2];
-//            accel[i] = tmp / ACCEL_SENSITIVITY;
-//        }
-        
-//        tmp = (MPU_DMA_rx[7] << 8) | MPU_DMA_rx[8];
-//        temp = tmp / TEMP_SENSITIBITY + TEMP_OFFSET;
-        
-//        for (i = 0; i < 3; i++) {
-//            tmp = (MPU_DMA_rx[2*i+7] << 8) | MPU_DMA_rx[2*i+8];
-//            angleRate[i] = tmp / GYRO_SENSITIVITY; // for QUEST algorithm
-//        }
-        
-        
-        
-//        for (i = 0; i < 3; i++) {
-//            tmp = MPU_DMA_rx[2*i+15] | (MPU_DMA_rx[2*i+16] << 8);
-//            magField[i] = tmp * MAG_SENSITIVITY * mag_sens_adj[i];
-//        }
-//        magField[2] = -magField[2];
-//        swap(&magField[0], &magField[1]);  
-        
-//        if (meas1) {
-//            meas1 = 0;
-//            memcpy(w1, accel, VECT_SIZE*sizeof(float));
-//            memcpy(w2, magField, VECT_SIZE*sizeof(float));
-//            
-//            Vect_Norm(w1);
-//            Vect_Norm(w2);
-//        } else {
-//            process = 1;
-//            memcpy(v1, accel, VECT_SIZE*sizeof(float));
-//            memcpy(v2, magField, VECT_SIZE*sizeof(float));
-//            
-//            Vect_Norm(v1);
-//            Vect_Norm(v2);
-//        }
     }
 }
 

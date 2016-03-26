@@ -347,8 +347,10 @@ typedef struct {
 typedef struct {
     /* Matches gyro_cfg >> 3 & 0x03 */
     uint8_t gyro_fsr;
+    float gyro_sens;
     /* Matches accel_cfg >> 3 & 0x03 */
     uint8_t accel_fsr;
+    float accel_sens;
     /* Enabled sensors. Uses same masks as fifo_en, NOT pwr_mgmt_2. */
     uint8_t sensors;
     /* Matches config register. */

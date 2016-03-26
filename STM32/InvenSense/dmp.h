@@ -2,6 +2,8 @@
 #define DMP_H
 
 #include "stdint.h"
+#include "extra_math.h"
+void quaternionToEuler(Quat *q, float* x, float* y, float* z );
 
 // Known MPU9250 registers concerning DMP
 #define BANK_SEL                0x6d

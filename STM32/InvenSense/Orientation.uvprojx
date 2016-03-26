@@ -359,13 +359,13 @@
             <wLevel>2</wLevel>
             <uThumb>0</uThumb>
             <uSurpInc>0</uSurpInc>
-            <uC99>0</uC99>
+            <uC99>1</uC99>
             <useXO>0</useXO>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define>ARM_MATH_CM4, __FPU_PRESENT</Define>
               <Undefine></Undefine>
-              <IncludePath></IncludePath>
+              <IncludePath>.\mpl;.\include;.\mllite</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -398,7 +398,7 @@
             <ScatterFile></ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
-            <Misc></Misc>
+            <Misc>--inline</Misc>
             <LinkerInputFile></LinkerInputFile>
             <DisabledWarnings></DisabledWarnings>
           </LDads>
@@ -482,6 +482,221 @@
               <FileName>mpu9250.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\mpu9250.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>include</GroupName>
+          <Files>
+            <File>
+              <FileName>mlinclude.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\include\mlinclude.h</FilePath>
+            </File>
+            <File>
+              <FileName>mlmath.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\include\mlmath.h</FilePath>
+            </File>
+            <File>
+              <FileName>mlos.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\include\mlos.h</FilePath>
+            </File>
+            <File>
+              <FileName>mltypes.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\include\mltypes.h</FilePath>
+            </File>
+            <File>
+              <FileName>mpu.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\include\mpu.h</FilePath>
+            </File>
+            <File>
+              <FileName>stdint_invensense.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\include\stdint_invensense.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>mlite</GroupName>
+          <Files>
+            <File>
+              <FileName>data_builder.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\mllite\data_builder.c</FilePath>
+            </File>
+            <File>
+              <FileName>data_builder.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mllite\data_builder.h</FilePath>
+            </File>
+            <File>
+              <FileName>hal_outputs.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\mllite\hal_outputs.c</FilePath>
+            </File>
+            <File>
+              <FileName>hal_outputs.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mllite\hal_outputs.h</FilePath>
+            </File>
+            <File>
+              <FileName>invensense.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mllite\invensense.h</FilePath>
+            </File>
+            <File>
+              <FileName>message_layer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\mllite\message_layer.c</FilePath>
+            </File>
+            <File>
+              <FileName>message_layer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mllite\message_layer.h</FilePath>
+            </File>
+            <File>
+              <FileName>ml_math_func.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\mllite\ml_math_func.c</FilePath>
+            </File>
+            <File>
+              <FileName>ml_math_func.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mllite\ml_math_func.h</FilePath>
+            </File>
+            <File>
+              <FileName>mlmath.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\mllite\mlmath.c</FilePath>
+            </File>
+            <File>
+              <FileName>mpl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\mllite\mpl.c</FilePath>
+            </File>
+            <File>
+              <FileName>mpl.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mllite\mpl.h</FilePath>
+            </File>
+            <File>
+              <FileName>results_holder.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\mllite\results_holder.c</FilePath>
+            </File>
+            <File>
+              <FileName>results_holder.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mllite\results_holder.h</FilePath>
+            </File>
+            <File>
+              <FileName>start_manager.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\mllite\start_manager.c</FilePath>
+            </File>
+            <File>
+              <FileName>start_manager.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mllite\start_manager.h</FilePath>
+            </File>
+            <File>
+              <FileName>storage_manager.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\mllite\storage_manager.c</FilePath>
+            </File>
+            <File>
+              <FileName>storage_manager.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mllite\storage_manager.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>mpl</GroupName>
+          <Files>
+            <File>
+              <FileName>accel_auto_cal.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mpl\accel_auto_cal.h</FilePath>
+            </File>
+            <File>
+              <FileName>compass_vec_cal.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mpl\compass_vec_cal.h</FilePath>
+            </File>
+            <File>
+              <FileName>fast_no_motion.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mpl\fast_no_motion.h</FilePath>
+            </File>
+            <File>
+              <FileName>fusion_9axis.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mpl\fusion_9axis.h</FilePath>
+            </File>
+            <File>
+              <FileName>gyro_tc.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mpl\gyro_tc.h</FilePath>
+            </File>
+            <File>
+              <FileName>heading_from_gyro.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mpl\heading_from_gyro.h</FilePath>
+            </File>
+            <File>
+              <FileName>inv_math.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mpl\inv_math.h</FilePath>
+            </File>
+            <File>
+              <FileName>invensense_adv.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mpl\invensense_adv.h</FilePath>
+            </File>
+            <File>
+              <FileName>libmpllib.a</FileName>
+              <FileType>4</FileType>
+              <FilePath>.\mpl\libmpllib.a</FilePath>
+            </File>
+            <File>
+              <FileName>mag_disturb.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mpl\mag_disturb.h</FilePath>
+            </File>
+            <File>
+              <FileName>motion_no_motion.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mpl\motion_no_motion.h</FilePath>
+            </File>
+            <File>
+              <FileName>no_gyro_fusion.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mpl\no_gyro_fusion.h</FilePath>
+            </File>
+            <File>
+              <FileName>quaternion_supervisor.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mpl\quaternion_supervisor.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>stm32L</GroupName>
+          <Files>
+            <File>
+              <FileName>log_stm32.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\stm32L\log_stm32.c</FilePath>
+            </File>
+            <File>
+              <FileName>packet.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\stm32L\packet.h</FilePath>
             </File>
           </Files>
         </Group>

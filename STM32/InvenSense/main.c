@@ -6,7 +6,12 @@
 #include "telemetry.h"
 #include "spi.h"
 #include "dma.h"
+
+#include "mpl.h"
+#include "quaternion_supervisor.h"
 #include "fusion_9axis.h"
+#include "fast_no_motion.h"
+#include "gyro_tc.h"
 
 extern float angleRate[3];
 extern float accel[3];
@@ -41,13 +46,16 @@ void Delay_us(uint16_t us) {
     while ((TIM6->CR1 & TIM_CR1_CEN)!=0);
 }
 
+#include "dmp.h"
 extern uint8_t process;
 int res = 0;
 long gyro_self_test[3];
 long accel_self_test[3];
 
+unsigned char *mpl_key = (unsigned char*)"eMPL 5.1";
+
 int main() {
-//    QUEST_Init();
+    QUEST_Init();
     Message_Size = sizeof(Message);
     RCC_Init();
 
@@ -56,7 +64,15 @@ int main() {
     MPU_InitStructures();
     
     res = MPU_Init(NULL);
-    res = MPU_RunSelfTest(gyro_self_test, accel_self_test);
+    
+    res = inv_init_mpl();
+    
+    inv_enable_quaternion();
+    inv_enable_9x_sensor_fusion();
+    inv_enable_fast_nomot();
+    inv_enable_gyro_tc();
+    
+    //res = MPU_RunSelfTest(gyro_self_test, accel_self_test);
     
     MPU_DMA_Init();
     MPU_EXTI_Init();
@@ -75,29 +91,30 @@ int main() {
     Telemetry_DMA_Init();
 
     while (1) {
-//        if (process) {
-//            process = 0;
-//            QUEST();          
-//            
-//            degrees_to_radians(angleRate);
-//            memcpy(zk_data, angleRate, VECT_SIZE*sizeof(float));
-//            zk_data[3] = orientation.w;
-//            memcpy(zk_data+VECT_SIZE+1, orientation.v, VECT_SIZE*sizeof(float));
-//            
-//            Kalman();
-//            orientation.w = x_aposteriori_data[3];
-//            memcpy(orientation.v, x_aposteriori_data+VECT_SIZE+1, VECT_SIZE*sizeof(float));
-//            Quat_ToEuler(orientation, euler);
-//            
-//            memcpy(angleRate, x_aposteriori_data, VECT_SIZE*sizeof(float));
-//            angleRate_to_eulerRate(angleRate, euler, eulerRate);
-//            
-//            radians_to_degrees(euler);
-//            radians_to_degrees(eulerRate);
-//            
-//            memcpy(message.euler, euler, 3*sizeof(float));
-//            Telemetry_Send(&message);
+        if (process) {
+            process = 0;
+            QUEST();          
+            
+            degrees_to_radians(angleRate);
+            memcpy(zk_data, angleRate, VECT_SIZE*sizeof(float));
+            zk_data[3] = orientation.w;
+            memcpy(zk_data+VECT_SIZE+1, orientation.v, VECT_SIZE*sizeof(float));
+            
+            Kalman();
+            orientation.w = x_aposteriori_data[3];
+            memcpy(orientation.v, x_aposteriori_data+VECT_SIZE+1, VECT_SIZE*sizeof(float));
+            //quaternionToEuler(&orientation, &euler[0], &euler[1], &euler[2]);
+            Quat_ToEuler(orientation, euler);
+            
+            memcpy(angleRate, x_aposteriori_data, VECT_SIZE*sizeof(float));
+            angleRate_to_eulerRate(angleRate, euler, eulerRate);
+            
+            radians_to_degrees(euler);
+            radians_to_degrees(eulerRate);
+            
+            memcpy(message.euler, euler, 3*sizeof(float));
+            Telemetry_Send(&message);
 
-//        }
+        }
     }
 }
