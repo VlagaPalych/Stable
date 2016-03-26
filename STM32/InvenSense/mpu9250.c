@@ -1695,3 +1695,104 @@ int MPU_RunSelfTest(long *gyro_bias, long *accel_bias) {
 	return result;
 }
 
+/**
+ *  @brief      Read biases to the accel bias 6500 registers.
+ *  This function reads from the MPU6500 accel offset cancellations registers.
+ *  The format are G in +-8G format. The register is initialized with OTP 
+ *  factory trim values.
+ *  @param[in]  accel_bias  returned structure with the accel bias
+ *  @return     0 if successful.
+ */
+int MPU_ReadAccelBias(long *accel_bias) {
+	uint8_t data[6];
+	MPU_Read(XA_OFFSET_H, &data[0], 2);
+    MPU_Read(YA_OFFSET_H, &data[2], 2);
+    MPU_Read(ZA_OFFSET_H, &data[4], 2);
+	accel_bias[0] = ((long)data[0]<<8) | data[1];
+	accel_bias[1] = ((long)data[2]<<8) | data[3];
+	accel_bias[2] = ((long)data[4]<<8) | data[5];
+	return 0;
+}
+
+/**
+ *  @brief      Push biases to the accel bias 6500 registers.
+ *  This function expects biases relative to the current sensor output, and
+ *  these biases will be added to the factory-supplied values. Bias inputs are LSB
+ *  in +-16G format.
+ *  @param[in]  accel_bias  New biases.
+ *  @return     0 if successful.
+ */
+int MPU_SetAccelBias(const long *accel_bias) {
+    uint8_t data[6] = {0, 0, 0, 0, 0, 0};
+    long accel_reg_bias[3] = {0, 0, 0};
+
+    MPU_ReadAccelBias(accel_reg_bias);
+
+    // Preserve bit 0 of factory value (for temperature compensation)
+    accel_reg_bias[0] -= (accel_bias[0] & ~1);
+    accel_reg_bias[1] -= (accel_bias[1] & ~1);
+    accel_reg_bias[2] -= (accel_bias[2] & ~1);
+
+    data[0] = (accel_reg_bias[0] >> 8) & 0xff;
+    data[1] = (accel_reg_bias[0]) & 0xff;
+    data[2] = (accel_reg_bias[1] >> 8) & 0xff;
+    data[3] = (accel_reg_bias[1]) & 0xff;
+    data[4] = (accel_reg_bias[2] >> 8) & 0xff;
+    data[5] = (accel_reg_bias[2]) & 0xff;
+
+    if (MPU_WriteAndCheck(XA_OFFSET_H, &data[0], 2)) {
+        return -1;
+    }
+    if (MPU_WriteAndCheck(YA_OFFSET_H, &data[2], 2)) {
+        return -1;
+    }
+    if (MPU_WriteAndCheck(ZA_OFFSET_H, &data[4], 2)) {
+        return -1;
+    }
+    return 0;
+}
+
+int MPU_ReadGyroBias(long *gyro_bias) {
+	uint8_t data[6];
+	MPU_Read(XG_OFFSET_H, &data[0], 2);
+    MPU_Read(YG_OFFSET_H, &data[2], 2);
+    MPU_Read(ZG_OFFSET_H, &data[4], 2);
+	gyro_bias[0] = ((long)data[0]<<8) | data[1];
+	gyro_bias[1] = ((long)data[2]<<8) | data[3];
+	gyro_bias[2] = ((long)data[4]<<8) | data[5];
+	return 0;
+}
+
+/**
+ *  @brief      Push biases to the gyro bias 6500/6050 registers.
+ *  This function expects biases relative to the current sensor output, and
+ *  these biases will be added to the factory-supplied values. Bias inputs are LSB
+ *  in +-1000dps format.
+ *  @param[in]  gyro_bias  New biases.
+ *  @return     0 if successful.
+ */
+int MPU_SetGyroBias(long *gyro_bias)
+{
+    uint8_t data[6] = {0, 0, 0, 0, 0, 0};
+    uint8_t i=0;
+    for(i = 0; i < 3; i++) {
+    	gyro_bias[i]= (-gyro_bias[i]);
+    }
+    data[0] = (gyro_bias[0] >> 8) & 0xff;
+    data[1] = (gyro_bias[0]) & 0xff;
+    data[2] = (gyro_bias[1] >> 8) & 0xff;
+    data[3] = (gyro_bias[1]) & 0xff;
+    data[4] = (gyro_bias[2] >> 8) & 0xff;
+    data[5] = (gyro_bias[2]) & 0xff;
+    if (MPU_WriteAndCheck(XG_OFFSET_H, &data[0], 2)) {
+        return -1;
+    }
+    if (MPU_WriteAndCheck(YG_OFFSET_H, &data[2], 2)) {
+        return -1;
+    }
+    if (MPU_WriteAndCheck(ZG_OFFSET_H, &data[4], 2)) {
+        return -1;
+    }
+    return 0;
+}
+

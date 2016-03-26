@@ -49,8 +49,9 @@ void Delay_us(uint16_t us) {
 #include "dmp.h"
 extern uint8_t process;
 int res = 0;
-long gyro_self_test[3];
-long accel_self_test[3];
+long gyro_st_bias[3];
+long accel_st_bias[3];
+extern MPU_Test *test;
 
 unsigned char *mpl_key = (unsigned char*)"eMPL 5.1";
 
@@ -66,13 +67,24 @@ int main() {
     res = MPU_Init(NULL);
     
     res = inv_init_mpl();
+    res = MPU_RunSelfTest(gyro_st_bias, accel_st_bias);
+    
+    accel_st_bias[0] = accel_st_bias[0] * (0xffff / 2 / 16) / 65536L; 
+    accel_st_bias[1] = accel_st_bias[1] * (0xffff / 2 / 16) / 65536L; 
+    accel_st_bias[2] = accel_st_bias[2] * (0xffff / 2 / 16) / 65536L; 
+    gyro_st_bias[0] = gyro_st_bias[0] * (0xffff / 2 / 1000) / 65536L; 
+    gyro_st_bias[1] = gyro_st_bias[1] * (0xffff / 2 / 1000) / 65536L; 
+    gyro_st_bias[2] = gyro_st_bias[2] * (0xffff / 2 / 1000) / 65536L; 
+    
+    res = MPU_SetAccelBias(accel_st_bias);
+    MPU_SetGyroBias(gyro_st_bias);
     
     inv_enable_quaternion();
     inv_enable_9x_sensor_fusion();
     inv_enable_fast_nomot();
     inv_enable_gyro_tc();
     
-    //res = MPU_RunSelfTest(gyro_self_test, accel_self_test);
+    
     
     MPU_DMA_Init();
     MPU_EXTI_Init();

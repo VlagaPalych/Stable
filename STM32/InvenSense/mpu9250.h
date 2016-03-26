@@ -461,4 +461,8 @@ void Compass_WriteByte(uint8_t reg, uint8_t data);
 
 int MPU_RunSelfTest(long *gyro, long *accel);
 
+int MPU_ReadGyroBias(long *gyro_bias);
+int MPU_SetAccelBias(const long *accel_bias);
+int MPU_SetAccelBias(const long *accel_bias);
+int MPU_SetGyroBias(long *gyro_bias);
 #endif
