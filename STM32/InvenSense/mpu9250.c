@@ -1164,12 +1164,26 @@ void swap(float *a, float *b) {
 
 #include "telemetry.h"
 #include "extra_math.h"
+#include "data_builder.h"
 uint8_t compass_data[8];
 float base_euler[3];
 extern float euler[3];
 uint8_t dmp_algorithm = 0;
 
 extern Quat orientation;
+
+int get_tick_count(unsigned long *count);
+unsigned long timestamp;
+
+long inv_accel[3];
+short inv_gyro[3];
+long inv_compass[3];
+
+static void parse_raw_accel_gyro(uint8_t *raw_accel_gyro, long *accel, short *gyro) {
+}
+
+static void parse_raw_compass(uint8_t *raw_compass, long *compass) {
+}
 
 void DMA1_Stream3_IRQHandler() {
     uint8_t i = 0;
@@ -1182,6 +1196,9 @@ void DMA1_Stream3_IRQHandler() {
         if (DMA1_Stream3->M0AR == (uint32_t)MPU_DMA_rx) {
             DMP_ParseFIFOData(MPU_DMA_rx + 1); 
             
+            get_tick_count(&timestamp);
+            inv_build_accel(inv_accel, 0, timestamp);
+            inv_build_gyro(inv_gyro, timestamp);
             if (st->chip_cfg.sensors & INV_XYZ_COMPASS) {
                 MPU_DMA_tx[0] = READ_COMMAND | EXT_SENS_DATA_00;
                 MPU_DMA_Run(MPU_DMA_tx, compass_data, 8);
@@ -1190,6 +1207,9 @@ void DMA1_Stream3_IRQHandler() {
             magField[0] = (compass_data[1] | (compass_data[2] >> 8)) * MAG_SENS * st->chip_cfg.mag_sens_adj[0];
             magField[1] = (compass_data[3] | (compass_data[6] >> 8)) * MAG_SENS * st->chip_cfg.mag_sens_adj[1];
             magField[2] = (compass_data[5] | (compass_data[7] >> 8)) * MAG_SENS * st->chip_cfg.mag_sens_adj[2];
+            
+            get_tick_count(&timestamp);
+            inv_build_compass(inv_compass, 0, timestamp);
             
             magField[2] = -magField[2];
             swap(&magField[0], &magField[1]); 

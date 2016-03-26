@@ -12,6 +12,11 @@
 #include "fusion_9axis.h"
 #include "fast_no_motion.h"
 #include "gyro_tc.h"
+#include "compass_vec_cal.h"
+#include "mag_disturb.h"
+#include "data_builder.h"
+
+#include "ml_math_func.h"
 
 extern float angleRate[3];
 extern float accel[3];
@@ -21,6 +26,51 @@ float euler[3];
 float eulerRate[3];
 
 uint8_t Message_Size = 0;
+
+#define TICK_FREQ (1000u)
+
+volatile uint32_t g_ul_ms_ticks=0;
+static volatile uint32_t TimingDelay=0;
+unsigned long idle_time=0;
+extern uint32_t SystemCoreClock; //16000000=16Mhz (original value)
+
+void SysTick_Init() {
+    SystemCoreClockUpdate();                               // Update the system clock variable (might not have been set before)
+                                                           // With this call, the core clock gets set to 56MHz
+    
+	if (SysTick_Config (SystemCoreClock / TICK_FREQ)) {     // Setup SysTick Timer for 1 msec interrupts
+		while (1);                                          // Handle Error
+	}
+}
+
+void mdelay(unsigned long nTime)
+{
+	TimingDelay = nTime;
+	while(TimingDelay != 0);
+}
+
+int get_tick_count(unsigned long *count)
+{
+    count[0] = g_ul_ms_ticks;
+	return 0;
+}
+
+void TimingDelay_Decrement(void)
+{
+	if (TimingDelay != 0x00)
+		TimingDelay--;
+}
+
+void TimeStamp_Increment(void)
+{
+	g_ul_ms_ticks++;
+}
+
+void SysTick_Handler(void)
+{
+  	TimingDelay_Decrement();
+    TimeStamp_Increment();
+}
 
 void RCC_Init() {
     RCC->APB1ENR |= RCC_APB1ENR_SPI2EN | RCC_APB1ENR_TIM6EN;
@@ -52,13 +102,48 @@ int res = 0;
 long gyro_st_bias[3];
 long accel_st_bias[3];
 extern MPU_Test *test;
+extern MPU_State *st;
 
 unsigned char *mpl_key = (unsigned char*)"eMPL 5.1";
+
+struct platform_data_s {
+    signed char orientation[9];
+};
+
+static struct platform_data_s gyro_pdata = {
+    .orientation = { 1, 0, 0,
+                     0, 1, 0,
+                     0, 0, 1}
+};
+
+#if defined MPU9150 || defined MPU9250
+static struct platform_data_s compass_pdata = {
+    .orientation = { 0, 1, 0,
+                     1, 0, 0,
+                     0, 0, -1}
+};
+#define COMPASS_ENABLED 1
+#elif defined AK8975_SECONDARY
+static struct platform_data_s compass_pdata = {
+    .orientation = {-1, 0, 0,
+                     0, 1, 0,
+                     0, 0,-1}
+};
+#define COMPASS_ENABLED 1
+#elif defined AK8963_SECONDARY
+static struct platform_data_s compass_pdata = {
+    .orientation = {-1, 0, 0,
+                     0,-1, 0,
+                     0, 0, 1}
+};
+#define COMPASS_ENABLED 1
+#endif
 
 int main() {
     QUEST_Init();
     Message_Size = sizeof(Message);
     RCC_Init();
+    SysTick_Init();
 
     SPI2_Init();
     res = MPU_SelectDevice(0);
@@ -83,7 +168,10 @@ int main() {
     inv_enable_9x_sensor_fusion();
     inv_enable_fast_nomot();
     inv_enable_gyro_tc();
+    inv_enable_vector_compass_cal();
+    inv_enable_magnetic_disturbance();
     
+    res = inv_start_mpl();
     
     
     MPU_DMA_Init();
@@ -91,6 +179,20 @@ int main() {
     
     res = MPU_SetSensors(INV_XYZ_ACCEL | INV_XYZ_GYRO | INV_XYZ_COMPASS);
 //    res = MPU_ConfigureFIFO(INV_XYZ_ACCEL | INV_XYZ_GYRO);
+
+    inv_set_gyro_sample_rate(1000000L / st->chip_cfg.sample_rate);
+    inv_set_accel_sample_rate(1000000L / st->chip_cfg.sample_rate);
+    inv_set_compass_sample_rate(1000000L / st->chip_cfg.sample_rate);
+    
+    inv_set_gyro_orientation_and_scale(
+            inv_orientation_matrix_to_scalar(gyro_pdata.orientation),
+            (long)st->chip_cfg.gyro_fsr<<15);
+    inv_set_accel_orientation_and_scale(
+            inv_orientation_matrix_to_scalar(gyro_pdata.orientation),
+            (long)st->chip_cfg.accel_fsr<<15);
+    inv_set_compass_orientation_and_scale(
+            inv_orientation_matrix_to_scalar(compass_pdata.orientation),
+            (long)st->hw->compass_fsr<<15);
 
     DMP_SelectDevice(0);
     DMP_InitStructures();
