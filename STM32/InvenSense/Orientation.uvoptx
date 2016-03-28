@@ -197,59 +197,79 @@
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>gyro_st_bias,0x0A</ItemText>
+          <ItemText>inv_accel,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>accel_st_bias,0x0A</ItemText>
+          <ItemText>inv_gyro,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>accel</ItemText>
+          <ItemText>inv_quat,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>magField</ItemText>
+          <ItemText>inv_compass,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>angleRate</ItemText>
+          <ItemText>MPU_DMA_rx</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>1</WinNumber>
-          <ItemText>st</ItemText>
-        </Ww>
-        <Ww>
-          <count>6</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>test</ItemText>
+          <ItemText>sensors</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
         <Ww>
           <count>0</count>
           <WinNumber>2</WinNumber>
-          <ItemText>accel_reg_bias,0x0A</ItemText>
+          <ItemText>mpl_accel,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>2</WinNumber>
-          <ItemText>accel_bias[0],0x0A</ItemText>
+          <ItemText>mpl_gyro,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>2</WinNumber>
-          <ItemText>accel_bias[1],0x0A</ItemText>
+          <ItemText>mpl_compass,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>2</WinNumber>
-          <ItemText>accel_bias[2],0x0A</ItemText>
+          <ItemText>sensors,0x0A</ItemText>
+        </Ww>
+        <Ww>
+          <count>4</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>sensitivity</ItemText>
+        </Ww>
+        <Ww>
+          <count>5</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>st</ItemText>
+        </Ww>
+        <Ww>
+          <count>6</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>euler</ItemText>
+        </Ww>
+        <Ww>
+          <count>7</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>telemetry_on</ItemText>
+        </Ww>
+        <Ww>
+          <count>8</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>message</ItemText>
         </Ww>
       </WatchWindow2>
       <Tracepoint>
@@ -289,6 +309,10 @@
           <WinId>35902</WinId>
         </Entry>
         <Entry>
+          <Name>System Viewer\DMA2</Name>
+          <WinId>35900</WinId>
+        </Entry>
+        <Entry>
           <Name>System Viewer\GPIOA</Name>
           <WinId>35903</WinId>
         </Entry>
@@ -299,6 +323,10 @@
         <Entry>
           <Name>System Viewer\SPI2</Name>
           <WinId>35905</WinId>
+        </Entry>
+        <Entry>
+          <Name>System Viewer\USART1</Name>
+          <WinId>35901</WinId>
         </Entry>
       </SystemViewers>
     </TargetOption>
@@ -1031,6 +1059,40 @@
       <bDave2>0</bDave2>
       <PathWithFileName>.\stm32L\packet.h</PathWithFileName>
       <FilenameWithoutPath>packet.h</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+  </Group>
+
+  <Group>
+    <GroupName>eMPL</GroupName>
+    <tvExp>1</tvExp>
+    <tvExpOptDlg>0</tvExpOptDlg>
+    <cbSel>0</cbSel>
+    <RteFlg>0</RteFlg>
+    <File>
+      <GroupNumber>8</GroupNumber>
+      <FileNumber>53</FileNumber>
+      <FileType>1</FileType>
+      <tvExp>0</tvExp>
+      <Focus>0</Focus>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <bDave2>0</bDave2>
+      <PathWithFileName>.\eMPL\eMPL_outputs.c</PathWithFileName>
+      <FilenameWithoutPath>eMPL_outputs.c</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>8</GroupNumber>
+      <FileNumber>54</FileNumber>
+      <FileType>5</FileType>
+      <tvExp>0</tvExp>
+      <Focus>0</Focus>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <bDave2>0</bDave2>
+      <PathWithFileName>.\eMPL\eMPL_outputs.h</PathWithFileName>
+      <FilenameWithoutPath>eMPL_outputs.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>

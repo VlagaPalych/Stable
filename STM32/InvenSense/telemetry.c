@@ -86,17 +86,22 @@ void Telemetry_DMA_Init() {
     DMA2_Stream7->PAR = (uint32_t)&(USART1->DR);
     DMA2_Stream7->CR = DMA_SxCR_CHSEL_2 | DMA_SxCR_DIR_0 | DMA_SxCR_MINC | DMA_SxCR_PL | DMA_SxCR_TCIE;
 }
-
+uint8_t completed = 1;
 void Telemetry_DMA_Run() {
-    DMA2_Stream7->M0AR = (uint32_t)(tele);
-    DMA2_Stream7->NDTR = tele_len;
-    DMA2_Stream7->CR |= DMA_SxCR_EN;
+    if (completed) {
+        DMA2_Stream7->M0AR = (uint32_t)(tele);
+        DMA2_Stream7->NDTR = tele_len;
+        DMA2_Stream7->CR |= DMA_SxCR_EN;
+        completed = 0;
+    }
 }
+
 
 void DMA2_Stream7_IRQHandler() {
     if (DMA2->HISR & DMA_HISR_TCIF7) {
         DMA2->HIFCR = DMA_HIFCR_CTCIF7 | DMA_HIFCR_CHTIF7;
         DMA2_Stream7->CR &= ~DMA_SxCR_EN;
+        completed = 1;
     }
 }
 

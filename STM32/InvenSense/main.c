@@ -15,7 +15,7 @@
 #include "compass_vec_cal.h"
 #include "mag_disturb.h"
 #include "data_builder.h"
-
+#include "eMPL_outputs.h"
 #include "ml_math_func.h"
 
 extern float angleRate[3];
@@ -116,34 +116,54 @@ static struct platform_data_s gyro_pdata = {
                      0, 0, 1}
 };
 
-#if defined MPU9150 || defined MPU9250
+//#if defined MPU9150 || defined MPU9250
 static struct platform_data_s compass_pdata = {
     .orientation = { 0, 1, 0,
                      1, 0, 0,
                      0, 0, -1}
 };
-#define COMPASS_ENABLED 1
-#elif defined AK8975_SECONDARY
-static struct platform_data_s compass_pdata = {
-    .orientation = {-1, 0, 0,
-                     0, 1, 0,
-                     0, 0,-1}
-};
-#define COMPASS_ENABLED 1
-#elif defined AK8963_SECONDARY
-static struct platform_data_s compass_pdata = {
-    .orientation = {-1, 0, 0,
-                     0,-1, 0,
-                     0, 0, 1}
-};
-#define COMPASS_ENABLED 1
-#endif
+//#define COMPASS_ENABLED 1
+//#elif defined AK8975_SECONDARY
+//static struct platform_data_s compass_pdata = {
+//    .orientation = {-1, 0, 0,
+//                     0, 1, 0,
+//                     0, 0,-1}
+//};
+//#define COMPASS_ENABLED 1
+//#elif defined AK8963_SECONDARY
+//static struct platform_data_s compass_pdata = {
+//    .orientation = {-1, 0, 0,
+//                     0,-1, 0,
+//                     0, 0, 1}
+//};
+//#define COMPASS_ENABLED 1
+//#endif
+
+extern uint8_t new_data;
+
+long mpl_accel_fixed[3];
+float mpl_accel[3];
+long mpl_gyro_fixed[3];
+float mpl_gyro[3];
+long mpl_compass_fixed[3];
+float mpl_compass[3];
+int8_t accuracy;
+inv_time_t read_timestamp;
+uint8_t i = 0;
+long tmp;
+uint16_t gyro_fsr;
+uint8_t accel_fsr;
+uint16_t compass_fsr;
+long mpl_euler[3];
 
 int main() {
     QUEST_Init();
     Message_Size = sizeof(Message);
     RCC_Init();
     SysTick_Init();
+    
+    GPIOA->MODER &= ~(3 << 15*2);
+    GPIOA->MODER |= 1 << 15*2;
 
     SPI2_Init();
     res = MPU_SelectDevice(0);
@@ -152,25 +172,37 @@ int main() {
     res = MPU_Init(NULL);
     
     res = inv_init_mpl();
-    res = MPU_RunSelfTest(gyro_st_bias, accel_st_bias);
+//    res = MPU_RunSelfTest(gyro_st_bias, accel_st_bias);
+//    
+//    if (res & 0x03) {
+//        for (i = 0; i < 3; i++) {
+//            accel_st_bias[i] *= (0xffff / 2 / 16);
+//            gyro_st_bias[i] *= (0xffff / 2 / 1000);
+//        }
+//        inv_set_accel_bias(accel_st_bias, 3);
+//        inv_set_gyro_bias(gyro_st_bias, 3);
+//        for (i = 0; i < 3; i++) {
+//            accel_st_bias[i] /= 65536L;
+//            gyro_st_bias[i] /= 65536L;
+//        }
+//    } 
+//    // TODO: handle error 
     
-    accel_st_bias[0] = accel_st_bias[0] * (0xffff / 2 / 16) / 65536L; 
-    accel_st_bias[1] = accel_st_bias[1] * (0xffff / 2 / 16) / 65536L; 
-    accel_st_bias[2] = accel_st_bias[2] * (0xffff / 2 / 16) / 65536L; 
-    gyro_st_bias[0] = gyro_st_bias[0] * (0xffff / 2 / 1000) / 65536L; 
-    gyro_st_bias[1] = gyro_st_bias[1] * (0xffff / 2 / 1000) / 65536L; 
-    gyro_st_bias[2] = gyro_st_bias[2] * (0xffff / 2 / 1000) / 65536L; 
+    //res = MPU_SetAccelBias(accel_st_bias);
+    //MPU_SetGyroBias(gyro_st_bias);
     
-    res = MPU_SetAccelBias(accel_st_bias);
-    MPU_SetGyroBias(gyro_st_bias);
+    
+    MPU_SetAccelFsr(2);
+    MPU_SetGyroFsr(2000);
     
     inv_enable_quaternion();
     inv_enable_9x_sensor_fusion();
     inv_enable_fast_nomot();
-    inv_enable_gyro_tc();
+    //inv_enable_gyro_tc();
     inv_enable_vector_compass_cal();
     inv_enable_magnetic_disturbance();
     
+    inv_enable_eMPL_outputs();
     res = inv_start_mpl();
     
     
@@ -180,16 +212,19 @@ int main() {
     res = MPU_SetSensors(INV_XYZ_ACCEL | INV_XYZ_GYRO | INV_XYZ_COMPASS);
 //    res = MPU_ConfigureFIFO(INV_XYZ_ACCEL | INV_XYZ_GYRO);
 
+    MPU_GetGyroFsr(&gyro_fsr);
+    MPU_GetAccelFsr(&accel_fsr);
+
     inv_set_gyro_sample_rate(1000000L / st->chip_cfg.sample_rate);
     inv_set_accel_sample_rate(1000000L / st->chip_cfg.sample_rate);
     inv_set_compass_sample_rate(1000000L / st->chip_cfg.sample_rate);
     
     inv_set_gyro_orientation_and_scale(
             inv_orientation_matrix_to_scalar(gyro_pdata.orientation),
-            (long)st->chip_cfg.gyro_fsr<<15);
+            (long)gyro_fsr<<15);
     inv_set_accel_orientation_and_scale(
             inv_orientation_matrix_to_scalar(gyro_pdata.orientation),
-            (long)st->chip_cfg.accel_fsr<<15);
+            (long)accel_fsr<<15);
     inv_set_compass_orientation_and_scale(
             inv_orientation_matrix_to_scalar(compass_pdata.orientation),
             (long)st->hw->compass_fsr<<15);
@@ -205,30 +240,61 @@ int main() {
     Telemetry_DMA_Init();
 
     while (1) {
-        if (process) {
-            process = 0;
-            QUEST();          
-            
-            degrees_to_radians(angleRate);
-            memcpy(zk_data, angleRate, VECT_SIZE*sizeof(float));
-            zk_data[3] = orientation.w;
-            memcpy(zk_data+VECT_SIZE+1, orientation.v, VECT_SIZE*sizeof(float));
-            
-            Kalman();
-            orientation.w = x_aposteriori_data[3];
-            memcpy(orientation.v, x_aposteriori_data+VECT_SIZE+1, VECT_SIZE*sizeof(float));
-            //quaternionToEuler(&orientation, &euler[0], &euler[1], &euler[2]);
-            Quat_ToEuler(orientation, euler);
-            
-            memcpy(angleRate, x_aposteriori_data, VECT_SIZE*sizeof(float));
-            angleRate_to_eulerRate(angleRate, euler, eulerRate);
-            
-            radians_to_degrees(euler);
-            radians_to_degrees(eulerRate);
-            
-            memcpy(message.euler, euler, 3*sizeof(float));
-            Telemetry_Send(&message);
+//        if (process) {
+//            process = 0;
+//            QUEST();          
+//            
+//            degrees_to_radians(angleRate);
+//            memcpy(zk_data, angleRate, VECT_SIZE*sizeof(float));
+//            zk_data[3] = orientation.w;
+//            memcpy(zk_data+VECT_SIZE+1, orientation.v, VECT_SIZE*sizeof(float));
+//            
+//            Kalman();
+//            orientation.w = x_aposteriori_data[3];
+//            memcpy(orientation.v, x_aposteriori_data+VECT_SIZE+1, VECT_SIZE*sizeof(float));
+//            //quaternionToEuler(&orientation, &euler[0], &euler[1], &euler[2]);
+//            Quat_ToEuler(orientation, euler);
+//            
+//            memcpy(angleRate, x_aposteriori_data, VECT_SIZE*sizeof(float));
+//            angleRate_to_eulerRate(angleRate, euler, eulerRate);
+//            
+//            radians_to_degrees(euler);
+//            radians_to_degrees(eulerRate);
+//            
+//            memcpy(message.euler, euler, 3*sizeof(float));
+//            Telemetry_Send(&message);
 
+//        }
+        if (new_data) {
+            GPIOA->BSRRL |= 1 << 15;
+            new_data = 0;
+            inv_execute_on_data();
+            
+            if (inv_get_sensor_type_accel(mpl_accel_fixed, &accuracy, &read_timestamp)) {
+                for (i = 0; i < 3; i++) {
+                    mpl_accel[i] = mpl_accel_fixed[i] / 65536.0f;
+                }
+            }
+            if (inv_get_sensor_type_gyro(mpl_gyro_fixed, &accuracy, &read_timestamp)) {
+                for (i = 0; i < 3; i++) {
+                    mpl_gyro[i] = mpl_gyro_fixed[i] / 65536.0f;
+                }
+            }
+            if (inv_get_sensor_type_compass(mpl_compass_fixed, &accuracy, &read_timestamp)) {
+                for (i = 0; i < 3; i++) {
+                    mpl_compass[i] = mpl_compass_fixed[i] / 65536.0f;
+                }
+            }
+            if (inv_get_sensor_type_euler(mpl_euler, &accuracy,
+            (inv_time_t*)&read_timestamp)) {
+                for (i = 0; i < 3; i++) {
+                    euler[i] = mpl_euler[i] / 65536.0f;
+                }
+   
+                memcpy(message.euler, euler, 3*sizeof(float));
+                Telemetry_Send(&message);
+            }
+            GPIOA->BSRRH |= 1 << 15;
         }
     }
 }

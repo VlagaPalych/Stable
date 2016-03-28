@@ -1169,85 +1169,110 @@ uint8_t compass_data[8];
 float base_euler[3];
 extern float euler[3];
 uint8_t dmp_algorithm = 0;
-
+uint8_t new_data = 0;
 extern Quat orientation;
 
 int get_tick_count(unsigned long *count);
 unsigned long timestamp;
 
+long inv_quat[4];
 long inv_accel[3];
 short inv_gyro[3];
 long inv_compass[3];
 
-static void parse_raw_accel_gyro(uint8_t *raw_accel_gyro, long *accel, short *gyro) {
+static void parse_quat_accel_gyro(uint8_t *raw_data, long *quat, long *accel, short *gyro) {
+    uint8_t i;
+    int32_t index = 0;
+    if (dmp->feature_mask & (DMP_FEATURE_LP_QUAT | DMP_FEATURE_6X_LP_QUAT)) {
+        for (i = 0; i < 4; i++) {
+            quat[i] = (long)(((long)raw_data[4*i] << 24) | ((long)raw_data[4*i+1] << 16) |
+                    ((long)raw_data[4*i+2] << 8) | raw_data[4*i+3]);
+        }
+        index += 16;
+    }
+    if (dmp->feature_mask & DMP_FEATURE_SEND_RAW_ACCEL) {
+        for (i = 0; i < 3; i++) {
+            accel[i] = (int16_t)(((int16_t)raw_data[index+2*i] << 8) | raw_data[index+2*i+1]);
+        }
+        index += 6;
+    }
+    if (dmp->feature_mask & DMP_FEATURE_SEND_ANY_GYRO) {
+        for (i = 0; i < 3; i++) {
+            gyro[i] = (int16_t)(((int16_t)raw_data[index+2*i] << 8) | raw_data[index+2*i]);
+        }
+    }
 }
 
 static void parse_raw_compass(uint8_t *raw_compass, long *compass) {
+    uint8_t i = 0;
+    int16_t tmp = 0;
+    for (i = 0; i < 3; i++) {
+        compass[i] = (compass_data[2*i] | ((int16_t)compass_data[2*i+1] << 8));
+    }
 }
 
 void DMA1_Stream3_IRQHandler() {
-    uint8_t i = 0;
-    int16_t tmp = 0;
+    
     if (DMA1->LISR & DMA_LISR_TCIF3) {
         DMA1->LIFCR = DMA_LIFCR_CTCIF3 | DMA_LIFCR_CHTIF3;
         DMA1_Stream3->CR &= ~DMA_SxCR_EN;
         MPU_NSS_High();
         
+        get_tick_count(&timestamp);
+        
         if (DMA1_Stream3->M0AR == (uint32_t)MPU_DMA_rx) {
-            DMP_ParseFIFOData(MPU_DMA_rx + 1); 
-            
-            get_tick_count(&timestamp);
+            parse_quat_accel_gyro(MPU_DMA_rx + 1, inv_quat, inv_accel, inv_gyro); // skip quat_data
+            inv_build_quat(inv_quat, 1, timestamp);
             inv_build_accel(inv_accel, 0, timestamp);
             inv_build_gyro(inv_gyro, timestamp);
+            new_data = 1;
+            
             if (st->chip_cfg.sensors & INV_XYZ_COMPASS) {
                 MPU_DMA_tx[0] = READ_COMMAND | EXT_SENS_DATA_00;
                 MPU_DMA_Run(MPU_DMA_tx, compass_data, 8);
             }
         } else if (DMA1_Stream3->M0AR == (uint32_t)compass_data) {
-            magField[0] = (compass_data[1] | (compass_data[2] >> 8)) * MAG_SENS * st->chip_cfg.mag_sens_adj[0];
-            magField[1] = (compass_data[3] | (compass_data[6] >> 8)) * MAG_SENS * st->chip_cfg.mag_sens_adj[1];
-            magField[2] = (compass_data[5] | (compass_data[7] >> 8)) * MAG_SENS * st->chip_cfg.mag_sens_adj[2];
-            
-            get_tick_count(&timestamp);
+            parse_raw_compass(compass_data + 1, inv_compass);
             inv_build_compass(inv_compass, 0, timestamp);
+            new_data = 1;
             
-            magField[2] = -magField[2];
-            swap(&magField[0], &magField[1]); 
-            
-            angleRate[0] = -angleRate[0];
-            angleRate[1] = -angleRate[1];
-            angleRate[2] = -angleRate[2];
-            
-            if (meas1) {
-                meas1 = 0;
-                if (dmp_algorithm) {
-                    Quat_ToEuler(orientation, euler);
-                    radians_to_degrees(euler);
-                    memcpy(base_euler, euler, 3*sizeof(euler[0]));
-                } 
-                memcpy(w1, accel, VECT_SIZE*sizeof(float));
-                memcpy(w2, magField, VECT_SIZE*sizeof(float));
-                
-                Vect_Norm(w1);
-                Vect_Norm(w2);
-            } else {
-                if (dmp_algorithm) {
-                    Quat_ToEuler(orientation, euler);
-                    radians_to_degrees(euler);
-                    euler[0] -= base_euler[0];
-                    euler[1] -= base_euler[1];
-                    euler[2] -= base_euler[2];
-                    memcpy(message.euler, euler, 3 * sizeof(euler[0]));
-                    Telemetry_Send(&message);
-                } else {
-                    process = 1;
-                    memcpy(v1, accel, VECT_SIZE*sizeof(float));
-                    memcpy(v2, magField, VECT_SIZE*sizeof(float));
-                    
-                    Vect_Norm(v1);
-                    Vect_Norm(v2);
-                }
-            }
+//            magField[2] = -magField[2];
+//            swap(&magField[0], &magField[1]); 
+//            
+//            angleRate[0] = -angleRate[0];
+//            angleRate[1] = -angleRate[1];
+//            angleRate[2] = -angleRate[2];
+//            
+//            if (meas1) {
+//                meas1 = 0;
+//                if (dmp_algorithm) {
+//                    Quat_ToEuler(orientation, euler);
+//                    radians_to_degrees(euler);
+//                    memcpy(base_euler, euler, 3*sizeof(euler[0]));
+//                } 
+//                memcpy(w1, accel, VECT_SIZE*sizeof(float));
+//                memcpy(w2, magField, VECT_SIZE*sizeof(float));
+//                
+//                Vect_Norm(w1);
+//                Vect_Norm(w2);
+//            } else {
+//                if (dmp_algorithm) {
+//                    Quat_ToEuler(orientation, euler);
+//                    radians_to_degrees(euler);
+//                    euler[0] -= base_euler[0];
+//                    euler[1] -= base_euler[1];
+//                    euler[2] -= base_euler[2];
+//                    memcpy(message.euler, euler, 3 * sizeof(euler[0]));
+//                    Telemetry_Send(&message);
+//                } else {
+//                    process = 1;
+//                    memcpy(v1, accel, VECT_SIZE*sizeof(float));
+//                    memcpy(v2, magField, VECT_SIZE*sizeof(float));
+//                    
+//                    Vect_Norm(v1);
+//                    Vect_Norm(v2);
+//                }
+//            }
         }
     }
 }

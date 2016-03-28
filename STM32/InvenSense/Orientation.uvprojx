@@ -365,7 +365,7 @@
               <MiscControls></MiscControls>
               <Define>ARM_MATH_CM4, __FPU_PRESENT</Define>
               <Undefine></Undefine>
-              <IncludePath>.\mpl;.\include;.\mllite</IncludePath>
+              <IncludePath>.\mpl;.\include;.\mllite;.\eMPL</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -697,6 +697,21 @@
               <FileName>packet.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\stm32L\packet.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>eMPL</GroupName>
+          <Files>
+            <File>
+              <FileName>eMPL_outputs.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\eMPL\eMPL_outputs.c</FilePath>
+            </File>
+            <File>
+              <FileName>eMPL_outputs.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\eMPL\eMPL_outputs.h</FilePath>
             </File>
           </Files>
         </Group>
