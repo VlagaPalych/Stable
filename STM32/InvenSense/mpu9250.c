@@ -1432,7 +1432,7 @@ static int accel_self_test(long *bias_regular, long *bias_st) {
     int i, result = 0, otp_value_zero = 0;
     float accel_st_al_min, accel_st_al_max;
     float st_shift_cust[3], st_shift_ratio[3], ct_shift_prod[3], accel_offset_max;
-    unsigned char regs[3];
+    uint8_t regs[3];
     
     MPU_Read(SELF_TEST_X_ACCEL, regs, 3);
 
@@ -1450,7 +1450,7 @@ static int accel_self_test(long *bias_regular, long *bias_st) {
 	if (otp_value_zero == 0) {
 		for (i = 0; i < 3; i++) {
 			st_shift_cust[i] = bias_st[i] - bias_regular[i];
-			st_shift_ratio[i] = st_shift_cust[i] / ct_shift_prod[i] - 1.f;
+			st_shift_ratio[i] = st_shift_cust[i] / ct_shift_prod[i];
 			if (fabs(st_shift_ratio[i]) > test->max_accel_var) {
 				result |= 1 << i;	//Error condition
 			}

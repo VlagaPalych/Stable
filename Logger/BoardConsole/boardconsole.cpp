@@ -166,7 +166,7 @@ QString BoardConsole::defineLogFile() {
 		maxLogNumber++;
 		//QString maxAngle = ui.maxAngleLineEdit->text();
 		//QString div = ui.pwm2SpinBox->value() == 2000 ? "" : "div";
-		logFileName = tr("log") + QString::number(maxLogNumber) + tr(".txt");
+		logFileName = dirPath + tr("log") + QString::number(maxLogNumber) + tr(".txt");
 	}
 	return logFileName;
 	
