@@ -3,6 +3,7 @@
 #include <qdir.h>
 #include <qdatetime.h>
 #include "commands.h"
+#include <QMouseEvent>
 
 uint8_t Message_Size = 0;
 
@@ -27,21 +28,6 @@ BoardConsole::BoardConsole(QWidget *parent)
 	connect(ui.clearTelemetryButton, SIGNAL(clicked()), SLOT(handleClearTelemetryButton()));
 
 	connect(ui.telemetryToggleButton, SIGNAL(clicked()), SLOT(handleTelemetryToggleButton()));
-	//connect(ui.HZ25RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
-	//connect(ui.HZ50RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
-	//connect(ui.HZ100RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
-	//connect(ui.HZ800RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
-	//connect(ui.HZ1600RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
-	//connect(ui.HZ3200RadioButton, SIGNAL(clicked()), SLOT(handleAccelButtons()));
-
-	//connect(ui.gyroHZ100RadioButton, SIGNAL(clicked()), SLOT(handleGyroButtons()));
-	//connect(ui.gyroHZ250RadioButton, SIGNAL(clicked()), SLOT(handleGyroButtons()));
-	//connect(ui.gyroHZ500RadioButton, SIGNAL(clicked()), SLOT(handleGyroButtons()));
-	//connect(ui.gyroHZ1000RadioButton, SIGNAL(clicked()), SLOT(handleGyroButtons()));
-
-
-	connect(ui.lowpassFilterCheckBox, SIGNAL(clicked()), SLOT(handleLowpassFilterCheckBox()));
-
 
 	connect(ui.saveToFileCheckBox, SIGNAL(clicked()), SLOT(handleSaveToFileCheckBox()));
 
@@ -49,11 +35,6 @@ BoardConsole::BoardConsole(QWidget *parent)
 	connect(ui.iButton, SIGNAL(clicked()), SLOT(handleIButton()));
 	connect(ui.dButton, SIGNAL(clicked()), SLOT(handleDButton()));
 
-	connect(ui.angleCheckBox, SIGNAL(clicked()), SLOT(handleTelemetryDisplayButtons()));
-	connect(ui.angVelCheckBox, SIGNAL(clicked()), SLOT(handleTelemetryDisplayButtons()));
-	connect(ui.fCheckBox, SIGNAL(clicked()), SLOT(handleTelemetryDisplayButtons()));
-	connect(ui.pwm1CheckBox, SIGNAL(clicked()), SLOT(handleTelemetryDisplayButtons()));
-	connect(ui.pwm2CheckBox, SIGNAL(clicked()), SLOT(handleTelemetryDisplayButtons()));
 
 	connect(ui.pwm1SpinBox, SIGNAL(valueChanged(int)), SLOT(handlePwm1SpinBox(int)));
 	connect(ui.pwm2SpinBox, SIGNAL(valueChanged(int)), SLOT(handlePwm2SpinBox(int)));
@@ -63,10 +44,8 @@ BoardConsole::BoardConsole(QWidget *parent)
 	connect(ui.sineRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
 	connect(ui.expRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
 	connect(ui.noResearchRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
-	connect(ui.simpleRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
 	connect(ui.pidRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
 	connect(ui.operatorRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
-	connect(ui.adjustRadioButton, SIGNAL(clicked()), SLOT(handleResearchButtons()));
 
 	//connect(ui.maxAngleButton, SIGNAL(clicked()), SLOT(handleMaxAngleButton()));
 	//connect(ui.accelDeviationButton, SIGNAL(clicked()), SLOT(handleAccelDeviationButton()));
@@ -74,15 +53,8 @@ BoardConsole::BoardConsole(QWidget *parent)
 	connect(ui.pwm1Slider, SIGNAL(valueChanged(int)), SLOT(handlePwm1Slider(int)));
 	connect(ui.pwm2Slider, SIGNAL(valueChanged(int)), SLOT(handlePwm2Slider(int)));
 
-
-	//connect(ui.turnoffAngleButton, SIGNAL(clicked()), SLOT(handleTurnoffAngleButton()));
-	//connect(ui.maxVelButton, SIGNAL(clicked()), SLOT(handleMaxVelButton()));
-
-	connect(ui.turnUselessCheckBox, SIGNAL(clicked()), SLOT(handleTurnUselessCheckBox()));
-	//connect(ui.gyroRecalibrationCheckBox, SIGNAL(clicked()), SLOT(handleGyroRecalibrationCheckBox()));
-	//connect(ui.tranquilityButton, SIGNAL(clicked()), SLOT(handleTranquilityButton()));
-	//connect(ui.pwmStepButton, SIGNAL(clicked()), SLOT(handlePwmStepButton()));
-	//connect(ui.everyNButton, SIGNAL(clicked()), SLOT(handleEveryNButton()));
+	fillParamsVector();
+	fillListsVector();
 
 	stm = NULL;
 	stmReader = NULL;
@@ -187,6 +159,53 @@ QByteArray BoardConsole::double_number_command(const char c, QString num1, QStri
 	return str.toLatin1();
 }
 
+void BoardConsole::fillParamsVector() {
+	paramCheckBoxes.append(ui.accelX);
+	paramCheckBoxes.append(ui.accelY);
+	paramCheckBoxes.append(ui.accelZ);
+
+	paramCheckBoxes.append(ui.gyroX);
+	paramCheckBoxes.append(ui.gyroY);
+	paramCheckBoxes.append(ui.gyroZ);
+
+	paramCheckBoxes.append(ui.compassX);
+	paramCheckBoxes.append(ui.compassY);
+	paramCheckBoxes.append(ui.compassZ);
+
+	paramCheckBoxes.append(ui.eulerX);
+	paramCheckBoxes.append(ui.eulerY);
+	paramCheckBoxes.append(ui.eulerZ);
+
+	paramCheckBoxes.append(ui.eulerRateX);
+	paramCheckBoxes.append(ui.eulerRateY);
+	paramCheckBoxes.append(ui.eulerRateZ);
+
+	paramCheckBoxes.append(ui.pwm1);
+	paramCheckBoxes.append(ui.pwm2);
+
+	paramCheckBoxes.append(ui.freq1);
+	paramCheckBoxes.append(ui.freq2);
+
+	paramCheckBoxes.append(ui.f);
+
+	foreach (QCheckBox *paramBox, paramCheckBoxes) {
+		connect(paramBox, SIGNAL(pressed()), SLOT(paramPressed()));
+		connect(paramBox, SIGNAL(stateChanged(int)), SLOT(handleParamBoxStateChanged(int)));
+	}
+
+	draggedParam = NULL;
+}
+
+void BoardConsole::fillListsVector() {
+	plotLists.append(ui.plot1list);
+	plotLists.append(ui.plot2list);
+	plotLists.append(ui.plot3list);
+
+	foreach(QListWidget *listWidget, plotLists) {
+		connect(listWidget, SIGNAL(itemChanged(QListWidgetItem *)), SLOT(handlePlotListItemChanged(QListWidgetItem *)));
+	}
+}
+
 void BoardConsole::handleProgramButton() {
 	stm->write(command(PROGRAMMING_MODE));
 }
@@ -282,43 +301,6 @@ void BoardConsole::handleTelemetryToggleButton() {
 	}
 }
 
-//void BoardConsole::handleAccelButtons() {
-//	if (ui.HZ25RadioButton->isChecked()) {
-//		stm->write(command(ACCEL_FREQ_HZ25));
-//	}
-//	else if (ui.HZ50RadioButton->isChecked()) {
-//		stm->write(command(ACCEL_FREQ_HZ50));
-//	}
-//	else if (ui.HZ100RadioButton->isChecked()) {
-//		stm->write(command(ACCEL_FREQ_HZ100));
-//	}
-//	else if (ui.HZ800RadioButton->isChecked())
-//	{
-//		stm->write(command(ACCEL_FREQ_HZ800));
-//	}
-//	else if (ui.HZ1600RadioButton->isChecked()) {
-//		stm->write(command(ACCEL_FREQ_HZ1600));
-//	}
-//	else if (ui.HZ3200RadioButton->isChecked()) {
-//		stm->write(command(ACCEL_FREQ_HZ3200));
-//	}
-//}
-
-//void BoardConsole::handleGyroButtons() {
-//	if (ui.gyroHZ100RadioButton->isChecked()) {
-//		stm->write(command(GYRO_FREQ_HZ100));
-//	}
-//	else if (ui.gyroHZ250RadioButton->isChecked()) {
-//		stm->write(command(GYRO_FREQ_HZ250));
-//	}
-//	else if (ui.gyroHZ500RadioButton->isChecked()) {
-//		stm->write(command(GYRO_FREQ_HZ500));
-//	}
-//	else if (ui.gyroHZ1000RadioButton->isChecked()) {
-//		stm->write(command(GYRO_FREQ_HZ1000));
-//	}
-//}
-
 void Message_ToByteArray(Message *message, uint8_t *a) {
 	uint8_t i = 0, crc = 0;
 	memcpy(a + 1, (uint8_t *)message, Message_Size);
@@ -413,105 +395,6 @@ void BoardConsole::handleFreshMessage(Message msg) {
 	//ui.plot3->replot();
 }
 
-void BoardConsole::handleFreshLine(QString &line) {
-	if (firstMeasurement) {
-		startTime = QDateTime::currentMSecsSinceEpoch();
-		firstMeasurement = false;
-	}
-
-	QStringList numbers = line.split(' ');
-	//qDebug() << numbers;
-
-	if (numbers.size() < 11) return;
-
-	double angle = numbers[0].toDouble() * 180 / 3.14159;
-	double angularVelocity = numbers[1].toDouble() * 180 / 3.14159;
-	double F = numbers[2].toDouble();
-	double pwm1 = numbers[6].toDouble();
-	double pwm2 = numbers[7].toDouble();
-	double count1 = 0; 
-	double count2 = 0;
-	if (numbers[8].toDouble() != 0) {
-		count1 = 14e6 / numbers[8].toDouble();
-	}
-	if (numbers[9].toDouble()) {
-		count2 = 14e6 / numbers[9].toDouble();
-	}
-
-	qint64 time = QDateTime::currentMSecsSinceEpoch() - startTime;
-
-	if (ui.angleCheckBox->isChecked()) {
-		if (angleX.size() == maxSize) {
-			angleX.pop_front();
-			angleY.pop_front();
-		}
-		angleX.append(time);
-		angleY.append(angle);
-		plot1_curves[0]->setSamples(angleX, angleY);
-	} 
-	if (ui.angVelCheckBox->isChecked()) {
-		if (angVelX.size() == maxSize) {
-			angVelX.pop_front();
-			angVelY.pop_front();
-		}
-		angVelX.append(time);
-		angVelY.append(angularVelocity);
-		plot1_curves[1]->setSamples(angVelX, angVelY);
-	}
-
-	if (ui.fCheckBox->isChecked()) {
-		if (fX.size() == maxSize) {
-			fX.pop_front();
-			fY.pop_front();
-		}
-		fX.append(time);
-		fY.append(F);
-		plot2_curves[0]->setSamples(fX, fY);
-	}
-	if (ui.pwm1CheckBox->isChecked()) {
-		if (pwm1X.size() == maxSize) {
-			pwm1X.pop_front();
-			pwm1Y.pop_front();
-		}
-		pwm1X.append(time);
-		pwm1Y.append(pwm1);
-		plot2_curves[1]->setSamples(pwm1X, pwm1Y);
-	}
-	if (ui.pwm2CheckBox->isChecked()) {
-		if (pwm2X.size() == maxSize) {
-			pwm2X.pop_front();
-			pwm2Y.pop_front();
-		}
-		pwm2X.append(time);
-		pwm2Y.append(pwm2);
-		plot2_curves[2]->setSamples(pwm2X, pwm2Y);
-	}
-
-	if (ui.count1CheckBox->isChecked()) {
-		if (count1X.size() == maxSize) {
-			count1X.pop_front();
-			count1Y.pop_front();
-		}
-		count1X.append(time);
-		count1Y.append(count1);
-		plot3_curves[0]->setSamples(count1X, count1Y);
-	}
-	if (ui.count2CheckBox->isChecked()) {
-		if (count2X.size() == maxSize) {
-			count2X.pop_front();
-			count2Y.pop_front();
-		}
-		count2X.append(time);
-		count2Y.append(count2);
-		plot3_curves[1]->setSamples(count2X, count2Y);
-	}
-
-
-	ui.plot1->replot();
-	ui.plot2->replot();
-	ui.plot3->replot();
-}
-
 
 void BoardConsole::handleLowpassFilterCheckBox() {
 	stm->write(command(LOWPASS));
@@ -591,65 +474,84 @@ void BoardConsole::handleResearchButtons() {
 	else if (ui.noResearchRadioButton->isChecked()) {
 		stm->write(command(NO_RESEARCH_SYMBOL));
 	}
-	else if (ui.simpleRadioButton->isChecked()) {
-		stm->write(command(SIMPLE));
-	}
 	else if (ui.pidRadioButton->isChecked()) {
 		stm->write(command(PID));
 	}
 	else if (ui.operatorRadioButton->isChecked()) {
 		stm->write(command(OPERATOR));
 	}
-	else if (ui.adjustRadioButton->isChecked()) {
-		stm->write(command(ADJUST));
+}
+
+void BoardConsole::paramPressed() {
+	QCheckBox *sender = (QCheckBox *)QObject::sender();
+	foreach(QCheckBox *paramBox, paramCheckBoxes) {
+		if (sender == paramBox && paramBox->isChecked()) {
+			draggedParam = paramBox;
+			return;
+		}
 	}
 }
 
-//void BoardConsole::handleMaxAngleButton() {
-//	//handleSaveToFileCheckBox();
-//	//handleSaveToFileCheckBox();
-//	QString maxAngleStr = ui.maxAngleLineEdit->text();
-//	double inRadians = maxAngleStr.toDouble() * 3.14159 / 180;
-//	stm->write(number_command(MAX_ANGLE, QString::number(inRadians)));
-//}
-
-//void BoardConsole::handleAccelDeviationButton() {
-//	QString dfStr = ui.accelDeviationLineEdit->text();
-//	double deviation = tan(dfStr.toDouble()) * tan(dfStr.toDouble());
-//	stm->write(number_command(ACCEL_DEVIATION, QString::number(deviation)));
-//}
-
-//void BoardConsole::handleTurnoffAngleButton() {
-//	QString boundaryAngleStr = ui.turnoffAngleLineEdit->text();
-//	double inRadians = boundaryAngleStr.toDouble() * 3.14159 / 180;
-//	stm->write(number_command(BOUNDARY_ANGLE, QString::number(inRadians)));
-//}
-
-//void BoardConsole::handleMaxVelButton(){
-//	QString maxVel = ui.maxVelLineEdit->text();
-//	double inRadians = maxVel.toDouble() * 3.14159 / 180;
-//	stm->write(number_command(MAX_ANGVEL, QString::number(inRadians)));
-//}
-
-void BoardConsole::handleTurnUselessCheckBox() {
-	stm->write(command(TURN_USELESS));
+void BoardConsole::handleParamBoxStateChanged(int state) {
+	QCheckBox *sender = (QCheckBox *)QObject::sender();
+	foreach(QCheckBox *paramBox, paramCheckBoxes) {
+		if (sender == paramBox) {
+			switch (state) {
+			case Qt::Checked:
+				break;
+			case Qt::Unchecked:
+				stopDisplayParam(paramBox->text());
+				break;
+			}
+		}
+	}
 }
 
-//void BoardConsole::handleGyroRecalibrationCheckBox() {
-//	stm->write(command(GYRO_RECALIBRATION));
-//}
+void BoardConsole::mouseReleaseEvent(QMouseEvent *event) {
+	if (event->button() != Qt::LeftButton) { return; }
+	if (!draggedParam) { return; }
+	QRect listParentRect = ui.visualGroupBox->geometry();
+	QPoint cursor = event->pos();
+	cursor -= listParentRect.topLeft();
+	foreach(QListWidget *list, plotLists) {
+		QRect listRect = list->geometry();
+		if (listRect.contains(cursor)) {
+			QString newItemText = draggedParam->text();
+			QList<QListWidgetItem *> sameItem = list->findItems(newItemText, Qt::MatchFixedString);
+			if (sameItem.empty()) {
+				list->addItem(newItemText);
+				startDisplayParam(newItemText);
+			}
+			break;
+		}
+	}
+	draggedParam = NULL;
+}
 
-//void BoardConsole::handleTranquilityButton() {
-//	QString time = ui.tranquilityLineEdit->text();
-//	stm->write(number_command(TRANQUILITY_TIME, time));
-//}
+void BoardConsole::stopDisplayParam(const QString &paramName) {
+	foreach(QListWidget *list, plotLists) {
+		for (int i = 0; i < list->count(); i++) {
+			QListWidgetItem *item = list->item(i);
+			if (item->text() == paramName) {
+				delete item;
+			}
+		}
+	}
+}
 
-//void BoardConsole::handlePwmStepButton() {
-//	QString step = ui.pwmStepLineEdit->text();
-//	stm->write(number_command(PWM_STEP, step));
-//}
-//
-//void BoardConsole::handleEveryNButton() {
-//	QString n = ui.everyNLineEdit->text();
-//	stm->write(number_command(EVERY_N, n));
-//}
+void BoardConsole::startDisplayParam(const QString &paramName) {
+
+}
+
+void BoardConsole::handlePlotListItemChanged(QListWidgetItem *item) {
+	QListWidget *sender = (QListWidget *)QObject::sender();
+	foreach(QListWidget *list, plotLists) {
+		if (sender == list) {
+			if (item->text() == "") {
+				stopDisplayParam("");
+			} else {
+				startDisplayParam(item->text());
+			}
+		}
+	}
+}

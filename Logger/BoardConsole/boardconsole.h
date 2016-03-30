@@ -24,6 +24,9 @@ private:
 	SerialPortReader *stmReader;
 
 	GLWidget *glwidget;
+	QVector<QCheckBox *> paramCheckBoxes;
+	QCheckBox *draggedParam;
+	QVector<QListWidget *> plotLists;
 
 	QVector<QwtPlotCurve *> plot1_curves;
 	QVector<QwtPlotCurve *> plot2_curves;
@@ -61,17 +64,19 @@ private:
 	QByteArray number_command(const char c, QString number);
 	QByteArray double_number_command(const char c, QString num1, QString num2);
 
+	void fillParamsVector();
+	void fillListsVector();
+
+	void stopDisplayParam(const QString &paramName);
+	void startDisplayParam(const QString &paramName);
+
 private Q_SLOTS:
-void handleProgramButton();
+	void handleProgramButton();
 	void handleConnectButton();
 	void handleStopMotorsButton();
 	void handleCalibrButton();
 	void handleClearTelemetryButton();
 	void handleTelemetryToggleButton();
-	//void handleAccelButtons();
-	//void handleGyroButtons();
-
-	void handleFreshLine(QString &line);
 
 	void handleLowpassFilterCheckBox();
 
@@ -90,21 +95,13 @@ void handleProgramButton();
 	void handlePwm2Slider(int);
 
 	void handleResearchButtons();
-
-	//void handleMaxAngleButton();
-	//void handleAccelDeviationButton();
-	//void handleTurnoffAngleButton();
-	//void handleMaxVelButton();
-
-	void handleTurnUselessCheckBox();
-	//void handleGyroRecalibrationCheckBox();
-	//void handleTranquilityButton();
-
-	//void handlePwmStepButton();
-	//void handleEveryNButton();
 	void handleFreshMessage(Message);
 
 	void handleRotationButton();
+	void paramPressed();
+	void handleParamBoxStateChanged(int state);
+	void mouseReleaseEvent(QMouseEvent * event);
+	void handlePlotListItemChanged(QListWidgetItem *item);
 };
 
 #endif // BOARDCONSOLE_H
