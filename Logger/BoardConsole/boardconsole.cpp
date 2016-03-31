@@ -9,13 +9,17 @@ BoardConsole::BoardConsole(QWidget *parent)
 	: QWidget(parent)
 {
 	ui.setupUi(this);
+	fillParamsVector();
+	fillListsVector();
 	glwidget = NULL;
-
+	stm = NULL;
+	stmReader = NULL;
 	QList<QSerialPortInfo> availablePorts = QSerialPortInfo::availablePorts();
 	foreach(QSerialPortInfo port, availablePorts) {
 		ui.serialComboBox->addItem(port.portName());
 	}
-	ui.serialComboBox->setCurrentText("COM22");
+
+	readSettings();
 
 	connect(ui.rotationButton, SIGNAL(clicked()), SLOT(handleRotationButton()));
 
@@ -51,12 +55,8 @@ BoardConsole::BoardConsole(QWidget *parent)
 	connect(ui.pwm1Slider, SIGNAL(valueChanged(int)), SLOT(handlePwm1Slider(int)));
 	connect(ui.pwm2Slider, SIGNAL(valueChanged(int)), SLOT(handlePwm2Slider(int)));
 
-	paramsBitMask = 0; 
-	fillParamsVector();
-	fillListsVector();
 
-	stm = NULL;
-	stmReader = NULL;
+
 
 	plot1_curves = QVector<QwtPlotCurve *>(2);
 	for (int i = 0; i < plot1_curves.size(); i++) {
@@ -116,6 +116,89 @@ BoardConsole::~BoardConsole() {
 	for (int i = 0; i < 2; i++) {
 		delete plot1_curves[i];
 	}
+	writeSettings();
+}
+
+void BoardConsole::readSettings() {
+	settings = new QSettings("boardconsole.ini", QSettings::IniFormat, this);
+
+	ui.serialComboBox->setCurrentText(settings->value("COM-Port").toString());
+	paramsBitMask = settings->value("ParamsMask").toInt();
+	for (int i = 0; i < paramCheckBoxes.size(); i++) {
+		if (paramsBitMask & (1 << i)) {
+			paramCheckBoxes[i]->setCheckState(Qt::Checked);
+		}
+	}
+	ui.pwm1SpinBox->setValue(settings->value("MinPwm").toInt());
+	ui.pwm2SpinBox->setValue(settings->value("MaxPwm").toInt());
+	ui.researchAmplLineEdit->setText(settings->value("ResearchAmpl").toString());
+	ui.researchFreqLineEdit->setText(settings->value("ResearchFreq").toString());
+	ui.pLineEdit->setText(settings->value("Kp").toString());
+	ui.iLineEdit->setText(settings->value("Ki").toString());
+	ui.dLineEdit->setText(settings->value("Kd").toString());
+
+	int orientMethod = settings->value("OrientMethod").toInt();
+	switch (orientMethod) {
+	case 0:
+		ui.mpl->setChecked(true);
+		break;
+	case 1:
+		ui.dmp->setChecked(true);
+		break;
+	case 2:
+		ui.mine->setChecked(true);
+		break;
+	}
+
+	int plotListsSize = settings->beginReadArray("PlotLists");
+	for (int i = 0; i < plotListsSize; i++) {
+		settings->setArrayIndex(i);
+		QString arrayName = QString("Plot%1").arg(i + 1);
+		int plotISize = settings->beginReadArray(arrayName);
+		for (int j = 0; j < plotISize; j++) {
+			settings->setArrayIndex(j);
+			QString elemName = QString("Param%1").arg(j + 1);
+			QString listItemText = settings->value(elemName).toString();
+			plotLists[i]->addItem(listItemText);
+		}
+		settings->endArray();
+	}
+	settings->endArray();
+}
+
+void BoardConsole::writeSettings() {
+	settings->setValue("COM-Port", ui.serialComboBox->currentText());
+	settings->setValue("ParamsMask", paramsBitMask);
+	settings->setValue("MinPwm", ui.pwm1SpinBox->value());
+	settings->setValue("MaxPwm", ui.pwm2SpinBox->value());
+	settings->setValue("ResearchAmpl", ui.researchAmplLineEdit->text());
+	settings->setValue("ResearchFreq", ui.researchFreqLineEdit->text());
+	settings->setValue("Kp", ui.pLineEdit->text());
+	settings->setValue("Ki", ui.iLineEdit->text());
+	settings->setValue("Kd", ui.dLineEdit->text());
+
+	if (ui.mpl->isChecked()) {
+		settings->setValue("OrientMethod", 0);
+	} else if (ui.dmp->isChecked()) {
+		settings->setValue("OrientMethod", 1);
+	} else if (ui.mine->isChecked()) {
+		settings->setValue("OrientMethod", 2);
+	}
+
+	settings->beginWriteArray("PlotLists");
+	for (int i = 0; i < plotLists.size(); i++) {
+		settings->setArrayIndex(i);
+		QString arrayName = QString("Plot%1").arg(i + 1);
+		settings->beginWriteArray(arrayName);
+		for (int j = 0; j < plotLists[i]->count(); j++) {
+			settings->setArrayIndex(j);
+			QString elemName = QString("Param%1").arg(j + 1);
+			settings->setValue(elemName, plotLists[i]->item(j)->text());
+		}
+		settings->endArray();
+	}
+	settings->endArray();
+	delete settings;
 }
 
 QString BoardConsole::defineLogFile() {
@@ -202,7 +285,10 @@ void BoardConsole::fillListsVector() {
 
 	foreach(QListWidget *listWidget, plotLists) {
 		connect(listWidget, SIGNAL(itemChanged(QListWidgetItem *)), SLOT(handlePlotListItemChanged(QListWidgetItem *)));
+		//new QShortcut(QKeySequence(Qt::Key_Delete), listWidget, SLOT(deleteItem()));
+		
 	}
+	new QShortcut(QKeySequence(Qt::Key_Delete), this, SLOT(deleteListWidgetItems()));
 }
 
 void BoardConsole::handleProgramButton() {
@@ -227,11 +313,12 @@ void BoardConsole::handleConnectButton() {
 	stmReader = new SerialPortReader(stm, logFileName);
 	connect(stmReader, SIGNAL(freshMessage(const Message *)), this, SLOT(handleFreshMessage(const Message *)));
 
-	//STM_Init();
+	STM_Init();
 }
 
 void BoardConsole::STM_Init() {
-	stm->write(command(TURN_EVERYTHING_OFF));
+	//stm->write(command(TURN_EVERYTHING_OFF));
+	applyParamsMask();
 }
 
 void BoardConsole::handleRotationButton() {
@@ -558,6 +645,14 @@ void BoardConsole::handleResearchButtons() {
 	}
 }
 
+void BoardConsole::applyParamsMask() {
+	if (stm) {
+		stmReader->setParamsBitMask(paramsBitMask);
+		QByteArray bitMaskCommand = number_command(PARAMS_BITMASK_SYMBOL, QString::number(paramsBitMask));
+		stm->write(bitMaskCommand);
+	}
+}
+
 void BoardConsole::paramPressed() {
 	QCheckBox *sender = (QCheckBox *)QObject::sender();
 	foreach(QCheckBox *paramBox, paramCheckBoxes) {
@@ -582,9 +677,17 @@ void BoardConsole::handleParamBoxStateChanged(int state) {
 				stopDisplayParam(paramBox->text());
 				break;
 			}
-			stmReader->setParamsBitMask(paramsBitMask);
-			QByteArray bitMaskCommand = number_command(PARAMS_BITMASK_SYMBOL, QString::number(paramsBitMask));
-			stm->write(bitMaskCommand);
+		}
+		applyParamsMask();
+	}
+}
+
+void BoardConsole::deleteListWidgetItems() {
+	foreach(QListWidget *list, plotLists) {
+		if (list->hasFocus()) {
+			foreach(QListWidgetItem *item, list->selectedItems()) {
+				delete item;
+			}
 		}
 	}
 }

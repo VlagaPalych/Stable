@@ -8,6 +8,8 @@
 #include <qwt_plot_curve.h>
 #include <qtimer.h>
 #include "glwidget.h"
+#include "qsettings.h"
+#include "qshortcut.h"
 
 class BoardConsole : public QWidget
 {
@@ -29,6 +31,8 @@ private:
 	QVector<QListWidget *> plotLists;
 
 	quint32 paramsBitMask;
+
+	QSettings *settings;
 
 	QVector<QwtPlotCurve *> plot1_curves;
 	QVector<QwtPlotCurve *> plot2_curves;
@@ -68,9 +72,14 @@ private:
 
 	void fillParamsVector();
 	void fillListsVector();
+	
 
 	void stopDisplayParam(const QString &paramName);
 	void startDisplayParam(const QString &paramName);
+	void applyParamsMask();
+
+	void readSettings();
+	void writeSettings();
 
 private Q_SLOTS:
 	void handleProgramButton();
@@ -102,6 +111,7 @@ private Q_SLOTS:
 	void handleParamBoxStateChanged(int state);
 	void mouseReleaseEvent(QMouseEvent * event);
 	void handlePlotListItemChanged(QListWidgetItem *item);
+	void deleteListWidgetItems();
 };
 
 #endif // BOARDCONSOLE_H

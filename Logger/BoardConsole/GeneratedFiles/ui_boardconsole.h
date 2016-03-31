@@ -72,9 +72,9 @@ public:
     QGroupBox *groupBox_4;
     QHBoxLayout *horizontalLayout_2;
     QPushButton *rotationButton;
-    QRadioButton *radioButton;
-    QRadioButton *radioButton_2;
-    QRadioButton *radioButton_3;
+    QRadioButton *mpl;
+    QRadioButton *dmp;
+    QRadioButton *mine;
     QGroupBox *visualGroupBox;
     QGridLayout *gridLayout_2;
     QListWidget *plot2list;
@@ -134,7 +134,7 @@ public:
     {
         if (BoardConsoleClass->objectName().isEmpty())
             BoardConsoleClass->setObjectName(QStringLiteral("BoardConsoleClass"));
-        BoardConsoleClass->resize(751, 951);
+        BoardConsoleClass->resize(751, 1202);
         QSizePolicy sizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);
@@ -378,26 +378,28 @@ public:
 
         horizontalLayout_2->addWidget(rotationButton);
 
-        radioButton = new QRadioButton(groupBox_4);
-        radioButton->setObjectName(QStringLiteral("radioButton"));
-        sizePolicy.setHeightForWidth(radioButton->sizePolicy().hasHeightForWidth());
-        radioButton->setSizePolicy(sizePolicy);
+        mpl = new QRadioButton(groupBox_4);
+        mpl->setObjectName(QStringLiteral("mpl"));
+        sizePolicy.setHeightForWidth(mpl->sizePolicy().hasHeightForWidth());
+        mpl->setSizePolicy(sizePolicy);
+        mpl->setChecked(true);
 
-        horizontalLayout_2->addWidget(radioButton);
+        horizontalLayout_2->addWidget(mpl);
 
-        radioButton_2 = new QRadioButton(groupBox_4);
-        radioButton_2->setObjectName(QStringLiteral("radioButton_2"));
-        sizePolicy.setHeightForWidth(radioButton_2->sizePolicy().hasHeightForWidth());
-        radioButton_2->setSizePolicy(sizePolicy);
+        dmp = new QRadioButton(groupBox_4);
+        dmp->setObjectName(QStringLiteral("dmp"));
+        sizePolicy.setHeightForWidth(dmp->sizePolicy().hasHeightForWidth());
+        dmp->setSizePolicy(sizePolicy);
+        dmp->setChecked(false);
 
-        horizontalLayout_2->addWidget(radioButton_2);
+        horizontalLayout_2->addWidget(dmp);
 
-        radioButton_3 = new QRadioButton(groupBox_4);
-        radioButton_3->setObjectName(QStringLiteral("radioButton_3"));
-        sizePolicy.setHeightForWidth(radioButton_3->sizePolicy().hasHeightForWidth());
-        radioButton_3->setSizePolicy(sizePolicy);
+        mine = new QRadioButton(groupBox_4);
+        mine->setObjectName(QStringLiteral("mine"));
+        sizePolicy.setHeightForWidth(mine->sizePolicy().hasHeightForWidth());
+        mine->setSizePolicy(sizePolicy);
 
-        horizontalLayout_2->addWidget(radioButton_3);
+        horizontalLayout_2->addWidget(mine);
 
 
         gridLayout_4->addWidget(groupBox_4, 5, 0, 1, 1);
@@ -422,6 +424,8 @@ public:
         plot2list->setDragDropOverwriteMode(true);
         plot2list->setDragDropMode(QAbstractItemView::DragDrop);
         plot2list->setDefaultDropAction(Qt::MoveAction);
+        plot2list->setSelectionMode(QAbstractItemView::MultiSelection);
+        plot2list->setSelectionRectVisible(true);
 
         gridLayout_2->addWidget(plot2list, 1, 1, 1, 1);
 
@@ -433,6 +437,8 @@ public:
         plot3list->setDragDropOverwriteMode(true);
         plot3list->setDragDropMode(QAbstractItemView::DragDrop);
         plot3list->setDefaultDropAction(Qt::MoveAction);
+        plot3list->setSelectionMode(QAbstractItemView::MultiSelection);
+        plot3list->setSelectionRectVisible(true);
 
         gridLayout_2->addWidget(plot3list, 1, 2, 1, 1);
 
@@ -465,6 +471,8 @@ public:
         plot1list->setDragDropOverwriteMode(true);
         plot1list->setDragDropMode(QAbstractItemView::DragDrop);
         plot1list->setDefaultDropAction(Qt::MoveAction);
+        plot1list->setSelectionMode(QAbstractItemView::MultiSelection);
+        plot1list->setSelectionRectVisible(true);
 
         gridLayout_2->addWidget(plot1list, 1, 0, 1, 1);
 
@@ -831,9 +839,9 @@ public:
         programButton->setText(QApplication::translate("BoardConsoleClass", "Program", 0));
         groupBox_4->setTitle(QApplication::translate("BoardConsoleClass", "Orientation", 0));
         rotationButton->setText(QApplication::translate("BoardConsoleClass", "Widget", 0));
-        radioButton->setText(QApplication::translate("BoardConsoleClass", "MPL", 0));
-        radioButton_2->setText(QApplication::translate("BoardConsoleClass", "DMP", 0));
-        radioButton_3->setText(QApplication::translate("BoardConsoleClass", "Mine", 0));
+        mpl->setText(QApplication::translate("BoardConsoleClass", "MPL", 0));
+        dmp->setText(QApplication::translate("BoardConsoleClass", "DMP", 0));
+        mine->setText(QApplication::translate("BoardConsoleClass", "Mine", 0));
         visualGroupBox->setTitle(QApplication::translate("BoardConsoleClass", "Visualization", 0));
         label_7->setText(QApplication::translate("BoardConsoleClass", "Plot 1", 0));
         label_8->setText(QApplication::translate("BoardConsoleClass", "Plot 2", 0));
