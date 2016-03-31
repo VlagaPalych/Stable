@@ -54,6 +54,7 @@ SerialPortReader::SerialPortReader(QSerialPort *serialPort, QString fileName, QO
 {
 	log = NULL;
 	logStream = NULL;
+	paramsBitMask = 0;
 
 	connect(m_serialPort, SIGNAL(readyRead()), SLOT(handleReadyRead()));
 	connect(m_serialPort, SIGNAL(error(QSerialPort::SerialPortError)), SLOT(handleError(QSerialPort::SerialPortError)));
@@ -69,6 +70,51 @@ SerialPortReader::~SerialPortReader()
 		delete logStream;
 	}
 }
+void SerialPortReader::setParamsBitMask(quint32 bitMask) {
+	paramsBitMask = bitMask;
+	messageSize = 2;
+	if (paramsBitMask & BIT_ACCEL_X)
+		messageSize += 2;
+	if (paramsBitMask & BIT_ACCEL_Y)
+		messageSize += 2;
+	if (paramsBitMask & BIT_ACCEL_Z)
+		messageSize += 2;
+	if (paramsBitMask & BIT_GYRO_X)
+		messageSize += 2;
+	if (paramsBitMask & BIT_GYRO_Y)
+		messageSize += 2;
+	if (paramsBitMask & BIT_GYRO_Z)
+		messageSize += 2;
+	if (paramsBitMask & BIT_COMPASS_X)
+		messageSize += 2;
+	if (paramsBitMask & BIT_COMPASS_Y)
+		messageSize += 2;
+	if (paramsBitMask & BIT_COMPASS_Z)
+		messageSize += 2;
+	if (paramsBitMask & BIT_EULER_X)
+		messageSize += 4;
+	if (paramsBitMask & BIT_EULER_Y)
+		messageSize += 4;
+	if (paramsBitMask & BIT_EULER_Z)
+		messageSize += 4;
+	if (paramsBitMask & BIT_EULERRATE_X)
+		messageSize += 4;
+	if (paramsBitMask & BIT_EULERRATE_Y)
+		messageSize += 4;
+	if (paramsBitMask & BIT_EULERRATE_Z)
+		messageSize += 4;
+	if (paramsBitMask & BIT_PWM1)
+		messageSize += 2;
+	if (paramsBitMask & BIT_PWM2)
+		messageSize += 2;
+	if (paramsBitMask & BIT_FREQ1)
+		messageSize += 2;
+	if (paramsBitMask & BIT_FREQ2)
+		messageSize += 2;
+	if (paramsBitMask & BIT_F)
+		messageSize += 4;
+}
+
 
 void SerialPortReader::analyseFileName(QString fileName) {
 	if (fileName.isEmpty()) {
@@ -97,16 +143,15 @@ qint32 errorCounter = 0;
 void SerialPortReader::handleReadyRead()
 {
 	m_readData.append(m_serialPort->readAll());
-	while (m_readData.size() >= Message_Size+2) {
-		QByteArray msgByteArray = m_readData.mid(0, Message_Size + 2);
-		Message msg;
-		if (Message_FromByteArray((uint8_t *)msgByteArray.data(), Message_Size + 2, &msg)) {	
+	while (m_readData.size() >= messageSize) {
+		QByteArray msgByteArray = m_readData.mid(0, messageSize);
+		if (Message_FromByteArray(msgByteArray, paramsBitMask, &msg)) {	
 			if (logStream) {
 				(*logStream) << msg.euler[0] << ' ' << msg.euler[1] << ' ' << msg.euler[2] << endl;
 				qDebug() << msg.euler[0] << ' ' << msg.euler[1] << ' ' << msg.euler[2] << endl;
 			}
-			Q_EMIT freshMessage(msg);
-			m_readData = m_readData.remove(0, Message_Size+2);
+			Q_EMIT freshMessage(&msg);
+			m_readData = m_readData.remove(0, messageSize);
 		}
 		else {
 			errorCounter++;

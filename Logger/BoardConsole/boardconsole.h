@@ -28,6 +28,8 @@ private:
 	QCheckBox *draggedParam;
 	QVector<QListWidget *> plotLists;
 
+	quint32 paramsBitMask;
+
 	QVector<QwtPlotCurve *> plot1_curves;
 	QVector<QwtPlotCurve *> plot2_curves;
 	QVector<QwtPlotCurve *> plot3_curves;
@@ -78,8 +80,6 @@ private Q_SLOTS:
 	void handleClearTelemetryButton();
 	void handleTelemetryToggleButton();
 
-	void handleLowpassFilterCheckBox();
-
 	void handleSaveToFileCheckBox();
 
 	void handlePButton();
@@ -95,7 +95,7 @@ private Q_SLOTS:
 	void handlePwm2Slider(int);
 
 	void handleResearchButtons();
-	void handleFreshMessage(Message);
+	void handleFreshMessage(const Message *);
 
 	void handleRotationButton();
 	void paramPressed();

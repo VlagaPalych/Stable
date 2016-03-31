@@ -22,8 +22,15 @@ extern float angleRate[3];
 extern float accel[3];
 extern float magField[3];
 extern Quat orientation;
+
 float euler[3];
 float eulerRate[3];
+
+uint16_t pwm1;
+uint16_t pwm2;
+uint16_t freq1;
+uint64_t freq2;
+float F;
 
 uint8_t Message_Size = 0;
 
@@ -149,7 +156,7 @@ long mpl_compass_fixed[3];
 float mpl_compass[3];
 int8_t accuracy;
 inv_time_t read_timestamp;
-uint8_t i = 0;
+uint8_t j= 0;
 long tmp;
 uint16_t gyro_fsr;
 uint8_t accel_fsr;
@@ -271,24 +278,24 @@ int main() {
             inv_execute_on_data();
             
             if (inv_get_sensor_type_accel(mpl_accel_fixed, &accuracy, &read_timestamp)) {
-                for (i = 0; i < 3; i++) {
-                    mpl_accel[i] = mpl_accel_fixed[i] / 65536.0f;
+                for (j = 0; j < 3; j++) {
+                    mpl_accel[j] = mpl_accel_fixed[j] / 65536.0f;
                 }
             }
             if (inv_get_sensor_type_gyro(mpl_gyro_fixed, &accuracy, &read_timestamp)) {
-                for (i = 0; i < 3; i++) {
-                    mpl_gyro[i] = mpl_gyro_fixed[i] / 65536.0f;
+                for (j = 0; j < 3; j++) {
+                    mpl_gyro[j] = mpl_gyro_fixed[j] / 65536.0f;
                 }
             }
             if (inv_get_sensor_type_compass(mpl_compass_fixed, &accuracy, &read_timestamp)) {
-                for (i = 0; i < 3; i++) {
-                    mpl_compass[i] = mpl_compass_fixed[i] / 65536.0f;
+                for (j = 0; j < 3; j++) {
+                    mpl_compass[j] = mpl_compass_fixed[j] / 65536.0f;
                 }
             }
             if (inv_get_sensor_type_euler(mpl_euler, &accuracy,
             (inv_time_t*)&read_timestamp)) {
-                for (i = 0; i < 3; i++) {
-                    euler[i] = mpl_euler[i] / 65536.0f;
+                for (j = 0; j < 3; j++) {
+                    euler[j] = mpl_euler[j] / 65536.0f;
                 }
    
                 memcpy(message.euler, euler, 3*sizeof(float));

@@ -1175,12 +1175,16 @@ extern Quat orientation;
 int get_tick_count(unsigned long *count);
 unsigned long timestamp;
 
-long inv_quat[4];
-long inv_accel[3];
-short inv_gyro[3];
-long inv_compass[3];
+long dmp_quat[4];
 
-static void parse_quat_accel_gyro(uint8_t *raw_data, long *quat, long *accel, short *gyro) {
+short raw_accel[3];
+short raw_gyro[3];
+short raw_compass[3];
+
+long raw_accel_long[3];
+long raw_compass_long[3];
+
+static void parse_quat_accel_gyro(uint8_t *raw_data, long *quat, short *accel, short *gyro) {
     uint8_t i;
     int32_t index = 0;
     if (dmp->feature_mask & (DMP_FEATURE_LP_QUAT | DMP_FEATURE_6X_LP_QUAT)) {
@@ -1203,7 +1207,7 @@ static void parse_quat_accel_gyro(uint8_t *raw_data, long *quat, long *accel, sh
     }
 }
 
-static void parse_raw_compass(uint8_t *raw_compass, long *compass) {
+static void parse_compass(uint8_t *raw_compass, short *compass) {
     uint8_t i = 0;
     int16_t tmp = 0;
     for (i = 0; i < 3; i++) {
@@ -1211,8 +1215,14 @@ static void parse_raw_compass(uint8_t *raw_compass, long *compass) {
     }
 }
 
+static void short2long(short *s, long *l, uint16_t size) {
+    uint16_t i;
+    for (i = 0; i < size; i++) {
+        l[i] = (long)s[i];
+    }
+}
+
 void DMA1_Stream3_IRQHandler() {
-    
     if (DMA1->LISR & DMA_LISR_TCIF3) {
         DMA1->LIFCR = DMA_LIFCR_CTCIF3 | DMA_LIFCR_CHTIF3;
         DMA1_Stream3->CR &= ~DMA_SxCR_EN;
@@ -1221,10 +1231,12 @@ void DMA1_Stream3_IRQHandler() {
         get_tick_count(&timestamp);
         
         if (DMA1_Stream3->M0AR == (uint32_t)MPU_DMA_rx) {
-            parse_quat_accel_gyro(MPU_DMA_rx + 1, inv_quat, inv_accel, inv_gyro); // skip quat_data
-            inv_build_quat(inv_quat, 1, timestamp);
-            inv_build_accel(inv_accel, 0, timestamp);
-            inv_build_gyro(inv_gyro, timestamp);
+            parse_quat_accel_gyro(MPU_DMA_rx + 1, dmp_quat, raw_accel, raw_gyro); 
+            
+            inv_build_quat(dmp_quat, 1, timestamp);
+            short2long(raw_accel, raw_accel_long, 3);
+            inv_build_accel(raw_accel_long, 0, timestamp);
+            inv_build_gyro(raw_gyro, timestamp);
             new_data = 1;
             
             if (st->chip_cfg.sensors & INV_XYZ_COMPASS) {
@@ -1232,8 +1244,9 @@ void DMA1_Stream3_IRQHandler() {
                 MPU_DMA_Run(MPU_DMA_tx, compass_data, 8);
             }
         } else if (DMA1_Stream3->M0AR == (uint32_t)compass_data) {
-            parse_raw_compass(compass_data + 1, inv_compass);
-            inv_build_compass(inv_compass, 0, timestamp);
+            parse_compass(compass_data + 1, raw_compass);
+            short2long(raw_accel, raw_compass_long, 3);
+            inv_build_compass(raw_compass_long, 0, timestamp);
             new_data = 1;
             
 //            magField[2] = -magField[2];

@@ -5,13 +5,11 @@
 #include "commands.h"
 #include <QMouseEvent>
 
-uint8_t Message_Size = 0;
-
 BoardConsole::BoardConsole(QWidget *parent)
 	: QWidget(parent)
 {
 	ui.setupUi(this);
-	Message_Size = sizeof(Message);
+	glwidget = NULL;
 
 	QList<QSerialPortInfo> availablePorts = QSerialPortInfo::availablePorts();
 	foreach(QSerialPortInfo port, availablePorts) {
@@ -53,6 +51,7 @@ BoardConsole::BoardConsole(QWidget *parent)
 	connect(ui.pwm1Slider, SIGNAL(valueChanged(int)), SLOT(handlePwm1Slider(int)));
 	connect(ui.pwm2Slider, SIGNAL(valueChanged(int)), SLOT(handlePwm2Slider(int)));
 
+	paramsBitMask = 0; 
 	fillParamsVector();
 	fillListsVector();
 
@@ -214,7 +213,7 @@ void BoardConsole::handleProgramButton() {
 void BoardConsole::handleConnectButton() {
 	stm = new QSerialPort(ui.serialComboBox->currentText());
 	stm->setBaudRate(QSerialPort::Baud115200);
-	//stm->setParity(QSerialPort::EvenParity);
+	stm->setParity(QSerialPort::EvenParity);
 	stm->setStopBits(QSerialPort::OneStop);
 	//stm->setFlowControl(QSerialPort::NoFlowControl);
 	if (!stm->open(QIODevice::ReadWrite)) {
@@ -226,15 +225,13 @@ void BoardConsole::handleConnectButton() {
 
 	QString logFileName  = defineLogFile();
 	stmReader = new SerialPortReader(stm, logFileName);
-	connect(stmReader, SIGNAL(freshLine(QString &)), SLOT(handleFreshLine(QString &)));
-	connect(stmReader, SIGNAL(freshMessage(Message)), SLOT(handleFreshMessage(Message)));
+	connect(stmReader, SIGNAL(freshMessage(const Message *)), this, SLOT(handleFreshMessage(const Message *)));
 
 	//STM_Init();
 }
 
 void BoardConsole::STM_Init() {
 	stm->write(command(TURN_EVERYTHING_OFF));
-	stm->write(number_command(ACCEL_DEVIATION, "0"));
 }
 
 void BoardConsole::handleRotationButton() {
@@ -301,38 +298,122 @@ void BoardConsole::handleTelemetryToggleButton() {
 	}
 }
 
-void Message_ToByteArray(Message *message, uint8_t *a) {
-	uint8_t i = 0, crc = 0;
-	memcpy(a + 1, (uint8_t *)message, Message_Size);
-	a[0] = MESSAGE_HEADER;
-	crc = a[0];
-	for (i = 1; i < Message_Size + 1; i++) {
-		crc ^= a[i];
-	}
-	a[Message_Size + 1] = crc;
-}
+//void Message_ToByteArray(Message *message, uint8_t *a) {
+//	uint8_t i = 0, crc = 0;
+//	memcpy(a + 1, (uint8_t *)message, Message_Size);
+//	a[0] = MESSAGE_HEADER;
+//	crc = a[0];
+//	for (i = 1; i < Message_Size + 1; i++) {
+//		crc ^= a[i];
+//	}
+//	a[Message_Size + 1] = crc;
+//}
 
-uint8_t Message_FromByteArray(uint8_t *a, uint8_t n, Message *message) {
+uint8_t Message_FromByteArray(const QByteArray &bytes, quint32 paramsBitMask, Message *message) {
 	uint8_t i = 0, crc = 0;
+	uint8_t *data = (uint8_t *)bytes.data();
 
-	crc = a[0];
-	for (i = 1; i < Message_Size + 1; i++) {
-		crc ^= a[i];
+	crc = data[0];
+	for (i = 1; i < bytes.size()-1; i++) {
+		crc ^= data[i];
 	}
-	if ((a[0] == MESSAGE_HEADER) && (a[Message_Size + 1] == crc)) {
-		memcpy((uint8_t *)message, a + 1, Message_Size);
+	if ((data[0] == MESSAGE_HEADER) && (data[bytes.size()-1] == crc)) {
+		int ind = 1;
+		if (paramsBitMask & BIT_ACCEL_X) {
+			message->accel[0] = (data[ind] << 8) | data[ind + 1];
+			ind += sizeof(message->accel[0]);
+		}
+		if (paramsBitMask & BIT_ACCEL_Y) {
+			message->accel[1] = (data[ind] << 8) | data[ind + 1];
+			ind += sizeof(message->accel[1]);
+		}
+		if (paramsBitMask & BIT_ACCEL_Z) {
+			message->accel[2] = (data[ind] << 8) | data[ind + 1];
+			ind += sizeof(message->accel[2]);
+		}
+		if (paramsBitMask & BIT_GYRO_X) {
+			message->gyro[0] = (data[ind] << 8) | data[ind + 1];
+			ind += sizeof(message->gyro[0]);
+		}
+		if (paramsBitMask & BIT_GYRO_Y) {
+			message->gyro[1] = (data[ind] << 8) | data[ind + 1];
+			ind += sizeof(message->gyro[1]);
+		}
+		if (paramsBitMask & BIT_GYRO_X) {
+			message->gyro[2] = (data[ind] << 8) | data[ind + 1];
+			ind += sizeof(message->gyro[2]);
+		}
+		if (paramsBitMask & BIT_COMPASS_X) {
+			message->compass[0] = (data[ind] << 8) | data[ind + 1];
+			ind += sizeof(message->compass[0]);
+		}
+		if (paramsBitMask & BIT_COMPASS_Y) {
+			message->compass[1] = (data[ind] << 8) | data[ind + 1];
+			ind += sizeof(message->compass[1]);
+		}
+		if (paramsBitMask & BIT_COMPASS_Z) {
+			message->compass[2] = (data[ind] << 8) | data[ind + 1];
+			ind += sizeof(message->compass[2]);
+		}
+		if (paramsBitMask & BIT_EULER_X) {
+			message->euler[0] = ((float *)&data[ind])[0];
+			ind += sizeof(message->euler[0]);
+		}
+		if (paramsBitMask & BIT_EULER_Y) {
+			message->euler[1] = ((float *)&data[ind])[0];
+			ind += sizeof(message->euler[1]);
+		}
+		if (paramsBitMask & BIT_EULER_Z) {
+			message->euler[2] = ((float *)&data[ind])[0];
+			ind += sizeof(message->euler[2]);
+		}
+		if (paramsBitMask & BIT_EULERRATE_X) {
+			message->eulerRate[0] = ((float *)&data[ind])[0];
+			ind += sizeof(message->eulerRate[0]);
+		}
+		if (paramsBitMask & BIT_EULERRATE_Y) {
+			message->eulerRate[1] = ((float *)&data[ind])[0];
+			ind += sizeof(message->eulerRate[1]);
+		}
+		if (paramsBitMask & BIT_EULERRATE_Z) {
+			message->eulerRate[2] = ((float *)&data[ind])[0];
+			ind += sizeof(message->eulerRate[2]);
+		}
+		if (paramsBitMask & BIT_PWM1) {
+			message->pwm1 = (data[ind] << 8) | data[ind + 1];
+			ind += sizeof(message->pwm1);
+		}
+		if (paramsBitMask & BIT_PWM2) {
+			message->pwm2 = (data[ind] << 8) | data[ind + 1];
+			ind += sizeof(message->pwm2);
+		}
+		if (paramsBitMask & BIT_FREQ1) {
+			message->freq1 = (data[ind] << 8) | data[ind + 1];
+			ind += sizeof(message->freq1);
+		}
+		if (paramsBitMask & BIT_FREQ2) {
+			message->freq2 = (data[ind] << 8) | data[ind + 1];
+			ind += sizeof(message->freq2);
+		}
+		if (paramsBitMask & BIT_F) {
+			message->f = ((float *)&data[ind])[0];
+			ind += sizeof(message->f);
+		}
+
 		return 1;
 	}
 	return 0;
 }
 
 float angle = 0;
-void BoardConsole::handleFreshMessage(Message msg) {
+void BoardConsole::handleFreshMessage(const Message * msg) {
 	qint64 time = QDateTime::currentMSecsSinceEpoch() - startTime;
 
-	glwidget->setXRotation(msg.euler[0] * 16.0f);
-	glwidget->setYRotation(msg.euler[1] * 16.0f);
-	glwidget->setZRotation(msg.euler[2] * 16.0f);
+	if (glwidget) {
+		glwidget->setXRotation(msg->euler[0] * 16.0f);
+		glwidget->setYRotation(msg->euler[1] * 16.0f);
+		glwidget->setZRotation(msg->euler[2] * 16.0f);
+	}
 	//if (ui.angleCheckBox->isChecked()) {
 	//	if (angleX.size() == maxSize) {
 	//		angleX.pop_front();
@@ -393,11 +474,6 @@ void BoardConsole::handleFreshMessage(Message msg) {
 	//ui.plot1->replot();
 	//ui.plot2->replot();
 	//ui.plot3->replot();
-}
-
-
-void BoardConsole::handleLowpassFilterCheckBox() {
-	stm->write(command(LOWPASS));
 }
 
 
@@ -494,15 +570,21 @@ void BoardConsole::paramPressed() {
 
 void BoardConsole::handleParamBoxStateChanged(int state) {
 	QCheckBox *sender = (QCheckBox *)QObject::sender();
-	foreach(QCheckBox *paramBox, paramCheckBoxes) {
+	for (int i = 0; i < paramCheckBoxes.size(); i++) {
+		QCheckBox *paramBox = paramCheckBoxes[i];
 		if (sender == paramBox) {
 			switch (state) {
 			case Qt::Checked:
+				paramsBitMask |= 1 << i;
 				break;
 			case Qt::Unchecked:
+				paramsBitMask &= ~(1 << i);
 				stopDisplayParam(paramBox->text());
 				break;
 			}
+			stmReader->setParamsBitMask(paramsBitMask);
+			QByteArray bitMaskCommand = number_command(PARAMS_BITMASK_SYMBOL, QString::number(paramsBitMask));
+			stm->write(bitMaskCommand);
 		}
 	}
 }

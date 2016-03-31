@@ -70,6 +70,8 @@ public:
 	QFile *log;
 	QTextStream *logStream;
 
+	void setParamsBitMask(quint32 bitMask);
+
 private slots:
 	void handleReadyRead();
 	void handleError(QSerialPort::SerialPortError error);
@@ -79,12 +81,15 @@ private:
 	QSerialPort *m_serialPort;
 	QByteArray  m_readData;
 	QTextStream m_standardOutput;
+	quint32 paramsBitMask;
+	quint32 messageSize;
+	Message msg;
 
 	void analyseFileName(QString fileName);
 
 Q_SIGNALS:
 	void freshLine(QString &);
-	void freshMessage(Message);
+	void freshMessage(const Message *);
 };
 
 #endif

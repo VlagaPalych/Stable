@@ -1,18 +1,13 @@
 #ifndef COMMANDS_H
 #define COMMANDS_H
 
-#include <QtGlobal>
-
-typedef qint16 int16_t;
-typedef quint8 uint8_t;
-typedef qint8 int8_t;
-typedef quint16 uint16_t;
-
 #define TURN_EVERYTHING_OFF 'a'
 
 #define STABILIZATION 'e'
 
 #define CALIBRATION 'd'
+
+#define LOWPASS 'f'
 
 #define STOP_MOTORS 'g'
 
@@ -65,24 +60,14 @@ typedef quint16 uint16_t;
 #define BIT_FREQ2			0x00040000
 #define BIT_F				0x00080000
 
-
 typedef struct {
-	int16_t accel[3];
-	int16_t gyro[3];
-	int16_t compass[3];
 	float euler[3];
-	float eulerRate[3];
-	uint16_t pwm1;
-	uint16_t pwm2;
-	uint16_t freq1;
-	uint16_t freq2;
-	float f;
 } Message;
 extern uint8_t Message_Size;
 #define MESSAGE_HEADER  0x21
 
 void Message_ToByteArray(Message *message, uint8_t *a);
 
-uint8_t Message_FromByteArray(const QByteArray &bytes, quint32 paramsBitMask, Message *message);
+uint8_t Message_FromByteArray(uint8_t *a, uint8_t n, Message *message); 
 
 #endif

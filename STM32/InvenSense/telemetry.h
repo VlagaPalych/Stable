@@ -2,15 +2,12 @@
 #define TELEMETRY_H
 
 #include "stdint.h"
-
-typedef struct {
-    float euler[3];
-} Message;
+#include "commands.h"
 
 extern Message message;
 
 void USART1_Init(void);
-void Telemetry_Send(Message *msg);
+void Telemetry_Send();
 void Telemetry_DMA_Init(void);
 
 #endif

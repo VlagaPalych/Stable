@@ -44,8 +44,8 @@ public:
     QCheckBox *f;
     QCheckBox *eulerRateY;
     QCheckBox *pwm2;
-    QCheckBox *freq1;
     QCheckBox *freq2;
+    QCheckBox *freq1;
     QCheckBox *eulerRateZ;
     QCheckBox *compassX;
     QCheckBox *accelX;
@@ -190,19 +190,19 @@ public:
 
         gridLayout->addWidget(pwm2, 7, 0, 1, 1);
 
-        freq1 = new QCheckBox(paramsGroupBox);
-        freq1->setObjectName(QStringLiteral("freq1"));
-        sizePolicy.setHeightForWidth(freq1->sizePolicy().hasHeightForWidth());
-        freq1->setSizePolicy(sizePolicy);
-
-        gridLayout->addWidget(freq1, 7, 1, 1, 1);
-
         freq2 = new QCheckBox(paramsGroupBox);
         freq2->setObjectName(QStringLiteral("freq2"));
         sizePolicy.setHeightForWidth(freq2->sizePolicy().hasHeightForWidth());
         freq2->setSizePolicy(sizePolicy);
 
-        gridLayout->addWidget(freq2, 6, 1, 1, 1);
+        gridLayout->addWidget(freq2, 7, 1, 1, 1);
+
+        freq1 = new QCheckBox(paramsGroupBox);
+        freq1->setObjectName(QStringLiteral("freq1"));
+        sizePolicy.setHeightForWidth(freq1->sizePolicy().hasHeightForWidth());
+        freq1->setSizePolicy(sizePolicy);
+
+        gridLayout->addWidget(freq1, 6, 1, 1, 1);
 
         eulerRateZ = new QCheckBox(paramsGroupBox);
         eulerRateZ->setObjectName(QStringLiteral("eulerRateZ"));
@@ -807,8 +807,8 @@ public:
         f->setText(QApplication::translate("BoardConsoleClass", "F", 0));
         eulerRateY->setText(QApplication::translate("BoardConsoleClass", "EulerRate Y", 0));
         pwm2->setText(QApplication::translate("BoardConsoleClass", "pwm 2", 0));
-        freq1->setText(QApplication::translate("BoardConsoleClass", "Freq 2", 0));
-        freq2->setText(QApplication::translate("BoardConsoleClass", "Freq 1", 0));
+        freq2->setText(QApplication::translate("BoardConsoleClass", "Freq 2", 0));
+        freq1->setText(QApplication::translate("BoardConsoleClass", "Freq 1", 0));
         eulerRateZ->setText(QApplication::translate("BoardConsoleClass", "EulerRate Z", 0));
         compassX->setText(QApplication::translate("BoardConsoleClass", "Compass X", 0));
         accelX->setText(QApplication::translate("BoardConsoleClass", "Accel X", 0));
