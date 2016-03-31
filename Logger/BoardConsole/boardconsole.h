@@ -10,6 +10,7 @@
 #include "glwidget.h"
 #include "qsettings.h"
 #include "qshortcut.h"
+#include "qmap.h"
 
 class BoardConsole : public QWidget
 {
@@ -34,30 +35,12 @@ private:
 
 	QSettings *settings;
 
-	QVector<QwtPlotCurve *> plot1_curves;
-	QVector<QwtPlotCurve *> plot2_curves;
-	QVector<QwtPlotCurve *> plot3_curves;
-
-	QVector<double> angleX;
-	QVector<double> angleY;
-
-	QVector<double> angVelX;
-	QVector<double> angVelY;
-
-	QVector<double> fX;
-	QVector<double> fY;
-
-	QVector<double> pwm1X;
-	QVector<double> pwm1Y;
-
-	QVector<double> pwm2X;
-	QVector<double> pwm2Y;
-
-	QVector<double> count1X;
-	QVector<double> count1Y;
-
-	QVector<double> count2X;
-	QVector<double> count2Y;
+	QVector<QwtPlot *> plots;
+	QVector<QVector<QwtPlotCurve *> > plotCurves;
+	QVector<double> plotCurveX; 
+	QVector<QVector<QVector<double> > > plotCurveY;
+	QMap<QString, QVector<double> > paramValues;
+	QVector<QColor> curveColors;
 
 	QString defineLogFile();
 
@@ -70,16 +53,21 @@ private:
 	QByteArray number_command(const char c, QString number);
 	QByteArray double_number_command(const char c, QString num1, QString num2);
 
+	void initPlots();
 	void fillParamsVector();
 	void fillListsVector();
 	
 
+	void stopDisplayParam(int plotIndex, const QString &paramName);
 	void stopDisplayParam(const QString &paramName);
-	void startDisplayParam(const QString &paramName);
+	void startDisplayParam(int plotIndex, const QString &paramName);
 	void applyParamsMask();
 
 	void readSettings();
 	void writeSettings();
+
+	void appendFreshData(const Message * msg);
+
 
 private Q_SLOTS:
 	void handleProgramButton();

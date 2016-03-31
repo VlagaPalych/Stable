@@ -127,8 +127,8 @@ public:
     QRadioButton *pidRadioButton;
     QRadioButton *impulseRadioButton;
     QwtPlot *plot3;
-    QwtPlot *plot1;
     QwtPlot *plot2;
+    QwtPlot *plot1;
 
     void setupUi(QWidget *BoardConsoleClass)
     {
@@ -786,19 +786,19 @@ public:
 
         gridLayout_4->addWidget(plot3, 7, 1, 1, 1);
 
-        plot1 = new QwtPlot(BoardConsoleClass);
-        plot1->setObjectName(QStringLiteral("plot1"));
-        sizePolicy3.setHeightForWidth(plot1->sizePolicy().hasHeightForWidth());
-        plot1->setSizePolicy(sizePolicy3);
-
-        gridLayout_4->addWidget(plot1, 4, 1, 3, 1);
-
         plot2 = new QwtPlot(BoardConsoleClass);
         plot2->setObjectName(QStringLiteral("plot2"));
         sizePolicy3.setHeightForWidth(plot2->sizePolicy().hasHeightForWidth());
         plot2->setSizePolicy(sizePolicy3);
 
-        gridLayout_4->addWidget(plot2, 0, 1, 4, 1);
+        gridLayout_4->addWidget(plot2, 4, 1, 3, 1);
+
+        plot1 = new QwtPlot(BoardConsoleClass);
+        plot1->setObjectName(QStringLiteral("plot1"));
+        sizePolicy3.setHeightForWidth(plot1->sizePolicy().hasHeightForWidth());
+        plot1->setSizePolicy(sizePolicy3);
+
+        gridLayout_4->addWidget(plot1, 0, 1, 4, 1);
 
 
         retranslateUi(BoardConsoleClass);

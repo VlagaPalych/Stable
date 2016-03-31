@@ -11,6 +11,7 @@ BoardConsole::BoardConsole(QWidget *parent)
 	ui.setupUi(this);
 	fillParamsVector();
 	fillListsVector();
+	
 	glwidget = NULL;
 	stm = NULL;
 	stmReader = NULL;
@@ -20,6 +21,8 @@ BoardConsole::BoardConsole(QWidget *parent)
 	}
 
 	readSettings();
+	initPlots();
+
 
 	connect(ui.rotationButton, SIGNAL(clicked()), SLOT(handleRotationButton()));
 
@@ -55,56 +58,6 @@ BoardConsole::BoardConsole(QWidget *parent)
 	connect(ui.pwm1Slider, SIGNAL(valueChanged(int)), SLOT(handlePwm1Slider(int)));
 	connect(ui.pwm2Slider, SIGNAL(valueChanged(int)), SLOT(handlePwm2Slider(int)));
 
-
-
-
-	plot1_curves = QVector<QwtPlotCurve *>(2);
-	for (int i = 0; i < plot1_curves.size(); i++) {
-		plot1_curves[i] = new QwtPlotCurve;
-		plot1_curves[i]->attach(ui.plot1);
-	}
-	plot1_curves[0]->setPen(Qt::red);
-	plot1_curves[1]->setPen(Qt::blue);
-
-	plot2_curves = QVector<QwtPlotCurve *>(3);
-	for (int i = 0; i < plot2_curves.size(); i++) {
-		plot2_curves[i] = new QwtPlotCurve;
-		plot2_curves[i]->attach(ui.plot2);
-	}
-	plot2_curves[0]->setPen(Qt::red);
-	plot2_curves[1]->setPen(Qt::blue);
-	plot2_curves[2]->setPen(Qt::green);
-
-	plot3_curves = QVector<QwtPlotCurve *>(2);
-	for (int i = 0; i < plot3_curves.size(); i++) {
-		plot3_curves[i] = new QwtPlotCurve;
-		plot3_curves[i]->attach(ui.plot3);
-	}
-	plot3_curves[0]->setPen(Qt::red);
-	plot3_curves[1]->setPen(Qt::blue);
-
-	angleX = QVector<double>();
-	angleY = QVector<double>();
-
-	angVelX = QVector<double>();
-	angVelY = QVector<double>();
-
-	fX = QVector<double>();
-	fY = QVector<double>();
-
-	pwm1X = QVector<double>();
-	pwm1Y = QVector<double>();
-
-	pwm2X = QVector<double>();
-	pwm2Y = QVector<double>();
-
-	count1X = QVector<double>();
-	count1Y = QVector<double>();
-
-	count2X = QVector<double>();
-	count2Y = QVector<double>();
-
-
 	firstMeasurement = true;
 	maxSize = 1000;
 }
@@ -113,10 +66,35 @@ BoardConsole::~BoardConsole() {
 	if (stmReader)	delete stmReader;
 	if (stm)		delete stm;
 
-	for (int i = 0; i < 2; i++) {
-		delete plot1_curves[i];
-	}
 	writeSettings();
+}
+
+void BoardConsole::initPlots() {
+	plots.append(ui.plot1);
+	plots.append(ui.plot2);
+	plots.append(ui.plot3);
+
+	plotCurves = QVector<QVector<QwtPlotCurve *> >(plots.size());
+	plotCurveY = QVector<QVector<QVector<double> > >(plots.size());
+	for (int i = 0; i < plots.size(); i++) {
+		plotCurveY[i] = QVector<QVector<double> >();
+	}
+
+	paramValues = QMap<QString, QVector<double> >();
+	foreach(QCheckBox *paramBox, paramCheckBoxes) {
+		paramValues[paramBox->text()] = QVector<double>();
+	}
+
+	curveColors.append(Qt::red);
+	curveColors.append(Qt::blue);
+	curveColors.append(Qt::green);
+	curveColors.append(Qt::black);
+
+	for (int i = 0; i < plotLists.size(); i++) {
+		for (int j = 0; j < plotLists[i]->count(); j++) {
+			startDisplayParam(i, plotLists[i]->item(j)->text());
+		}
+	}
 }
 
 void BoardConsole::readSettings() {
@@ -285,8 +263,6 @@ void BoardConsole::fillListsVector() {
 
 	foreach(QListWidget *listWidget, plotLists) {
 		connect(listWidget, SIGNAL(itemChanged(QListWidgetItem *)), SLOT(handlePlotListItemChanged(QListWidgetItem *)));
-		//new QShortcut(QKeySequence(Qt::Key_Delete), listWidget, SLOT(deleteItem()));
-		
 	}
 	new QShortcut(QKeySequence(Qt::Key_Delete), this, SLOT(deleteListWidgetItems()));
 }
@@ -339,41 +315,7 @@ void BoardConsole::handleCalibrButton() {
 
 void BoardConsole::handleClearTelemetryButton() {
 	firstMeasurement = true;
-	
-	angleX.clear();
-	angleY.clear();
 
-	angVelX.clear();
-	angVelY.clear();
-
-	fX.clear();
-	fY.clear();
-
-	pwm1X.clear();
-	pwm1Y.clear();
-
-	pwm2X.clear();
-	pwm2Y.clear();
-
-	count1X.clear();
-	count1Y.clear();
-
-	count2X.clear();
-	count2Y.clear();
-
-	plot1_curves[0]->setSamples(angleX, angleY);
-	plot1_curves[1]->setSamples(angVelX, angVelY);
-
-	plot2_curves[0]->setSamples(fX, fY);
-	plot2_curves[1]->setSamples(pwm1X, pwm1Y);
-	plot2_curves[2]->setSamples(pwm2X, pwm2Y);
-
-	plot3_curves[0]->setSamples(count1X, count1Y);
-	plot3_curves[1]->setSamples(count2X, count2Y);
-
-	ui.plot1->replot();
-	ui.plot2->replot();
-	ui.plot3->replot();
 }	
 
 void BoardConsole::handleTelemetryToggleButton() {
@@ -493,74 +435,109 @@ uint8_t Message_FromByteArray(const QByteArray &bytes, quint32 paramsBitMask, Me
 }
 
 float angle = 0;
+
+void BoardConsole::appendFreshData(const Message * msg) {
+	foreach(QString paramName, paramValues.keys()) {
+		if (paramValues[paramName].size() >= maxSize) {
+			paramValues[paramName].pop_front();
+		}
+	}
+
+	if (paramsBitMask & BIT_ACCEL_X) {
+		paramValues[ui.accelX->text()].append(msg->accel[0]);
+	}
+	if (paramsBitMask & BIT_ACCEL_Y) {
+		paramValues[ui.accelY->text()].append(msg->accel[1]);
+	}
+	if (paramsBitMask & BIT_ACCEL_Z) {
+		paramValues[ui.accelZ->text()].append(msg->accel[2]);
+	}
+	if (paramsBitMask & BIT_GYRO_X) {
+		paramValues[ui.gyroX->text()].append(msg->gyro[0]);
+	}
+	if (paramsBitMask & BIT_GYRO_Y) {
+		paramValues[ui.gyroY->text()].append(msg->gyro[1]);
+	}
+	if (paramsBitMask & BIT_GYRO_Z) {
+		paramValues[ui.gyroZ->text()].append(msg->gyro[2]);
+	}
+	if (paramsBitMask & BIT_COMPASS_X) {
+		paramValues[ui.compassX->text()].append(msg->compass[0]);
+	}
+	if (paramsBitMask & BIT_COMPASS_Y) {
+		paramValues[ui.compassY->text()].append(msg->compass[1]);
+	}
+	if (paramsBitMask & BIT_COMPASS_Z) {
+		paramValues[ui.compassZ->text()].append(msg->compass[2]);
+	}
+	if (paramsBitMask & BIT_EULER_X) {
+		paramValues[ui.eulerX->text()].append(msg->euler[0]);
+	}
+	if (paramsBitMask & BIT_EULER_Y) {
+		paramValues[ui.eulerY->text()].append(msg->euler[1]);
+	}
+	if (paramsBitMask & BIT_EULER_Z) {
+		paramValues[ui.eulerZ->text()].append(msg->euler[2]);
+	}
+	if (paramsBitMask & BIT_EULERRATE_X) {
+		paramValues[ui.eulerRateX->text()].append(msg->eulerRate[0]);
+	}
+	if (paramsBitMask & BIT_EULERRATE_Y) {
+		paramValues[ui.eulerRateY->text()].append(msg->eulerRate[1]);
+	}
+	if (paramsBitMask & BIT_EULERRATE_Z) {
+		paramValues[ui.eulerRateZ->text()].append(msg->eulerRate[2]);
+	}
+	if (paramsBitMask & BIT_PWM1) {
+		paramValues[ui.pwm1->text()].append(msg->pwm1);
+	}
+	if (paramsBitMask & BIT_PWM2) {
+		paramValues[ui.pwm2->text()].append(msg->pwm2);
+	}
+	if (paramsBitMask & BIT_FREQ1) {
+		paramValues[ui.freq1->text()].append(msg->freq1);
+	}
+	if (paramsBitMask & BIT_FREQ2) {
+		paramValues[ui.freq2->text()].append(msg->freq2);
+	}
+	if (paramsBitMask & BIT_F) {
+		paramValues[ui.f->text()].append(msg->f);
+	}
+}
+
 void BoardConsole::handleFreshMessage(const Message * msg) {
+	if (firstMeasurement) {
+		firstMeasurement = 0;
+		startTime = QDateTime::currentMSecsSinceEpoch();
+	}
 	qint64 time = QDateTime::currentMSecsSinceEpoch() - startTime;
+
+	if (plotCurveX.size() >= maxSize) {
+		plotCurveX.pop_front();
+	}
+	plotCurveX.append(time);
+	appendFreshData(msg);
+
+	for (int i = 0; i < plots.size(); i++) {
+		for (int j = 0; j < plotCurves[i].size(); j++) {
+			QString paramName = plotLists[i]->item(j)->text();
+			double paramValue = paramValues[paramName].last();
+			if (plotCurveY[i][j].size() >= maxSize) {
+				plotCurveY[i][j].pop_front();
+			}
+			plotCurveY[i][j].append(paramValue);
+
+			int sizeDiff = plotCurveX.size() - plotCurveY[i][j].size();
+			plotCurves[i][j]->setSamples(plotCurveX.mid(sizeDiff), plotCurveY[i][j]);
+		}
+		plots[i]->replot();
+	}
 
 	if (glwidget) {
 		glwidget->setXRotation(msg->euler[0] * 16.0f);
 		glwidget->setYRotation(msg->euler[1] * 16.0f);
 		glwidget->setZRotation(msg->euler[2] * 16.0f);
 	}
-	//if (ui.angleCheckBox->isChecked()) {
-	//	if (angleX.size() == maxSize) {
-	//		angleX.pop_front();
-	//		angleY.pop_front();
-	//	}
-	//	angleX.append(time);
-	//	angleY.append(msg.euler[0]);
-	//	plot1_curves[0]->setSamples(angleX, angleY);
-	//}
-	//if (ui.angVelCheckBox->isChecked()) {
-	//	if (angVelX.size() == maxSize) {
-	//		angVelX.pop_front();
-	//		angVelY.pop_front();
-	//	}
-	//	angVelX.append(time);
-	//	angVelY.append(msg.eulerRate[0]/*msg.angleRate[0] * 180.0 / 3.14159*/);
-	//	plot1_curves[1]->setSamples(angVelX, angVelY);
-	//}
-
-	//if (ui.pwm1CheckBox->isChecked()) {
-	//	if (pwm1X.size() == maxSize) {
-	//		pwm1X.pop_front();
-	//		pwm1Y.pop_front();
-	//	}
-	//	pwm1X.append(time);
-	//	pwm1Y.append(msg.euler[1]);
-	//	plot2_curves[0]->setSamples(pwm1X, pwm1Y);
-	//}
-	//if (ui.pwm2CheckBox->isChecked()) {
-	//	if (pwm2X.size() == maxSize) {
-	//		pwm2X.pop_front();
-	//		pwm2Y.pop_front();
-	//	}
-	//	pwm2X.append(time);
-	//	pwm2Y.append(msg.eulerRate[1]/*msg.angleRate[1] * 180.0 / 3.14159*/);
-	//	plot2_curves[1]->setSamples(pwm2X, pwm2Y);
-	//}
-
-	//if (ui.count1CheckBox->isChecked()) {
-	//	if (count1X.size() == maxSize) {
-	//		count1X.pop_front();
-	//		count1Y.pop_front();
-	//	}
-	//	count1X.append(time);
-	//	count1Y.append(msg.euler[2]);
-	//	plot3_curves[0]->setSamples(count1X, count1Y);
-	//}
-	//if (ui.count2CheckBox->isChecked()) {
-	//	if (count2X.size() == maxSize) {
-	//		count2X.pop_front();
-	//		count2Y.pop_front();
-	//	}
-	//	count2X.append(time);
-	//	count2Y.append(msg.eulerRate[2]/*msg.angleRate[2] * 180.0 / 3.14159*/);
-	//	plot3_curves[1]->setSamples(count2X, count2Y);
-	//}
-
-	//ui.plot1->replot();
-	//ui.plot2->replot();
-	//ui.plot3->replot();
 }
 
 
@@ -683,9 +660,11 @@ void BoardConsole::handleParamBoxStateChanged(int state) {
 }
 
 void BoardConsole::deleteListWidgetItems() {
-	foreach(QListWidget *list, plotLists) {
+	for (int i = 0; i < plotLists.size(); i++) {
+		QListWidget *list = plotLists[i];
 		if (list->hasFocus()) {
 			foreach(QListWidgetItem *item, list->selectedItems()) {
+				stopDisplayParam(i, item->text());
 				delete item;
 			}
 		}
@@ -698,14 +677,15 @@ void BoardConsole::mouseReleaseEvent(QMouseEvent *event) {
 	QRect listParentRect = ui.visualGroupBox->geometry();
 	QPoint cursor = event->pos();
 	cursor -= listParentRect.topLeft();
-	foreach(QListWidget *list, plotLists) {
+	for (int i = 0; i < plotLists.size(); i++) {
+		QListWidget *list = plotLists[i];
 		QRect listRect = list->geometry();
 		if (listRect.contains(cursor)) {
 			QString newItemText = draggedParam->text();
 			QList<QListWidgetItem *> sameItem = list->findItems(newItemText, Qt::MatchFixedString);
 			if (sameItem.empty()) {
 				list->addItem(newItemText);
-				startDisplayParam(newItemText);
+				startDisplayParam(i, newItemText);
 			}
 			break;
 		}
@@ -714,28 +694,51 @@ void BoardConsole::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 void BoardConsole::stopDisplayParam(const QString &paramName) {
-	foreach(QListWidget *list, plotLists) {
-		for (int i = 0; i < list->count(); i++) {
-			QListWidgetItem *item = list->item(i);
+	for (int i = 0; i < plotLists.size(); i++) {
+		QListWidget *list = plotLists[i];
+		for (int j = 0; j < list->count(); j++) {
+			QListWidgetItem *item = list->item(j);
 			if (item->text() == paramName) {
-				delete item;
+				plotCurves[i][j]->detach();
+				delete plotCurves[i][j];
+				plotCurves[i].remove(j);
+				plotCurveY[i].remove(j);
 			}
+			delete item;
 		}
 	}
 }
 
-void BoardConsole::startDisplayParam(const QString &paramName) {
+void BoardConsole::stopDisplayParam(int plotIndex, const QString &paramName) {
+	QListWidget *list = plotLists[plotIndex];
+	for (int j = 0; j < list->count(); j++) {
+		QListWidgetItem *item = list->item(j);
+		if (item->text() == paramName) {
+			plotCurves[plotIndex][j]->detach();
+			delete plotCurves[plotIndex][j];
+			plotCurves[plotIndex].remove(j);
+			plotCurveY[plotIndex].remove(j);
+		}
+	}
+}
 
+void BoardConsole::startDisplayParam(int plotIndex, const QString &paramName) {
+	QwtPlotCurve *newCurve = new QwtPlotCurve();
+	newCurve->setPen(curveColors[plotCurves[plotIndex].size()]);
+	plotCurves[plotIndex].append(newCurve);
+	plotCurveY[plotIndex].append(QVector<QVector<double> >(1));
+	newCurve->attach(plots[plotIndex]);
 }
 
 void BoardConsole::handlePlotListItemChanged(QListWidgetItem *item) {
 	QListWidget *sender = (QListWidget *)QObject::sender();
-	foreach(QListWidget *list, plotLists) {
+	for (int i = 0; i < plotLists.size(); i++) {
+		QListWidget *list = plotLists[i];
 		if (sender == list) {
 			if (item->text() == "") {
 				stopDisplayParam("");
 			} else {
-				startDisplayParam(item->text());
+				startDisplayParam(i, item->text());
 			}
 		}
 	}
