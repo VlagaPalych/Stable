@@ -48,6 +48,7 @@ private:
 	int maxSize;
 	qint64 startTime;
 
+	void enableUI(bool enable);
 	void STM_Init();
 	QByteArray command(const char c);
 	QByteArray number_command(const char c, QString number);
@@ -61,6 +62,7 @@ private:
 	void stopDisplayParam(int plotIndex, const QString &paramName);
 	void stopDisplayParam(const QString &paramName);
 	void startDisplayParam(int plotIndex, const QString &paramName);
+	void changeParamPlot(int plotFrom, int plotFromCurve, int plotTo, int plotToCurve);
 	void applyParamsMask();
 
 	void readSettings();

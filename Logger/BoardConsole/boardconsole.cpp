@@ -283,13 +283,37 @@ void BoardConsole::handleConnectButton() {
 	}
 	else {
 		qDebug() << "Connected";
-	}
+		QString logFileName = defineLogFile();
+		stmReader = new SerialPortReader(stm, logFileName);
+		connect(stmReader, SIGNAL(freshMessage(const Message *)), this, SLOT(handleFreshMessage(const Message *)));
 
-	QString logFileName  = defineLogFile();
-	stmReader = new SerialPortReader(stm, logFileName);
-	connect(stmReader, SIGNAL(freshMessage(const Message *)), this, SLOT(handleFreshMessage(const Message *)));
+		STM_Init();
+		enableUI(true);
+	}	
+}
 
-	STM_Init();
+void BoardConsole::enableUI(bool enable) {
+	ui.programButton->setEnabled(enable);
+	ui.telemetryToggleButton->setEnabled(enable);
+	ui.mpl->setEnabled(enable);
+	ui.dmp->setEnabled(enable);
+	ui.mine->setEnabled(enable);
+	ui.pButton->setEnabled(enable);
+	ui.iButton->setEnabled(enable);
+	ui.dButton->setEnabled(enable);
+	ui.stopMotorsButton->setEnabled(enable);
+	ui.calibrButton->setEnabled(enable);
+	ui.pwm1SpinBox->setEnabled(enable);
+	ui.pwm1SpinBox->setEnabled(enable);
+	ui.pwm2Slider->setEnabled(enable);
+	ui.pwm2Slider->setEnabled(enable);
+	ui.noResearchRadioButton->setEnabled(enable);
+	ui.operatorRadioButton->setEnabled(enable);
+	ui.pidRadioButton->setEnabled(enable);
+	ui.impulseRadioButton->setEnabled(enable);
+	ui.stepRadioButton->setEnabled(enable);
+	ui.sineRadioButton->setEnabled(enable);
+	ui.expRadioButton->setEnabled(enable);
 }
 
 void BoardConsole::STM_Init() {
@@ -316,6 +340,10 @@ void BoardConsole::handleCalibrButton() {
 void BoardConsole::handleClearTelemetryButton() {
 	firstMeasurement = true;
 
+	plotCurveX.clear();
+	foreach(QString param, paramValues.keys()) {
+		paramValues[param].clear();
+	}
 }	
 
 void BoardConsole::handleTelemetryToggleButton() {
@@ -703,8 +731,8 @@ void BoardConsole::stopDisplayParam(const QString &paramName) {
 				delete plotCurves[i][j];
 				plotCurves[i].remove(j);
 				plotCurveY[i].remove(j);
+				delete item;
 			}
-			delete item;
 		}
 	}
 }
@@ -730,15 +758,44 @@ void BoardConsole::startDisplayParam(int plotIndex, const QString &paramName) {
 	newCurve->attach(plots[plotIndex]);
 }
 
+void BoardConsole::changeParamPlot(int plotFrom, int plotFromCurve, int plotTo, int plotToCurve) {
+	QwtPlotCurve *curveToInsert = plotCurves[plotFrom][plotFromCurve];
+	plotCurves[plotFrom].remove(plotFromCurve);
+	plotCurves[plotTo].insert(plotToCurve, curveToInsert);
+	curveToInsert->detach();
+	curveToInsert->attach(plots[plotTo]);
+	curveToInsert->setPen(curveColors[plotToCurve]);
+	
+
+	QVector<double> dataToInsert = plotCurveY[plotFrom][plotFromCurve];
+	plotCurveY[plotTo].insert(plotToCurve, dataToInsert);
+	plotCurveY[plotFrom].remove(plotFromCurve);
+}
+
 void BoardConsole::handlePlotListItemChanged(QListWidgetItem *item) {
+	static int plotTo = 0, plotToCurve = 0;
 	QListWidget *sender = (QListWidget *)QObject::sender();
 	for (int i = 0; i < plotLists.size(); i++) {
 		QListWidget *list = plotLists[i];
 		if (sender == list) {
 			if (item->text() == "") {
-				stopDisplayParam("");
+				for (int j = 0; j < list->count(); j++) {
+					if (list->item(j) == item) {
+						changeParamPlot(i, j, plotTo, plotToCurve);
+						delete item;
+						return;
+					}
+				}
+				//stopDisplayParam("");
 			} else {
-				startDisplayParam(i, item->text());
+				plotTo = i;
+				for (int j = 0; j < list->count(); j++) {
+					if (list->item(j) == item) {
+						plotToCurve = j;
+						return;
+					}
+				}
+				//startDisplayParam(i, item->text());
 			}
 		}
 	}
