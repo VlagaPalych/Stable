@@ -74,7 +74,7 @@ void Quat_ToEuler(Quat q, float angle[3]) {
 float w1[VECT_SIZE], w2[VECT_SIZE];
 float v1[VECT_SIZE], v2[VECT_SIZE];
 float a1 = 0.5, a2 = 0.5;
-Quat orientation;
+extern Quat mine_orient;
 
 float v1_t[VECT_SIZE];
 float v2_t[VECT_SIZE];
@@ -208,11 +208,11 @@ void QUEST() {
     arm_mat_add_f32(&tmp4, &tmp3, &tmp1);           // tmp1 = tmp4 + tmp3 = alpha*I + beta*S + S^2
     arm_mat_mult_f32(&tmp1, &Z, &X);                // X = tmp1 * Z
     
-    arm_copy_f32(X.pData, orientation.v, VECT_SIZE);
-    orientation.w = gamma;
+    arm_copy_f32(X.pData, mine_orient.v, VECT_SIZE);
+    mine_orient.w = gamma;
     
     arm_sqrt_f32(gamma*gamma + X.pData[0]*X.pData[0] + X.pData[1]*X.pData[1] + X.pData[2]*X.pData[2], &norm_cf);
-    Quat_Scale(&orientation, 1/norm_cf);
+    Quat_Scale(&mine_orient, 1/norm_cf);
 }
 
 

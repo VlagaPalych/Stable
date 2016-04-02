@@ -481,7 +481,7 @@ extern int16_t gyro_data[3];
 
 extern float accel[3];
 extern float angleRate[3];
-extern Quat orientation;
+extern Quat dmp_orient;
 extern float euler[3];
 
 #define EPSILON         0.0001f
@@ -531,9 +531,9 @@ void DMP_ParseFIFOData(uint8_t *fifo_data) {
                     ((int32_t)fifo_data[4*i+2] << 8) | fifo_data[4*i+3];
             quat_data[i] = tmp;
         }
-        orientation.w = quat_data[0] / QUAT_SENS;
+        dmp_orient.w = quat_data[0] / QUAT_SENS;
         for (i = 0; i < 3; i++) {
-            orientation.v[i] = quat_data[i+1] / QUAT_SENS;
+            dmp_orient.v[i] = quat_data[i+1] / QUAT_SENS;
         }
         index += 16;
     }

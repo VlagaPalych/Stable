@@ -232,13 +232,17 @@ void BoardConsole::fillParamsVector() {
 	paramCheckBoxes.append(ui.compassY);
 	paramCheckBoxes.append(ui.compassZ);
 
-	paramCheckBoxes.append(ui.eulerX);
-	paramCheckBoxes.append(ui.eulerY);
-	paramCheckBoxes.append(ui.eulerZ);
+	paramCheckBoxes.append(ui.mplEulerX);
+	paramCheckBoxes.append(ui.mplEulerY);
+	paramCheckBoxes.append(ui.mplEulerZ);
 
-	paramCheckBoxes.append(ui.eulerRateX);
-	paramCheckBoxes.append(ui.eulerRateY);
-	paramCheckBoxes.append(ui.eulerRateZ);
+	paramCheckBoxes.append(ui.dmpEulerX);
+	paramCheckBoxes.append(ui.dmpEulerY);
+	paramCheckBoxes.append(ui.dmpEulerZ);
+
+	paramCheckBoxes.append(ui.mineEulerX);
+	paramCheckBoxes.append(ui.mineEulerY);
+	paramCheckBoxes.append(ui.mineEulerZ);
 
 	paramCheckBoxes.append(ui.pwm1);
 	paramCheckBoxes.append(ui.pwm2);
@@ -396,7 +400,7 @@ uint8_t Message_FromByteArray(const QByteArray &bytes, quint32 paramsBitMask, Me
 			message->gyro[1] = (data[ind] << 8) | data[ind + 1];
 			ind += sizeof(message->gyro[1]);
 		}
-		if (paramsBitMask & BIT_GYRO_X) {
+		if (paramsBitMask & BIT_GYRO_Z) {
 			message->gyro[2] = (data[ind] << 8) | data[ind + 1];
 			ind += sizeof(message->gyro[2]);
 		}
@@ -412,29 +416,68 @@ uint8_t Message_FromByteArray(const QByteArray &bytes, quint32 paramsBitMask, Me
 			message->compass[2] = (data[ind] << 8) | data[ind + 1];
 			ind += sizeof(message->compass[2]);
 		}
-		if (paramsBitMask & BIT_EULER_X) {
-			message->euler[0] = ((float *)&data[ind])[0];
-			ind += sizeof(message->euler[0]);
+		if (paramsBitMask & BIT_MPL_EULER_X) {
+			((uint8_t *)(&(message->mpl_euler[0])))[0] = data[ind];
+			((uint8_t *)(&(message->mpl_euler[0])))[1] = data[ind + 1];
+			((uint8_t *)(&(message->mpl_euler[0])))[2] = data[ind + 2];
+			((uint8_t *)(&(message->mpl_euler[0])))[3] = data[ind + 3];
+			ind += sizeof(message->mpl_euler[0]);
 		}
-		if (paramsBitMask & BIT_EULER_Y) {
-			message->euler[1] = ((float *)&data[ind])[0];
-			ind += sizeof(message->euler[1]);
+		if (paramsBitMask & BIT_MPL_EULER_Y) {
+			((uint8_t *)(&(message->mpl_euler[1])))[0] = data[ind];
+			((uint8_t *)(&(message->mpl_euler[1])))[1] = data[ind + 1];
+			((uint8_t *)(&(message->mpl_euler[1])))[2] = data[ind + 2];
+			((uint8_t *)(&(message->mpl_euler[1])))[3] = data[ind + 3];
+			ind += sizeof(message->mpl_euler[1]);
 		}
-		if (paramsBitMask & BIT_EULER_Z) {
-			message->euler[2] = ((float *)&data[ind])[0];
-			ind += sizeof(message->euler[2]);
+		if (paramsBitMask & BIT_MPL_EULER_Z) {
+			((uint8_t *)(&(message->mpl_euler[2])))[0] = data[ind];
+			((uint8_t *)(&(message->mpl_euler[2])))[1] = data[ind + 1];
+			((uint8_t *)(&(message->mpl_euler[2])))[2] = data[ind + 2];
+			((uint8_t *)(&(message->mpl_euler[2])))[3] = data[ind + 3];
+			ind += sizeof(message->mpl_euler[2]);
 		}
-		if (paramsBitMask & BIT_EULERRATE_X) {
-			message->eulerRate[0] = ((float *)&data[ind])[0];
-			ind += sizeof(message->eulerRate[0]);
+		if (paramsBitMask & BIT_DMP_EULER_X) {
+			((uint8_t *)(&(message->dmp_euler[0])))[0] = data[ind];
+			((uint8_t *)(&(message->dmp_euler[0])))[1] = data[ind + 1];
+			((uint8_t *)(&(message->dmp_euler[0])))[2] = data[ind + 2];
+			((uint8_t *)(&(message->dmp_euler[0])))[3] = data[ind + 3];
+			ind += sizeof(message->dmp_euler[0]);
 		}
-		if (paramsBitMask & BIT_EULERRATE_Y) {
-			message->eulerRate[1] = ((float *)&data[ind])[0];
-			ind += sizeof(message->eulerRate[1]);
+		if (paramsBitMask & BIT_DMP_EULER_Y) {
+			((uint8_t *)(&(message->dmp_euler[1])))[0] = data[ind];
+			((uint8_t *)(&(message->dmp_euler[1])))[1] = data[ind + 1];
+			((uint8_t *)(&(message->dmp_euler[1])))[2] = data[ind + 2];
+			((uint8_t *)(&(message->dmp_euler[1])))[3] = data[ind + 3];
+			ind += sizeof(message->dmp_euler[1]);
 		}
-		if (paramsBitMask & BIT_EULERRATE_Z) {
-			message->eulerRate[2] = ((float *)&data[ind])[0];
-			ind += sizeof(message->eulerRate[2]);
+		if (paramsBitMask & BIT_DMP_EULER_Z) {
+			((uint8_t *)(&(message->dmp_euler[2])))[0] = data[ind];
+			((uint8_t *)(&(message->dmp_euler[2])))[1] = data[ind + 1];
+			((uint8_t *)(&(message->dmp_euler[2])))[2] = data[ind + 2];
+			((uint8_t *)(&(message->dmp_euler[2])))[3] = data[ind + 3];
+			ind += sizeof(message->dmp_euler[2]);
+		}
+		if (paramsBitMask & BIT_MINE_EULER_X) {
+			((uint8_t *)(&(message->mine_euler[0])))[0] = data[ind];
+			((uint8_t *)(&(message->mine_euler[0])))[1] = data[ind + 1];
+			((uint8_t *)(&(message->mine_euler[0])))[2] = data[ind + 2];
+			((uint8_t *)(&(message->mine_euler[0])))[3] = data[ind + 3];
+			ind += sizeof(message->mine_euler[0]);
+		}
+		if (paramsBitMask & BIT_MINE_EULER_Y) {
+			((uint8_t *)(&(message->mine_euler[1])))[0] = data[ind];
+			((uint8_t *)(&(message->mine_euler[1])))[1] = data[ind + 1];
+			((uint8_t *)(&(message->mine_euler[1])))[2] = data[ind + 2];
+			((uint8_t *)(&(message->mine_euler[1])))[3] = data[ind + 3];
+			ind += sizeof(message->mine_euler[1]);
+		}
+		if (paramsBitMask & BIT_MINE_EULER_Z) {
+			((uint8_t *)(&(message->mine_euler[2])))[0] = data[ind];
+			((uint8_t *)(&(message->mine_euler[2])))[1] = data[ind + 1];
+			((uint8_t *)(&(message->mine_euler[2])))[2] = data[ind + 2];
+			((uint8_t *)(&(message->mine_euler[2])))[3] = data[ind + 3];
+			ind += sizeof(message->mine_euler[2]);
 		}
 		if (paramsBitMask & BIT_PWM1) {
 			message->pwm1 = (data[ind] << 8) | data[ind + 1];
@@ -498,23 +541,32 @@ void BoardConsole::appendFreshData(const Message * msg) {
 	if (paramsBitMask & BIT_COMPASS_Z) {
 		paramValues[ui.compassZ->text()].append(msg->compass[2]);
 	}
-	if (paramsBitMask & BIT_EULER_X) {
-		paramValues[ui.eulerX->text()].append(msg->euler[0]);
+	if (paramsBitMask & BIT_MPL_EULER_X) {
+		paramValues[ui.mplEulerX->text()].append(msg->mpl_euler[0]);
 	}
-	if (paramsBitMask & BIT_EULER_Y) {
-		paramValues[ui.eulerY->text()].append(msg->euler[1]);
+	if (paramsBitMask & BIT_MPL_EULER_Y) {
+		paramValues[ui.mplEulerY->text()].append(msg->mpl_euler[1]);
 	}
-	if (paramsBitMask & BIT_EULER_Z) {
-		paramValues[ui.eulerZ->text()].append(msg->euler[2]);
+	if (paramsBitMask & BIT_MPL_EULER_Z) {
+		paramValues[ui.mplEulerZ->text()].append(msg->mpl_euler[2]);
 	}
-	if (paramsBitMask & BIT_EULERRATE_X) {
-		paramValues[ui.eulerRateX->text()].append(msg->eulerRate[0]);
+	if (paramsBitMask & BIT_DMP_EULER_X) {
+		paramValues[ui.dmpEulerX->text()].append(msg->dmp_euler[0]);
 	}
-	if (paramsBitMask & BIT_EULERRATE_Y) {
-		paramValues[ui.eulerRateY->text()].append(msg->eulerRate[1]);
+	if (paramsBitMask & BIT_DMP_EULER_Y) {
+		paramValues[ui.dmpEulerY->text()].append(msg->dmp_euler[1]);
 	}
-	if (paramsBitMask & BIT_EULERRATE_Z) {
-		paramValues[ui.eulerRateZ->text()].append(msg->eulerRate[2]);
+	if (paramsBitMask & BIT_DMP_EULER_Z) {
+		paramValues[ui.dmpEulerZ->text()].append(msg->dmp_euler[2]);
+	}
+	if (paramsBitMask & BIT_MINE_EULER_X) {
+		paramValues[ui.mineEulerX->text()].append(msg->mine_euler[0]);
+	}
+	if (paramsBitMask & BIT_MINE_EULER_Y) {
+		paramValues[ui.mineEulerY->text()].append(msg->mine_euler[1]);
+	}
+	if (paramsBitMask & BIT_MINE_EULER_Z) {
+		paramValues[ui.mineEulerZ->text()].append(msg->mine_euler[2]);
 	}
 	if (paramsBitMask & BIT_PWM1) {
 		paramValues[ui.pwm1->text()].append(msg->pwm1);
@@ -561,11 +613,11 @@ void BoardConsole::handleFreshMessage(const Message * msg) {
 		plots[i]->replot();
 	}
 
-	if (glwidget) {
+	/*if (glwidget) {
 		glwidget->setXRotation(msg->euler[0] * 16.0f);
 		glwidget->setYRotation(msg->euler[1] * 16.0f);
 		glwidget->setZRotation(msg->euler[2] * 16.0f);
-	}
+	}*/
 }
 
 

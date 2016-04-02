@@ -91,17 +91,23 @@ void SerialPortReader::setParamsBitMask(quint32 bitMask) {
 		messageSize += 2;
 	if (paramsBitMask & BIT_COMPASS_Z)
 		messageSize += 2;
-	if (paramsBitMask & BIT_EULER_X)
+	if (paramsBitMask & BIT_MPL_EULER_X)
 		messageSize += 4;
-	if (paramsBitMask & BIT_EULER_Y)
+	if (paramsBitMask & BIT_MPL_EULER_Y)
 		messageSize += 4;
-	if (paramsBitMask & BIT_EULER_Z)
+	if (paramsBitMask & BIT_MPL_EULER_Z)
 		messageSize += 4;
-	if (paramsBitMask & BIT_EULERRATE_X)
+	if (paramsBitMask & BIT_DMP_EULER_X)
 		messageSize += 4;
-	if (paramsBitMask & BIT_EULERRATE_Y)
+	if (paramsBitMask & BIT_DMP_EULER_Y)
 		messageSize += 4;
-	if (paramsBitMask & BIT_EULERRATE_Z)
+	if (paramsBitMask & BIT_DMP_EULER_Z)
+		messageSize += 4;
+	if (paramsBitMask & BIT_MINE_EULER_X)
+		messageSize += 4;
+	if (paramsBitMask & BIT_MINE_EULER_Y)
+		messageSize += 4;
+	if (paramsBitMask & BIT_MINE_EULER_Z)
 		messageSize += 4;
 	if (paramsBitMask & BIT_PWM1)
 		messageSize += 2;
@@ -147,8 +153,8 @@ void SerialPortReader::handleReadyRead()
 		QByteArray msgByteArray = m_readData.mid(0, messageSize);
 		if (Message_FromByteArray(msgByteArray, paramsBitMask, &msg)) {	
 			if (logStream) {
-				(*logStream) << msg.euler[0] << ' ' << msg.euler[1] << ' ' << msg.euler[2] << endl;
-				qDebug() << msg.euler[0] << ' ' << msg.euler[1] << ' ' << msg.euler[2] << endl;
+				(*logStream) << msg.mine_euler[0] << ' ' << msg.mine_euler[1] << ' ' << msg.mine_euler[2] << endl;
+				qDebug() << msg.mine_euler[0] << ' ' << msg.mine_euler[1] << ' ' << msg.mine_euler[2] << endl;
 			}
 			Q_EMIT freshMessage(&msg);
 			m_readData = m_readData.remove(0, messageSize);

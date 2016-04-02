@@ -18,6 +18,34 @@
 #include "eMPL_outputs.h"
 #include "ml_math_func.h"
 
+#include "main.h"
+
+//****************************************
+uint8_t algorithm = BIT_MPL | BIT_DMP | BIT_MINE;
+uint8_t new_data = 0;
+uint8_t meas1 = BIT_MPL | BIT_DMP | BIT_MINE;
+
+float mpl_euler[3];
+float dmp_euler[3];
+float mine_euler[3];
+
+long mpl_euler_fixed[3];
+
+long dmp_quat_data[4];
+Quat dmp_orient;
+
+float mine_accel[3];
+float mine_gyro[3];
+float mine_compass[3];
+Quat mine_orient;
+extern float w1[3];
+extern float w2[3];
+extern float v1[3];
+extern float v2[3];
+
+//****************************************
+
+
 extern float angleRate[3];
 extern float accel[3];
 extern float magField[3];
@@ -103,7 +131,7 @@ void Delay_us(uint16_t us) {
     while ((TIM6->CR1 & TIM_CR1_CEN)!=0);
 }
 
-#include "dmp.h"
+
 extern uint8_t process;
 int res = 0;
 long gyro_st_bias[3];
@@ -146,8 +174,6 @@ static struct platform_data_s compass_pdata = {
 //#define COMPASS_ENABLED 1
 //#endif
 
-extern uint8_t new_data;
-
 long mpl_accel_fixed[3];
 float mpl_accel[3];
 long mpl_gyro_fixed[3];
@@ -161,11 +187,11 @@ long tmp;
 uint16_t gyro_fsr;
 uint8_t accel_fsr;
 uint16_t compass_fsr;
-long mpl_euler[3];
+//long mpl_euler[3];
+uint8_t self_test_res = 0;
 
 int main() {
     QUEST_Init();
-    Message_Size = sizeof(Message);
     RCC_Init();
     SysTick_Init();
     
@@ -179,35 +205,37 @@ int main() {
     res = MPU_Init(NULL);
     
     res = inv_init_mpl();
-//    res = MPU_RunSelfTest(gyro_st_bias, accel_st_bias);
-//    
-//    if (res & 0x03) {
-//        for (i = 0; i < 3; i++) {
-//            accel_st_bias[i] *= (0xffff / 2 / 16);
-//            gyro_st_bias[i] *= (0xffff / 2 / 1000);
-//        }
-//        inv_set_accel_bias(accel_st_bias, 3);
-//        inv_set_gyro_bias(gyro_st_bias, 3);
-//        for (i = 0; i < 3; i++) {
-//            accel_st_bias[i] /= 65536L;
-//            gyro_st_bias[i] /= 65536L;
-//        }
-//    } 
-//    // TODO: handle error 
+    self_test_res = MPU_RunSelfTest(gyro_st_bias, accel_st_bias);
     
-    //res = MPU_SetAccelBias(accel_st_bias);
-    //MPU_SetGyroBias(gyro_st_bias);
-    
+    if (self_test_res & 0x03) {
+        for (j = 0; j < 3; j++) {
+            accel_st_bias[j] = accel_st_bias[j] * (0xffff / 2 / 16) / 65536L;
+            gyro_st_bias[j] = gyro_st_bias[j] * (0xffff / 2 / 1000) / 65536L;
+        }
+        res = MPU_SetAccelBias(accel_st_bias);
+        MPU_SetGyroBias(gyro_st_bias);
+        res = MPU_SetAccelBias(accel_st_bias);
+        MPU_SetGyroBias(gyro_st_bias);
+    } 
+    // TODO: handle error 
     
     MPU_SetAccelFsr(2);
     MPU_SetGyroFsr(2000);
+//    if (self_test_res & 0x03) {
+//        for (j = 0; j < 3; j++) {
+//            accel_st_bias[j] = accel_st_bias[j] / (0xffff / 2 / 16) * (0xffff / 2 / 2) * 65536L;
+//            gyro_st_bias[j] = gyro_st_bias[j] / (0xffff / 2 / 1000) * (0xffff / 2 / 2000) * 65536L;
+//        }
+//        inv_set_accel_bias(accel_st_bias, 3);
+//        inv_set_gyro_bias(gyro_st_bias, 3);
+//    }
     
     inv_enable_quaternion();
     inv_enable_9x_sensor_fusion();
-    inv_enable_fast_nomot();
+    //inv_enable_fast_nomot();
     //inv_enable_gyro_tc();
-    inv_enable_vector_compass_cal();
-    inv_enable_magnetic_disturbance();
+//    inv_enable_vector_compass_cal();
+//    inv_enable_magnetic_disturbance();
     
     inv_enable_eMPL_outputs();
     res = inv_start_mpl();
@@ -247,61 +275,65 @@ int main() {
     Telemetry_DMA_Init();
 
     while (1) {
-//        if (process) {
-//            process = 0;
-//            QUEST();          
-//            
-//            degrees_to_radians(angleRate);
-//            memcpy(zk_data, angleRate, VECT_SIZE*sizeof(float));
-//            zk_data[3] = orientation.w;
-//            memcpy(zk_data+VECT_SIZE+1, orientation.v, VECT_SIZE*sizeof(float));
-//            
-//            Kalman();
-//            orientation.w = x_aposteriori_data[3];
-//            memcpy(orientation.v, x_aposteriori_data+VECT_SIZE+1, VECT_SIZE*sizeof(float));
-//            //quaternionToEuler(&orientation, &euler[0], &euler[1], &euler[2]);
-//            Quat_ToEuler(orientation, euler);
-//            
-//            memcpy(angleRate, x_aposteriori_data, VECT_SIZE*sizeof(float));
-//            angleRate_to_eulerRate(angleRate, euler, eulerRate);
-//            
-//            radians_to_degrees(euler);
-//            radians_to_degrees(eulerRate);
-//            
-//            memcpy(message.euler, euler, 3*sizeof(float));
-//            Telemetry_Send(&message);
+        if (new_data & BIT_MPL) {
+            new_data &= ~BIT_MPL;
 
-//        }
-        if (new_data) {
-            GPIOA->BSRRL |= 1 << 15;
-            new_data = 0;
             inv_execute_on_data();
+            if (inv_get_sensor_type_euler(mpl_euler_fixed, &accuracy, (inv_time_t*)&read_timestamp)) {
+                for (j = 0; j < 3; j++) {
+                    mpl_euler[j] = (float)mpl_euler_fixed[j] / 65536.0f;
+                }
+            }
+        }
+        if (new_data & BIT_DMP) {
+            new_data &= ~BIT_DMP;
             
-            if (inv_get_sensor_type_accel(mpl_accel_fixed, &accuracy, &read_timestamp)) {
-                for (j = 0; j < 3; j++) {
-                    mpl_accel[j] = mpl_accel_fixed[j] / 65536.0f;
-                }
+            dmp_orient.w = dmp_quat_data[0] / QUAT_SENS;
+            for (j = 0; j < 3; j++) {
+                dmp_orient.v[j] = dmp_quat_data[j+1] / QUAT_SENS;
             }
-            if (inv_get_sensor_type_gyro(mpl_gyro_fixed, &accuracy, &read_timestamp)) {
-                for (j = 0; j < 3; j++) {
-                    mpl_gyro[j] = mpl_gyro_fixed[j] / 65536.0f;
-                }
+            Quat_ToEuler(dmp_orient, dmp_euler);
+            radians_to_degrees(dmp_euler);
+        }
+        if (new_data & BIT_MINE) {
+            new_data &= ~BIT_MINE;
+            
+            if (meas1 & BIT_MINE) {
+                meas1 &= ~BIT_MINE;
+                
+                memcpy(w1, mine_accel, VECT_SIZE*sizeof(float));
+                memcpy(w2, mine_compass, VECT_SIZE*sizeof(float));
+                
+                Vect_Norm(w1);
+                Vect_Norm(w2);
+            } else {
+                memcpy(v1, mine_accel, VECT_SIZE*sizeof(float));
+                memcpy(v2, mine_compass, VECT_SIZE*sizeof(float));
+                
+                Vect_Norm(v1);
+                Vect_Norm(v2);
+                
+                QUEST();
+                
+                degrees_to_radians(mine_gyro);
+                memcpy(zk_data, mine_gyro, VECT_SIZE*sizeof(float));
+                zk_data[3] = mine_orient.w;
+                memcpy(zk_data+VECT_SIZE+1, mine_orient.v, VECT_SIZE*sizeof(float));
+                
+                Kalman();
+                mine_orient.w = x_aposteriori_data[3];
+                memcpy(mine_orient.v, x_aposteriori_data+VECT_SIZE+1, VECT_SIZE*sizeof(float));
+                //quaternionToEuler(&orientation, &euler[0], &euler[1], &euler[2]);
+                Quat_ToEuler(mine_orient, mine_euler);
+                
+                memcpy(mine_gyro, x_aposteriori_data, VECT_SIZE*sizeof(float));
+                angleRate_to_eulerRate(mine_gyro, mine_euler, eulerRate);
+                
+                radians_to_degrees(mine_euler);
+                radians_to_degrees(eulerRate);
+                
+                Telemetry_Send();
             }
-            if (inv_get_sensor_type_compass(mpl_compass_fixed, &accuracy, &read_timestamp)) {
-                for (j = 0; j < 3; j++) {
-                    mpl_compass[j] = mpl_compass_fixed[j] / 65536.0f;
-                }
-            }
-            if (inv_get_sensor_type_euler(mpl_euler, &accuracy,
-            (inv_time_t*)&read_timestamp)) {
-                for (j = 0; j < 3; j++) {
-                    euler[j] = mpl_euler[j] / 65536.0f;
-                }
-   
-                memcpy(message.euler, euler, 3*sizeof(float));
-                Telemetry_Send(&message);
-            }
-            GPIOA->BSRRH |= 1 << 15;
         }
     }
 }

@@ -27,12 +27,6 @@ float temp;
 float angleRate[3];
 float magField[3];
 
-float mag_sens_adj[3];
-
-uint8_t dmp_on = 0;
-
-uint8_t meas1 = 1;
-uint8_t process = 0;
 extern float w1[3];
 extern float w2[3];
 extern float v1[3];
@@ -1162,20 +1156,14 @@ void swap(float *a, float *b) {
     *b = tmp;
 }
 
+#include "main.h"
 #include "telemetry.h"
 #include "extra_math.h"
 #include "data_builder.h"
 uint8_t compass_data[8];
-float base_euler[3];
-extern float euler[3];
-uint8_t dmp_algorithm = 0;
-uint8_t new_data = 0;
-extern Quat orientation;
 
 int get_tick_count(unsigned long *count);
 unsigned long timestamp;
-
-long dmp_quat[4];
 
 short raw_accel[3];
 short raw_gyro[3];
@@ -1223,6 +1211,7 @@ static void short2long(short *s, long *l, uint16_t size) {
 }
 
 void DMA1_Stream3_IRQHandler() {
+    uint8_t i = 0;
     if (DMA1->LISR & DMA_LISR_TCIF3) {
         DMA1->LIFCR = DMA_LIFCR_CTCIF3 | DMA_LIFCR_CHTIF3;
         DMA1_Stream3->CR &= ~DMA_SxCR_EN;
@@ -1231,13 +1220,13 @@ void DMA1_Stream3_IRQHandler() {
         get_tick_count(&timestamp);
         
         if (DMA1_Stream3->M0AR == (uint32_t)MPU_DMA_rx) {
-            parse_quat_accel_gyro(MPU_DMA_rx + 1, dmp_quat, raw_accel, raw_gyro); 
+            parse_quat_accel_gyro(MPU_DMA_rx + 1, dmp_quat_data, raw_accel, raw_gyro); 
             
-            inv_build_quat(dmp_quat, 1, timestamp);
+            inv_build_quat(dmp_quat_data, 1, timestamp);
             short2long(raw_accel, raw_accel_long, 3);
             inv_build_accel(raw_accel_long, 0, timestamp);
             inv_build_gyro(raw_gyro, timestamp);
-            new_data = 1;
+            new_data = BIT_DMP | BIT_MPL;
             
             if (st->chip_cfg.sensors & INV_XYZ_COMPASS) {
                 MPU_DMA_tx[0] = READ_COMMAND | EXT_SENS_DATA_00;
@@ -1247,45 +1236,19 @@ void DMA1_Stream3_IRQHandler() {
             parse_compass(compass_data + 1, raw_compass);
             short2long(raw_accel, raw_compass_long, 3);
             inv_build_compass(raw_compass_long, 0, timestamp);
-            new_data = 1;
             
-//            magField[2] = -magField[2];
-//            swap(&magField[0], &magField[1]); 
-//            
-//            angleRate[0] = -angleRate[0];
-//            angleRate[1] = -angleRate[1];
-//            angleRate[2] = -angleRate[2];
-//            
-//            if (meas1) {
-//                meas1 = 0;
-//                if (dmp_algorithm) {
-//                    Quat_ToEuler(orientation, euler);
-//                    radians_to_degrees(euler);
-//                    memcpy(base_euler, euler, 3*sizeof(euler[0]));
-//                } 
-//                memcpy(w1, accel, VECT_SIZE*sizeof(float));
-//                memcpy(w2, magField, VECT_SIZE*sizeof(float));
-//                
-//                Vect_Norm(w1);
-//                Vect_Norm(w2);
-//            } else {
-//                if (dmp_algorithm) {
-//                    Quat_ToEuler(orientation, euler);
-//                    radians_to_degrees(euler);
-//                    euler[0] -= base_euler[0];
-//                    euler[1] -= base_euler[1];
-//                    euler[2] -= base_euler[2];
-//                    memcpy(message.euler, euler, 3 * sizeof(euler[0]));
-//                    Telemetry_Send(&message);
-//                } else {
-//                    process = 1;
-//                    memcpy(v1, accel, VECT_SIZE*sizeof(float));
-//                    memcpy(v2, magField, VECT_SIZE*sizeof(float));
-//                    
-//                    Vect_Norm(v1);
-//                    Vect_Norm(v2);
-//                }
-//            }
+            for (i = 0; i < 3; i++) {
+                mine_accel[i]   = raw_accel[i]      / st->chip_cfg.accel_sens;
+                mine_gyro[i]    = raw_gyro[i]       / st->chip_cfg.gyro_sens;
+                mine_compass[i] = raw_compass[i]    * MAG_SENS;
+            }
+            mine_compass[2] = -mine_compass[2];
+            swap(&mine_compass[0], &mine_compass[1]);
+            mine_gyro[0] = -mine_gyro[0];
+            mine_gyro[1] = -mine_gyro[1];
+            mine_gyro[2] = -mine_gyro[2];
+            
+            new_data = BIT_MPL | BIT_MINE;
         }
     }
 }
