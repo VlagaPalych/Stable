@@ -491,10 +491,10 @@ void Telemetry_Send() {
             tele_len += sizeof(freq2);
         }
         if (paramsBitMask & BIT_F) {
-            tele[tele_len]      = (uint8_t)(((uint8_t *)&F)[3]);
-            tele[tele_len+1]    = (uint8_t)(((uint8_t *)&F)[2]);
-            tele[tele_len+2]    = (uint8_t)(((uint8_t *)&F)[1]);
-            tele[tele_len+3]    = (uint8_t)(((uint8_t *)&F)[0]);
+            tele[tele_len]      = (uint8_t)(((uint8_t *)&F)[0]);
+            tele[tele_len+1]    = (uint8_t)(((uint8_t *)&F)[1]);
+            tele[tele_len+2]    = (uint8_t)(((uint8_t *)&F)[2]);
+            tele[tele_len+3]    = (uint8_t)(((uint8_t *)&F)[3]);
             tele_len += sizeof(F);
         }
         

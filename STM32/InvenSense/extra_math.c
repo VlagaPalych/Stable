@@ -66,9 +66,15 @@ void Quat_Scale(Quat *q, float scale_factor) {
     }
 }
 void Quat_ToEuler(Quat q, float angle[3]) {
-    angle[0] = atan(2*(q.w*q.v[0] + q.v[1]*q.v[2]) / (1.0f - 2*(q.v[0]*q.v[0] + q.v[1]*q.v[1])));
-    angle[1] = asin(2*(q.w*q.v[1] + q.v[0]*q.v[2]));
-    angle[2] = atan(2*(q.w*q.v[2] + q.v[0]*q.v[1]) / (1.0f - 2*(q.v[1]*q.v[1] + q.v[2]*q.v[2])));
+    float r11, r12, r2, r31, r32;
+    r11 = 2 * q.v[0]*q.v[2] + q.w*q.v[1];
+    r12 = q.w*q.w + q.v[0]*q.v[0] - q.v[1]*q.v[1] - q.v[2]*q.v[2];
+    r2 = - 2 * q.v[0]*q.v[2] - q.w*q.v[1];
+    r31 = 2 * q.v[1]*q.v[2] + q.w*q.v[0];
+    r32 = q.w*q.w - q.v[0]*q.v[0] - q.v[1]*q.v[1] + q.v[2]*q.v[2];
+    angle[0] = atan2f(r11, r12);
+    angle[1] = asinf(r2);
+    angle[2] = atan2f(r31, r32);
 }
 
 float w1[VECT_SIZE], w2[VECT_SIZE];

@@ -496,7 +496,10 @@ uint8_t Message_FromByteArray(const QByteArray &bytes, quint32 paramsBitMask, Me
 			ind += sizeof(message->freq2);
 		}
 		if (paramsBitMask & BIT_F) {
-			message->f = ((float *)&data[ind])[0];
+			((uint8_t *)(&(message->f)))[0] = data[ind];
+			((uint8_t *)(&(message->f)))[1] = data[ind + 1];
+			((uint8_t *)(&(message->f)))[2] = data[ind + 2];
+			((uint8_t *)(&(message->f)))[3] = data[ind + 3];
 			ind += sizeof(message->f);
 		}
 
