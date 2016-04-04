@@ -1,30 +1,23 @@
-function F = myfun(x)
-p12 = x(1);
-p13 = x(2);
-p21 = x(3);
-p23 = x(4);
-p31 = x(5);
-p32 = x(6);
+function F = myfun2(x)
+g11 = x(1);
+g12 = x(2);
+g13 = x(3);
+g21 = x(4);
+g22 = x(5);
+g23 = x(6);
+g31 = x(7);
+g32 = x(8);
+g33 = x(9);
 
-P = [sqrt(1-p12^2-p13^2)    p12                     p13
-     p21                    sqrt(1-p21^2-p23^2)     p23
-     p31                    p32                     sqrt(1-p31^2-p32^2)];
+G = [g11 g12 g13
+     g21 g22 g23
+     g31 g32 g33];
  
-k2 = x(7);
-k3 = x(8);
-
-K = [1  0   0
-     0  k2  0
-     0  0   k3];
- 
-m1 = x(9);
-m2 = x(10);
-m3 = x(11);
+m1 = x(10);
+m2 = x(11);
+m3 = x(12);
 
 m = [m1 m2 m3]';
-
-invP = inv(P);
-invK = inv(K);
 
 % A(1,:,:) = [
 %     1   0   0
@@ -161,14 +154,12 @@ M = [
 
 % plot3(M(1,:), M(2,:), M(3,:), 'o');
 
-F = 0;
 for i = 1:19
     for j = 1:3
         for k = 1:3
             Ai(j,k) = A(i,j,k);
         end
     end
-    F = F + (invP*invK*(M0 - m) - Ai'*invP*invK*(M(:,i) - m))' * ...
-        (invP*invK*(M0 - m) - Ai'*invP*invK*(M(:,i) - m));
+    F(i) = norm(G*(M0 - m) - Ai'*G*(M(:,i) - m));
 end
 end
