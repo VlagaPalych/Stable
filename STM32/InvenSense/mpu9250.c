@@ -1199,7 +1199,7 @@ static void parse_compass(uint8_t *raw_compass, short *compass) {
     uint8_t i = 0;
     int16_t tmp = 0;
     for (i = 0; i < 3; i++) {
-        compass[i] = (compass_data[2*i] | ((int16_t)compass_data[2*i+1] << 8));
+        compass[i] = (raw_compass[2*i] | ((short)raw_compass[2*i+1] << 8));
     }
 }
 
@@ -1220,13 +1220,17 @@ void DMA1_Stream3_IRQHandler() {
         get_tick_count(&timestamp);
         
         if (DMA1_Stream3->M0AR == (uint32_t)MPU_DMA_rx) {
-            parse_quat_accel_gyro(MPU_DMA_rx + 1, dmp_quat_data, raw_accel, raw_gyro); 
+            parse_quat_accel_gyro(MPU_DMA_rx + 1, dmp_quat_data, raw_accel, raw_gyro);
             
             inv_build_quat(dmp_quat_data, 1, timestamp);
             short2long(raw_accel, raw_accel_long, 3);
-            inv_build_accel(raw_accel_long, 0, timestamp);
+            for (i = 0; i < 3; i++) {
+                raw_accel_long[i] = (long)((float)(raw_accel_long[i] << 16) / st->chip_cfg.accel_sens);
+            }
+            inv_build_accel(raw_accel_long, INV_CALIBRATED, timestamp);
             inv_build_gyro(raw_gyro, timestamp);
-            new_data = BIT_DMP | BIT_MPL;
+            
+            new_data = BIT_MPL | BIT_DMP;
             
             if (st->chip_cfg.sensors & INV_XYZ_COMPASS) {
                 MPU_DMA_tx[0] = READ_COMMAND | EXT_SENS_DATA_00;
@@ -1234,14 +1238,16 @@ void DMA1_Stream3_IRQHandler() {
             }
         } else if (DMA1_Stream3->M0AR == (uint32_t)compass_data) {
             parse_compass(compass_data + 1, raw_compass);
-            short2long(raw_accel, raw_compass_long, 3);
-            inv_build_compass(raw_compass_long, 0, timestamp);
+            short2long(raw_compass, raw_compass_long, 3);
+            
             
             for (i = 0; i < 3; i++) {
                 mine_accel[i]   = raw_accel[i]      / st->chip_cfg.accel_sens;
                 mine_gyro[i]    = raw_gyro[i]       / st->chip_cfg.gyro_sens;
-                mine_compass[i] = raw_compass[i]    * MAG_SENS;
+                mine_compass[i] = raw_compass[i]    * MAG_SENS * st->chip_cfg.mag_sens_adj[i];
+                raw_compass_long[i] = (long)(mine_compass[i] * (1 << 16));
             }
+            inv_build_compass(raw_compass_long, INV_CALIBRATED, timestamp);
             mine_compass[2] = -mine_compass[2];
             swap(&mine_compass[0], &mine_compass[1]);
             mine_gyro[0] = -mine_gyro[0];

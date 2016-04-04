@@ -153,11 +153,9 @@ void SerialPortReader::handleReadyRead()
 		QByteArray msgByteArray = m_readData.mid(0, messageSize);
 		if (Message_FromByteArray(msgByteArray, paramsBitMask, &msg)) {	
 			if (logStream) {
-				(*logStream) << msg.mpl_euler[0] << ' ' << msg.mpl_euler[1] << ' ' << msg.mpl_euler[2] << ' '
-					<< msg.dmp_euler[0] << ' ' << msg.dmp_euler[1] << ' ' << msg.dmp_euler[2] << ' '
+				(*logStream) << msg.dmp_euler[0] << ' ' << msg.dmp_euler[1] << ' ' << msg.dmp_euler[2] << ' '
 					<< msg.mine_euler[0] << ' ' << msg.mine_euler[1] << ' ' << msg.mine_euler[2] << ' ' << msg.f << endl;
-				qDebug() << msg.mpl_euler[0] << ' ' << msg.mpl_euler[1] << ' ' << msg.mpl_euler[2] << ' '
-					<< msg.dmp_euler[0] << ' ' << msg.dmp_euler[1] << ' ' << msg.dmp_euler[2] << ' '
+				qDebug() << msg.dmp_euler[0] << ' ' << msg.dmp_euler[1] << ' ' << msg.dmp_euler[2] << ' '
 					<< msg.mine_euler[0] << ' ' << msg.mine_euler[1] << ' ' << msg.mine_euler[2] << ' ' << msg.f << endl;
 			}
 			Q_EMIT freshMessage(&msg);

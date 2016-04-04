@@ -246,72 +246,62 @@
         <Ww>
           <count>0</count>
           <WinNumber>2</WinNumber>
-          <ItemText>raw_accel,0x0A</ItemText>
+          <ItemText>mpl_euler</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>2</WinNumber>
-          <ItemText>raw_gyro,0x0A</ItemText>
+          <ItemText>dmp_euler</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>2</WinNumber>
-          <ItemText>raw_compass,0x0A</ItemText>
+          <ItemText>mine_euler</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>2</WinNumber>
-          <ItemText>euler</ItemText>
+          <ItemText>mine_quest_euler</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>2</WinNumber>
-          <ItemText>paramsBitMask</ItemText>
+          <ItemText>mine_gyro</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>2</WinNumber>
-          <ItemText>tele[tele_len]</ItemText>
+          <ItemText>w1</ItemText>
         </Ww>
         <Ww>
           <count>6</count>
           <WinNumber>2</WinNumber>
-          <ItemText>tele[tele_len+1]</ItemText>
+          <ItemText>w2</ItemText>
         </Ww>
         <Ww>
           <count>7</count>
           <WinNumber>2</WinNumber>
-          <ItemText>tele[tele_len+2]</ItemText>
+          <ItemText>v1</ItemText>
         </Ww>
         <Ww>
           <count>8</count>
           <WinNumber>2</WinNumber>
-          <ItemText>tele[tele_len+3]</ItemText>
+          <ItemText>v2</ItemText>
         </Ww>
         <Ww>
           <count>9</count>
           <WinNumber>2</WinNumber>
-          <ItemText>(float *)(&amp;tele[tele_len+2])[0]</ItemText>
+          <ItemText>paramsBitMask</ItemText>
         </Ww>
         <Ww>
           <count>10</count>
           <WinNumber>2</WinNumber>
-          <ItemText>tele[tele_len-1]</ItemText>
+          <ItemText>mine_compass</ItemText>
         </Ww>
         <Ww>
           <count>11</count>
           <WinNumber>2</WinNumber>
-          <ItemText>tele[tele_len-2]</ItemText>
-        </Ww>
-        <Ww>
-          <count>12</count>
-          <WinNumber>2</WinNumber>
-          <ItemText>tele[tele_len-3]</ItemText>
-        </Ww>
-        <Ww>
-          <count>13</count>
-          <WinNumber>2</WinNumber>
-          <ItemText>tele[tele_len-4]</ItemText>
+          <ItemText>F</ItemText>
         </Ww>
       </WatchWindow2>
       <Tracepoint>

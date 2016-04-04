@@ -30,6 +30,14 @@ float dmp_euler[3];
 float mine_euler[3];
 
 long mpl_euler_fixed[3];
+long mpl_accel_fixed[3];
+float mpl_accel[3];
+long mpl_gyro_fixed[3];
+float mpl_gyro[3];
+long mpl_compass_fixed[3];
+float mpl_compass[3];
+long mpl_quat_fixed[4];
+Quat mpl_orient;
 
 long dmp_quat_data[4];
 Quat dmp_orient;
@@ -222,10 +230,11 @@ int main() {
     
     inv_enable_quaternion();
     inv_enable_9x_sensor_fusion();
-    //inv_enable_fast_nomot();
+    inv_9x_fusion_use_timestamps(1);
+    inv_enable_fast_nomot();
     //inv_enable_gyro_tc();
-//    inv_enable_vector_compass_cal();
-//    inv_enable_magnetic_disturbance();
+    inv_enable_vector_compass_cal();
+    inv_enable_magnetic_disturbance();
     
     inv_enable_eMPL_outputs();
     res = inv_start_mpl();
@@ -269,6 +278,28 @@ int main() {
             new_data &= ~BIT_MPL;
 
 //            inv_execute_on_data();
+//            
+//            if (inv_get_sensor_type_accel(mpl_accel_fixed, &accuracy, (inv_time_t*)&read_timestamp)) {
+//                for (j = 0; j < 3; j++) {
+//                    mpl_accel[j] = (float)mpl_accel_fixed[j] / 65536.0f;
+//                }
+//            }
+//            if (inv_get_sensor_type_gyro(mpl_gyro_fixed, &accuracy, (inv_time_t*)&read_timestamp)) {
+//                for (j = 0; j < 3; j++) {
+//                    mpl_gyro[j] = (float)mpl_gyro_fixed[j] / 65536.0f;
+//                }
+//            }
+//            if (inv_get_sensor_type_compass(mpl_compass_fixed, &accuracy, (inv_time_t*)&read_timestamp)) {
+//                for (j = 0; j < 3; j++) {
+//                    mpl_compass[j] = (float)mpl_compass_fixed[j] / 65536.0f;
+//                }
+//            }
+//            if (inv_get_sensor_type_quat(mpl_quat_fixed, &accuracy, (inv_time_t*)&read_timestamp)) {
+//                mpl_orient.w = mpl_quat_fixed[0] / QUAT_SENS;
+//                for (j = 0; j < 3; j++) {
+//                    mpl_orient.v[j] = (float)mpl_quat_fixed[j+1] / QUAT_SENS;
+//                }
+//            }
 //            if (inv_get_sensor_type_euler(mpl_euler_fixed, &accuracy, (inv_time_t*)&read_timestamp)) {
 //                for (j = 0; j < 3; j++) {
 //                    mpl_euler[j] = (float)mpl_euler_fixed[j] / 65536.0f;
@@ -316,29 +347,28 @@ int main() {
                 QUEST();
                 Quat_ToEuler(mine_orient, mine_quest_euler);
                 radians_to_degrees(mine_quest_euler);
-//                memcpy(mine_euler, mine_quest_euler, VECT_SIZE*sizeof(float));
+                memcpy(mine_euler, mine_quest_euler, VECT_SIZE*sizeof(float));
                 
-//                degrees_to_radians(mine_gyro);
-//                memcpy(zk_data, mine_gyro, VECT_SIZE*sizeof(float));
-//                zk_data[3] = mine_orient.w;
-//                memcpy(zk_data+VECT_SIZE+1, mine_orient.v, VECT_SIZE*sizeof(float));
-//                
-//                Kalman();
-//                mine_orient.w = x_aposteriori_data[3];
-//                memcpy(mine_orient.v, x_aposteriori_data+VECT_SIZE+1, VECT_SIZE*sizeof(float));
-//                //quaternionToEuler(&orientation, &euler[0], &euler[1], &euler[2]);
-//                Quat_ToEuler(mine_orient, mine_euler);
-//                
-//                memcpy(mine_gyro, x_aposteriori_data, VECT_SIZE*sizeof(float));
-//                angleRate_to_eulerRate(mine_gyro, mine_euler, eulerRate);
-//                
-//                radians_to_degrees(mine_euler);
+                degrees_to_radians(mine_gyro);
+                memcpy(zk_data, mine_gyro, VECT_SIZE*sizeof(float));
+                zk_data[3] = mine_orient.w;
+                memcpy(zk_data+VECT_SIZE+1, mine_orient.v, VECT_SIZE*sizeof(float));
+                
+                Kalman();
+                mine_orient.w = x_aposteriori_data[3];
+                memcpy(mine_orient.v, x_aposteriori_data+VECT_SIZE+1, VECT_SIZE*sizeof(float));
+                Quat_ToEuler(mine_orient, mine_euler);
+                
+                memcpy(mine_gyro, x_aposteriori_data, VECT_SIZE*sizeof(float));
+                angleRate_to_eulerRate(mine_gyro, mine_euler, eulerRate);
+                
+                radians_to_degrees(mine_euler);
                 radians_to_degrees(eulerRate);
                 
-                F = mine_orient.w;
-                memcpy(mine_euler, mine_orient.v, VECT_SIZE*sizeof(float));
-                memcpy(mpl_euler, mine_accel, VECT_SIZE*sizeof(float));
-                memcpy(dmp_euler, mine_compass, VECT_SIZE*sizeof(float));
+//                memcpy(mine_euler, mine_orient.v, VECT_SIZE*sizeof(float));
+//                F = mine_orient.w;
+//                
+//                memcpy(dmp_euler, mine_gyro, VECT_SIZE*sizeof(float));
                 Telemetry_Send();
             }
         }

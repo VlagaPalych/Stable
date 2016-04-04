@@ -238,7 +238,7 @@ enum clock_sel_e {
 #define AK89xx_FSR                  (9830)
 #elif defined AK8963_SECONDARY
 #define SUPPORTS_AK89xx_HIGH_SENS   (0x10)
-#define AK89xx_FSR                  (4915)
+#define AK89xx_FSR                  (4800)
 #endif
 
 #ifdef AK89xx_SECONDARY
