@@ -38,6 +38,8 @@ long mpl_compass_fixed[3];
 float mpl_compass[3];
 long mpl_quat_fixed[4];
 Quat mpl_orient;
+long mpl_heading_fixed;
+float mpl_heading;
 
 long dmp_quat_data[4];
 Quat dmp_orient;
@@ -45,6 +47,8 @@ Quat dmp_orient;
 float mine_accel[3];
 float mine_gyro[3];
 float mine_compass[3];
+float compass_bias[3] = {4.6125, 4.3375, 6.4125};
+float compass_scale[3] = {0.9814, 1.0393, 0.9814};
 Quat mine_orient;
 float mine_quest_euler[3];
 extern float w1[3];
@@ -52,7 +56,8 @@ extern float w2[3];
 extern float v1[3];
 extern float v2[3];
 
-uint8_t meas1_count = 50;
+#define CALIBR_COUNT 400
+uint16_t meas1_count = CALIBR_COUNT;
 float mine_accel_sum[3] = {0, 0, 0};
 float mine_compass_sum[3] = {0, 0, 0};
 
@@ -205,16 +210,16 @@ int main() {
     res = inv_init_mpl();
     self_test_res = MPU_RunSelfTest(gyro_st_bias, accel_st_bias);
     
-    if (self_test_res & 0x03) {
-        for (j = 0; j < 3; j++) {
-            accel_st_bias[j] = accel_st_bias[j] * (0xffff / 2 / 16) / 65536L;
-            gyro_st_bias[j] = gyro_st_bias[j] * (0xffff / 2 / 1000) / 65536L;
-        }
-        res = MPU_SetAccelBias(accel_st_bias);
-        MPU_SetGyroBias(gyro_st_bias);
-        res = MPU_SetAccelBias(accel_st_bias);
-        MPU_SetGyroBias(gyro_st_bias);
-    } 
+//    if (self_test_res & 0x03) {
+//        for (j = 0; j < 3; j++) {
+//            accel_st_bias[j] = accel_st_bias[j] * (0xffff / 2 / 16) / 65536L;
+//            gyro_st_bias[j] = gyro_st_bias[j] * (0xffff / 2 / 1000) / 65536L;
+//        }
+//        res = MPU_SetAccelBias(accel_st_bias);
+//        MPU_SetGyroBias(gyro_st_bias);
+//        res = MPU_SetAccelBias(accel_st_bias);
+//        MPU_SetGyroBias(gyro_st_bias);
+//    } 
     // TODO: handle error 
     
     MPU_SetAccelFsr(2);
@@ -305,6 +310,9 @@ int main() {
 //                    mpl_euler[j] = (float)mpl_euler_fixed[j] / 65536.0f;
 //                }
 //            }
+//            if (inv_get_sensor_type_heading(&mpl_heading_fixed, &accuracy, (inv_time_t*)&read_timestamp)) {
+//                mpl_heading = (float)mpl_heading_fixed / 65536.0f;
+//            }                
         }
         if (new_data & BIT_DMP) {
             new_data &= ~BIT_DMP;
@@ -324,8 +332,8 @@ int main() {
                     meas1 &= ~BIT_MINE;
                     
                     for (j = 0; j < VECT_SIZE; j++) {
-                        w1[j] = mine_accel_sum[j] / 50;
-                        w2[j] = mine_compass_sum[j] / 50;
+                        w1[j] = mine_accel_sum[j] / CALIBR_COUNT;
+                        w2[j] = mine_compass_sum[j] / CALIBR_COUNT;
                     }
 
                     Vect_Norm(w1);
@@ -365,7 +373,7 @@ int main() {
                 radians_to_degrees(mine_euler);
                 radians_to_degrees(eulerRate);
                 
-//                memcpy(mine_euler, mine_orient.v, VECT_SIZE*sizeof(float));
+                memcpy(dmp_euler, mine_quest_euler, VECT_SIZE*sizeof(float));
 //                F = mine_orient.w;
 //                
 //                memcpy(dmp_euler, mine_gyro, VECT_SIZE*sizeof(float));

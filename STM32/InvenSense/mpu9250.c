@@ -1250,6 +1250,10 @@ void DMA1_Stream3_IRQHandler() {
             inv_build_compass(raw_compass_long, INV_CALIBRATED, timestamp);
             mine_compass[2] = -mine_compass[2];
             swap(&mine_compass[0], &mine_compass[1]);
+            for (i = 0; i < 3; i++) {
+                mine_compass[i] = (mine_compass[i] - compass_bias[i]) * compass_scale[i];
+            }
+            
             mine_gyro[0] = -mine_gyro[0];
             mine_gyro[1] = -mine_gyro[1];
             mine_gyro[2] = -mine_gyro[2];

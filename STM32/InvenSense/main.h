@@ -22,6 +22,8 @@ extern Quat dmp_orient;
 extern float mine_accel[3];
 extern float mine_gyro[3];
 extern float mine_compass[3];
+extern float compass_bias[3];
+extern float compass_scale[3];
 extern Quat mine_orient;
 
 #endif // MAIN_H
