@@ -1,4 +1,4 @@
-logName = 'D:\Vlad\Projects\Stable\Logger\Logs\Ordinary\log1191.txt';
+logName = 'D:\Vlad\Projects\Stable\Logger\Logs\Ordinary\log1208.txt';
 
 logFile = fopen(logName, 'r');
 A = fscanf(logFile, '%f %f %f %f %f %f %f %f %f\n', [9 Inf]);
@@ -55,7 +55,7 @@ for i = 4:8
         X(i) = 1e-12;
     end
 end
-%-1.17601 18.8902 -22.5528 0.875157 0.876966 0.0882387 0.033904 0.0190399 932.079
+%-1.54412 8.49701 -9.45264 0.873806 0.835283 1e-12 0.0811884 0.0180809 172.254
 A = [2      X(6) X(7)
      X(6) 2*X(4) X(8)
      X(7) X(8) 2*X(5)];

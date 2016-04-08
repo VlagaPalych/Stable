@@ -78,6 +78,15 @@ uint8_t Message_Size = 0;
 #define BUTTON_PIN ((uint8_t)0) // PA
 uint8_t mag_calibr_on = 0;
 uint8_t mag_calibrated = 0;
+#define RED_LED ((uint8_t)14) // PD
+
+void turn_red_led(uint8_t on) {
+    if (on) {
+        GPIOD->BSRRL |= 1 << RED_LED;
+    } else {
+        GPIOD->BSRRH |= 1 << RED_LED;
+    }
+}
 
 void compass_calibr_timer_init(uint8_t enable) {
     if (enable) {
@@ -159,8 +168,8 @@ void mag_process_fresh_calibr_data() {
 }
 
 extern uint8_t telemetry_on;
-
-void mag_calibrate() {
+#define MAG_CROSS_SENS_THRESH 0.05
+int mag_calibrate() {
     uint16_t i = 0;
     float x, y, z;
     float a2;
@@ -202,6 +211,16 @@ void mag_calibrate() {
         if (pSol[i] < 0) {
             pSol[i] = 1e-12;
         }
+    }
+    
+    if ((pSol[5] > MAG_CROSS_SENS_THRESH) || 
+        (pSol[6] > MAG_CROSS_SENS_THRESH) || 
+        (pSol[7] > MAG_CROSS_SENS_THRESH)) {
+            memcpy(mpl_euler, &pSol[0], 3*sizeof(float));
+            memcpy(dmp_euler, &pSol[3], 3*sizeof(float));
+            memcpy(mine_euler, &pSol[6], 3*sizeof(float));
+            Telemetry_Send();
+            return -1;
     }
     
     pC[0*3+0] = 2.0f;       pC[0*3+1] = pSol[5];      pC[0*3+2] = pSol[6];
@@ -253,6 +272,7 @@ void mag_calibrate() {
     memcpy(mine_euler, &pSol[6], 3*sizeof(float));
     Telemetry_Send();
     telemetry_on = 0;
+    return 0;
 }
 
 #define MAG_CALIBR_FLASH_ADDR 0x080e0004
@@ -281,6 +301,10 @@ void mag_calibr_restore_from_flash() {
     flash_unlock();
     for (i = 0; i < 9; i++) {
         data = flash_read(MAG_CALIBR_FLASH_ADDR + sizeof(float)*i);
+        if (data == 0xffffffff) {
+            turn_red_led(1);
+            return;
+        }
         pInt = (uint32_t *)&mag_calibr_mat_data[i];
         pInt[0] = data;
     }
@@ -290,6 +314,7 @@ void mag_calibr_restore_from_flash() {
         pInt[0] = data;
     }
     flash_lock();
+    turn_red_led(0);
 }
 
 void TIM2_IRQHandler() {
@@ -299,7 +324,9 @@ void TIM2_IRQHandler() {
         if (mag_calibr_row < MAG_CALIBR_MATRIX_ROW_NUMBER) {
             mag_process_fresh_calibr_data();
         } else {
-            mag_calibrate();
+            if (mag_calibrate()) {
+                turn_red_led(1);
+            };
         }
         
         GPIOD->ODR ^= 1 << 12;
@@ -338,7 +365,9 @@ void EXTI0_IRQHandler(void) {
         } else {
             compass_calibr_timer_init(0);
             //MPU_SetCompassSampleRate(100);
-            mag_calibrate();  
+            if (mag_calibrate()) {
+                turn_red_led(1);
+            };
         }
     }
 }
@@ -537,6 +566,8 @@ int main() {
     SysTick_Init();
     Button_Init();
     
+    GPIOD->MODER &= ~(3 << RED_LED*2);
+    GPIOD->MODER |= (1 << RED_LED*2);
     mag_calibr_restore_from_flash();
 //    flash_unlock();
 //    flash_erase_sector(0x080e0000);

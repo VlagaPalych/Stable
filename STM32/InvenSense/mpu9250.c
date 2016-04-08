@@ -1282,10 +1282,8 @@ void DMA1_Stream3_IRQHandler() {
                 raw_compass_long[i] = (long)(mine_compass[i] * (1 << 16));
             }
             inv_build_compass(raw_compass_long, INV_CALIBRATED, timestamp);
-            if (mag_calibrated) {
-                arm_sub_f32(mine_compass, mag_bias, mag_tmp, VECT_SIZE);
-                arm_mat_mult_f32(&mag_calibr_mat, &mag_tmp_mat, &mine_compass_mat);
-            }
+            arm_sub_f32(mine_compass, mag_bias, mag_tmp, VECT_SIZE);
+            arm_mat_mult_f32(&mag_calibr_mat, &mag_tmp_mat, &mine_compass_mat);
             
             mine_compass[2] = -mine_compass[2];
             swap(&mine_compass[0], &mine_compass[1]);
