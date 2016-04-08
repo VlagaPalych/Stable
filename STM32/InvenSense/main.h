@@ -26,4 +26,17 @@ extern float compass_bias[3];
 extern float compass_scale[3];
 extern Quat mine_orient;
 
+void Delay_ms(uint16_t ms);
+
+void flash_unlock();
+void flash_lock();
+uint8_t flash_ready(void);
+int flash_erase_sector(uint32_t address);
+void flash_erase_all_pages(void);
+void flash_write(uint32_t address, uint32_t data);
+uint32_t flash_read(uint32_t address);
+
+void mag_calibr_save_to_flash();
+void mag_calibr_restore_from_flash();
+
 #endif // MAIN_H

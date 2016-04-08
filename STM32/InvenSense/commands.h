@@ -63,6 +63,8 @@
 #define BIT_FREQ2			0x00200000
 #define BIT_F				0x00400000
 
+extern uint32_t paramsBitMask;
+
 typedef struct {
 	float euler[3];
 } Message;

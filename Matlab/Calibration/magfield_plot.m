@@ -1,7 +1,7 @@
-logName = 'D:\Vlad\Projects\Stable\Logger\Logs\Ordinary\log1136.txt';
+logName = 'D:\Vlad\Projects\Stable\Logger\Logs\Ordinary\log1191.txt';
 
 logFile = fopen(logName, 'r');
-A = fscanf(logFile, '%f %f %f\n', [3 Inf]);
+A = fscanf(logFile, '%f %f %f %f %f %f %f %f %f\n', [9 Inf]);
 
 m = A(1:3,:);
 
@@ -11,6 +11,8 @@ plot3(m(1,:), m(2,:), m(3,:), 'o')
 axis equal;
 
 N = length(m(1,:));
+m_light = m;
+m_light_num = length(m(1,:));
 % m_light = zeros(size(m));
 % m_light(:,1) = m(:,1);
 % m_light_num = 1;
@@ -32,8 +34,8 @@ N = length(m(1,:));
 %         m_light(:,m_light_num+1) = m(:,i);
 %     end
 % end
-
-plot3(m_light(1,1:m_light_num), m_light(2,1:m_light_num), m_light(3,1:m_light_num), 'o');
+% 
+% plot3(m_light(1,1:m_light_num), m_light(2,1:m_light_num), m_light(3,1:m_light_num), 'o');
 
 C = zeros(m_light_num, 9);
 d = zeros(m_light_num, 1);
@@ -47,8 +49,13 @@ end
 
 A = diag([0 0 0 -1 -1 -1 -1 -1 0]);
 b = [0 0 0 -1e-12 -1e-12 -1e-12 -1e-12 -1e-12 0];
-X = lsqlin(C, d, A, b);
-
+X = linsolve(C, d);
+for i = 4:8
+    if X(i) < 0
+        X(i) = 1e-12;
+    end
+end
+%-1.17601 18.8902 -22.5528 0.875157 0.876966 0.0882387 0.033904 0.0190399 932.079
 A = [2      X(6) X(7)
      X(6) 2*X(4) X(8)
      X(7) X(8) 2*X(5)];
@@ -75,9 +82,9 @@ f = sqrt(f2);
 
 SF = diag([1/a 1/b 1/c]);
 
-cos_xy = 2*a*b/d2
-cos_xz = 2*a*c/e2
-cos_yz = 2*b*c/f2
+cos_xy = 2*a*b/d2;
+cos_xz = 2*a*c/e2;
+cos_yz = 2*b*c/f2;
 
 sin_xy = sqrt(1 - cos_xy^2);
 sin_xz = sqrt(1 - cos_xz^2);
@@ -85,23 +92,26 @@ sin_yz = sqrt(1 - cos_yz^2);
 
 A = [1          cos_xy          cos_xz
      0          sin_xy          cos_yz*sin_xy
-     0          0               sqrt(1 - cos_xz^2 - cos_yz^2*sin_xy^2)]
+     0          0               sqrt(1 - cos_xz^2 - cos_yz^2*sin_xy^2)];
  
-B = [1          0                   0
-     0          sin_xy              cos_yz*(sin_xy-1)
-     0          0                   sqrt(1 - cos_xz^2 - cos_yz^2*sin_xy^2)]
- 
-SI = linsolve(A, B)
+% B = [1          0                   0
+%      0          sin_xy              cos_yz*(sin_xy-1)
+%      0          0                   sqrt(1 - cos_xz^2 - cos_yz^2*sin_xy^2)]
+%  
+% SI = linsolve(A, B)
 
 m_cal = zeros(size(m));
 for i = 1:N
     m_cal(:,i) = m(:,i) - m0;
     m_cal(:,i) = SF * m_cal(:,i);
-    m_cal(:,i) = SI * m_cal(:,i);
+    m_cal(:,i) = A * m_cal(:,i);
 end
 
 plot3(m_cal(1,:), m_cal(2,:), m_cal(3,:), 'o')
 axis equal;
+
+m0
+F = A * SF
 
 % mag_max = [-4800 -4800 -4800];
 % mag_min = [4800 4800 4800];

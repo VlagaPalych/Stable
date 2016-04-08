@@ -465,4 +465,6 @@ int MPU_ReadGyroBias(long *gyro_bias);
 int MPU_SetAccelBias(const long *accel_bias);
 int MPU_SetAccelBias(const long *accel_bias);
 int MPU_SetGyroBias(long *gyro_bias);
+
+void compass_float_data(uint8_t *raw, float *compass_float);
 #endif

@@ -7,7 +7,8 @@
 #include "dma.h"
 #include "stdlib.h"
 #include "math.h"
-
+#include "arm_math.h"
+#include "main.h"
 
 #define min(a,b) ((a<b)?a:b)
 void Delay_ms(uint16_t ms);
@@ -26,6 +27,26 @@ float quat[4];
 float temp;
 float angleRate[3];
 float magField[3];
+
+extern uint8_t mag_calibrated;
+
+float mag_calibr_mat_data[VECT_SIZE*VECT_SIZE] = {
+    1,    0,    0,
+    0,    1,    0,
+    0,    0,    1
+};
+arm_matrix_instance_f32 mag_calibr_mat = {VECT_SIZE, VECT_SIZE, mag_calibr_mat_data};
+
+float mag_bias[VECT_SIZE] = {
+   0,
+   0,
+   0
+};
+
+float mag_tmp[VECT_SIZE];
+arm_matrix_instance_f32 mag_tmp_mat = {VECT_SIZE, 1, mag_tmp};
+
+arm_matrix_instance_f32 mine_compass_mat = {VECT_SIZE, 1, mine_compass};
 
 extern float w1[3];
 extern float w2[3];
@@ -1134,6 +1155,7 @@ void MPU_EXTI_Init() {
 }
 
 extern DMP *dmp;
+extern uint8_t mag_calibr_on;
 
 void EXTI1_IRQHandler() {
     uint16_t fifo_count = 0;
@@ -1141,11 +1163,14 @@ void EXTI1_IRQHandler() {
     if (EXTI->PR & EXTI_PR_PR1) {
         EXTI->PR = EXTI_PR_PR1;
         
+        
         MPU_Read(FIFO_COUNTH, tmp, 2);
         fifo_count = (tmp[0] << 8) | tmp[1];
-        if (fifo_count) {
-            MPU_DMA_tx[0] = READ_COMMAND | FIFO_R_W;
-            MPU_DMA_Run(MPU_DMA_tx, MPU_DMA_rx, dmp->packet_length + 1);
+        if (!mag_calibr_on) {
+            if (fifo_count) {
+                MPU_DMA_tx[0] = READ_COMMAND | FIFO_R_W;
+                MPU_DMA_Run(MPU_DMA_tx, MPU_DMA_rx, dmp->packet_length + 1);
+            }
         }
     }
 }
@@ -1203,6 +1228,15 @@ static void parse_compass(uint8_t *raw_compass, short *compass) {
     }
 }
 
+void compass_float_data(uint8_t *raw, float *compass_float) {
+    short compass_short[3];
+    uint8_t i;
+    parse_compass(raw, compass_short);
+    for (i = 0; i < 3; i++) {
+        compass_float[i] = compass_short[i] * MAG_SENS * st->chip_cfg.mag_sens_adj[i];
+    }
+}
+
 static void short2long(short *s, long *l, uint16_t size) {
     uint16_t i;
     for (i = 0; i < size; i++) {
@@ -1248,11 +1282,14 @@ void DMA1_Stream3_IRQHandler() {
                 raw_compass_long[i] = (long)(mine_compass[i] * (1 << 16));
             }
             inv_build_compass(raw_compass_long, INV_CALIBRATED, timestamp);
+            if (mag_calibrated) {
+                arm_sub_f32(mine_compass, mag_bias, mag_tmp, VECT_SIZE);
+                arm_mat_mult_f32(&mag_calibr_mat, &mag_tmp_mat, &mine_compass_mat);
+            }
+            
             mine_compass[2] = -mine_compass[2];
             swap(&mine_compass[0], &mine_compass[1]);
-            for (i = 0; i < 3; i++) {
-                mine_compass[i] = (mine_compass[i] - compass_bias[i]) * compass_scale[i];
-            }
+            
             
             mine_gyro[0] = -mine_gyro[0];
             mine_gyro[1] = -mine_gyro[1];

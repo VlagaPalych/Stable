@@ -10,6 +10,7 @@ typedef struct {
 
 void Quat_ToEuler(Quat q, float angle[3]);
 
+float Vect_Mod(float *x) ;
 void Vect_Norm(float *x);
     
 void QUEST_Init(void);

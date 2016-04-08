@@ -19,6 +19,7 @@
 #include "ml_math_func.h"
 
 #include "main.h"
+#include "arm_math.h"
 
 //****************************************
 uint8_t algorithm = BIT_MPL | BIT_DMP | BIT_MINE;
@@ -73,6 +74,276 @@ float F;
 
 uint8_t Message_Size = 0;
 
+
+#define BUTTON_PIN ((uint8_t)0) // PA
+uint8_t mag_calibr_on = 0;
+uint8_t mag_calibrated = 0;
+
+void compass_calibr_timer_init(uint8_t enable) {
+    if (enable) {
+        GPIOD->MODER &= ~(3 << 12*2);
+        GPIOD->MODER |= 1 << 12*2;
+        TIM2->PSC = 15999;
+        TIM2->ARR = 10;
+        TIM2->DIER |= TIM_DIER_UIE;
+        NVIC_SetPriority(TIM2_IRQn, 0x02);
+        NVIC_EnableIRQ(TIM2_IRQn);
+        TIM2->CR1 |= TIM_CR1_CEN;
+    } else {
+        TIM2->CR1 &= ~TIM_CR1_CEN;
+        TIM2->DIER &= ~TIM_DIER_UIE;
+        NVIC_DisableIRQ(TIM2_IRQn);
+        GPIOD->BSRRH |= 1 << 12;
+    }
+}
+
+extern float mag_calibr_mat_data[VECT_SIZE*VECT_SIZE];
+extern float mag_bias[VECT_SIZE];
+
+uint8_t mag_calibr_raw_data[7];
+#define MAG_CALIBR_MATRIX_ROW_NUMBER 1300
+#define A_COLS 9
+float mag_calibr_data[MAG_CALIBR_MATRIX_ROW_NUMBER*3];
+float mag_calibr_tmp[3];
+uint16_t mag_calibr_row = 0;
+#define MAG_CALIBR_DIFF_THRESH      0.15f
+
+float pA[MAG_CALIBR_MATRIX_ROW_NUMBER*A_COLS];
+float pAt[MAG_CALIBR_MATRIX_ROW_NUMBER*A_COLS];
+float pB[MAG_CALIBR_MATRIX_ROW_NUMBER];
+float pAsys[A_COLS*A_COLS];
+float pBsys[A_COLS];
+float pAsysInv[A_COLS*A_COLS];
+float pSol[A_COLS];
+float pC[3*3];
+float pD[3];
+float pCInv[3*3];
+
+arm_matrix_instance_f32 A, At, B;
+arm_matrix_instance_f32 Asys = {A_COLS, A_COLS, pAsys};
+arm_matrix_instance_f32 Bsys = {A_COLS, 1, pBsys};
+arm_matrix_instance_f32 AsysInv = {A_COLS, A_COLS, pAsysInv};
+arm_matrix_instance_f32 Sol = {A_COLS, 1, pSol};
+arm_matrix_instance_f32 C = {3, 3, pC};
+arm_matrix_instance_f32 D = {3, 1, pD};
+arm_matrix_instance_f32 CInv = {3, 3, pCInv};
+arm_matrix_instance_f32 mag_bias_mat = {3, 1, mag_bias};
+
+
+
+float dist(float a[3], float b[3]) {
+    float d[3], d2[3];
+    arm_sub_f32(a, b, d, 3);
+    arm_mult_f32(d, d, d2, 3);
+    return Vect_Mod(d2);
+}
+
+void mag_process_fresh_calibr_data() {
+    float dist_prev;
+    MPU_Read(EXT_SENS_DATA_00, mag_calibr_raw_data, 7);
+    compass_float_data(mag_calibr_raw_data, mag_calibr_tmp);
+    if (mag_calibr_row == 0) {
+        memcpy(&mag_calibr_data[mag_calibr_row*3], mag_calibr_tmp, VECT_SIZE*sizeof(float));
+        mag_calibr_row = 1;
+        memcpy(mpl_euler, mag_calibr_tmp, 3*sizeof(float));
+        Telemetry_Send();
+    } else {
+        dist_prev = dist(mag_calibr_tmp, &mag_calibr_data[(mag_calibr_row-1)*3]);
+        if (dist_prev > MAG_CALIBR_DIFF_THRESH * Vect_Mod(&mag_calibr_data[(mag_calibr_row-1)*3])) {
+            memcpy(&mag_calibr_data[mag_calibr_row*3], mag_calibr_tmp, VECT_SIZE*sizeof(float));
+            mag_calibr_row++;
+            memcpy(mpl_euler, mag_calibr_tmp, 3*sizeof(float));
+            Telemetry_Send();
+        }
+    }
+}
+
+extern uint8_t telemetry_on;
+
+void mag_calibrate() {
+    uint16_t i = 0;
+    float x, y, z;
+    float a2;
+    float a, b, c, d, e, f;
+    float cos_xy, cos_xz, cos_yz;
+    float sin_xy, sin_xz, sin_yz;
+    float tmp;
+    
+    arm_mat_init_f32(&A, mag_calibr_row, A_COLS, pA);
+    arm_mat_init_f32(&At, A_COLS, mag_calibr_row, pAt);
+    arm_mat_init_f32(&B, mag_calibr_row, 1, pB);
+    
+    for (i = 0; i < mag_calibr_row; i++) {
+        x = mag_calibr_data[i*3 + 0];
+        y = mag_calibr_data[i*3 + 1];
+        z = mag_calibr_data[i*3 + 2];
+        
+        pA[i*A_COLS + 0] = x;
+        pA[i*A_COLS + 1] = y;
+        pA[i*A_COLS + 2] = z;
+        pA[i*A_COLS + 3] = -y*y;
+        pA[i*A_COLS + 4] = -z*z;
+        pA[i*A_COLS + 5] = -x*y;
+        pA[i*A_COLS + 6] = -x*z;
+        pA[i*A_COLS + 7] = -y*z;
+        pA[i*A_COLS + 8] = 1;
+        
+        pB[i] = x*x;
+    }
+    
+    arm_mat_trans_f32(&A, &At);
+    arm_mat_mult_f32(&At, &A, &Asys);
+    arm_mat_mult_f32(&At, &B, &Bsys);
+    
+    arm_mat_inverse_f32(&Asys, &AsysInv);
+    arm_mat_mult_f32(&AsysInv, &Bsys, &Sol);
+    
+    for (i = 3; i < 8; i++) {
+        if (pSol[i] < 0) {
+            pSol[i] = 1e-12;
+        }
+    }
+    
+    pC[0*3+0] = 2.0f;       pC[0*3+1] = pSol[5];      pC[0*3+2] = pSol[6];
+    pC[1*3+0] = pSol[5];    pC[1*3+1] = 2*pSol[3];    pC[1*3+2] = pSol[7];
+    pC[2*3+0] = pSol[6];    pC[2*3+2] = pSol[7];      pC[2*3+2] = 2*pSol[4];
+    
+    pD[0] = pSol[0];
+    pD[1] = pSol[1];
+    pD[2] = pSol[2];
+    
+    arm_mat_inverse_f32(&C, &CInv);
+    arm_mat_mult_f32(&CInv, &D, &mag_bias_mat);
+    
+    a2 = pSol[8] +  mag_bias[0]*mag_bias[0] + 
+                    pSol[3]*mag_bias[1]*mag_bias[1] +
+                    pSol[4]*mag_bias[2]*mag_bias[2] +
+                    pSol[5]*mag_bias[0]*mag_bias[1] +
+                    pSol[6]*mag_bias[0]*mag_bias[2] +
+                    pSol[7]*mag_bias[1]*mag_bias[2];
+    
+    arm_sqrt_f32(a2, &a);
+    arm_sqrt_f32(a2 / pSol[3], &b);
+    arm_sqrt_f32(a2 / pSol[4], &c);
+    arm_sqrt_f32(a2 / pSol[5], &d);
+    arm_sqrt_f32(a2 / pSol[6], &e);
+    arm_sqrt_f32(a2 / pSol[7], &f);
+    
+    cos_xy = 2*a*b/d/d;
+    cos_xz = 2*a*c/e/e;
+    cos_yz = 2*b*c/f/f;
+ 
+    arm_sqrt_f32(1 - cos_xy*cos_xy, &sin_xy);
+    arm_sqrt_f32(1 - cos_xz*cos_xz, &sin_xz);
+    arm_sqrt_f32(1 - cos_yz*cos_yz, &sin_yz);
+    
+    arm_sqrt_f32(1 - cos_xz*cos_xz - cos_yz*cos_yz*sin_xy*sin_xy, &tmp);
+    
+    mag_calibr_mat_data[0*3+0] = 1.0/a;     mag_calibr_mat_data[0*3+1] = cos_xy/b;      mag_calibr_mat_data[0*3+2] = cos_xz/c;
+    mag_calibr_mat_data[1*3+0] = 0;         mag_calibr_mat_data[1*3+1] = sin_xy/b;      mag_calibr_mat_data[1*3+2] = cos_yz*sin_xy/c;
+    mag_calibr_mat_data[2*3+0] = 0;         mag_calibr_mat_data[2*3+1] = 0;             mag_calibr_mat_data[2*3+2] = tmp/c;
+    
+    mag_calibr_save_to_flash();
+    
+    mag_calibrated = 1;
+    mag_calibr_on = 0;
+    
+    memcpy(mpl_euler, &pSol[0], 3*sizeof(float));
+    memcpy(dmp_euler, &pSol[3], 3*sizeof(float));
+    memcpy(mine_euler, &pSol[6], 3*sizeof(float));
+    Telemetry_Send();
+    telemetry_on = 0;
+}
+
+#define MAG_CALIBR_FLASH_ADDR 0x080e0004
+
+void mag_calibr_save_to_flash() {
+    uint8_t i = 0;
+    uint32_t *pInt, data;
+    flash_unlock();
+    flash_erase_sector(MAG_CALIBR_FLASH_ADDR);
+    for (i = 0; i < 9; i++) {
+        pInt = (uint32_t *)&mag_calibr_mat_data[i];
+        data = pInt[0];
+        flash_write(MAG_CALIBR_FLASH_ADDR + sizeof(float)*i, data); 
+    }
+    for (i = 0; i < 3; i++) {
+        pInt = (uint32_t *)&mag_bias[i];
+        data = pInt[0];
+        flash_write(MAG_CALIBR_FLASH_ADDR + sizeof(float)*(i+9), data); 
+    }
+    flash_lock();
+}
+
+void mag_calibr_restore_from_flash() {
+    uint8_t i = 0;
+    uint32_t *pInt, data;
+    flash_unlock();
+    for (i = 0; i < 9; i++) {
+        data = flash_read(MAG_CALIBR_FLASH_ADDR + sizeof(float)*i);
+        pInt = (uint32_t *)&mag_calibr_mat_data[i];
+        pInt[0] = data;
+    }
+    for (i = 0; i < 3; i++) {
+        data = flash_read(MAG_CALIBR_FLASH_ADDR + sizeof(float)*(i+9));
+        pInt = (uint32_t *)&mag_bias[i];
+        pInt[0] = data;
+    }
+    flash_lock();
+}
+
+void TIM2_IRQHandler() {
+    if (TIM2->SR & TIM_SR_UIF) {
+        TIM2->SR &= ~TIM_SR_UIF;
+        
+        if (mag_calibr_row < MAG_CALIBR_MATRIX_ROW_NUMBER) {
+            mag_process_fresh_calibr_data();
+        } else {
+            mag_calibrate();
+        }
+        
+        GPIOD->ODR ^= 1 << 12;
+    }
+}
+
+void Button_Init() {
+    GPIOA->MODER &= ~(3 << BUTTON_PIN*2);
+    GPIOA->OSPEEDR |= 3 << BUTTON_PIN*2;
+    
+    SYSCFG->EXTICR[0] = SYSCFG_EXTICR1_EXTI0_PA;
+    EXTI->RTSR 	|= EXTI_RTSR_TR0;  	    // rising events
+    //EXTI->FTSR 	|= EXTI_FTSR_TR0;  	    
+	EXTI->IMR 	|= EXTI_IMR_MR0; 		// we don't mask events on line 0
+	NVIC_EnableIRQ(EXTI0_IRQn); 		// enable EXTI0 interrupt
+}
+
+#include "commands.h"
+
+void EXTI0_IRQHandler(void) {
+	if (EXTI->PR & EXTI_PR_PR0) {
+		EXTI->PR = EXTI_PR_PR0;		    // Clear interrupt flag
+	
+        // to avoid rattle
+        Delay_ms(25);
+        if ((GPIOA->IDR & 1) == 0) {
+            return;
+        }
+        
+        if (!mag_calibr_on) {
+            mag_calibr_on = 1;
+            mag_calibr_row = 0;
+            telemetry_on = 1;
+            //MPU_SetCompassSampleRate(8);
+            compass_calibr_timer_init(1);
+        } else {
+            compass_calibr_timer_init(0);
+            //MPU_SetCompassSampleRate(100);
+            mag_calibrate();  
+        }
+    }
+}
+
+
 #define TICK_FREQ (1000u)
 
 volatile uint32_t g_ul_ms_ticks=0;
@@ -119,9 +390,9 @@ void SysTick_Handler(void)
 }
 
 void RCC_Init() {
-    RCC->APB1ENR |= RCC_APB1ENR_SPI2EN | RCC_APB1ENR_TIM6EN;
+    RCC->APB1ENR |= RCC_APB1ENR_SPI2EN | RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM6EN;
     RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN | RCC_APB2ENR_USART1EN;
-    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN | RCC_AHB1ENR_GPIOBEN | RCC_AHB1ENR_DMA1EN | RCC_AHB1ENR_DMA2EN;    
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN | RCC_AHB1ENR_GPIOBEN | RCC_AHB1ENR_GPIODEN | RCC_AHB1ENR_DMA1EN | RCC_AHB1ENR_DMA2EN;    
 }
 
 
@@ -184,6 +455,72 @@ static struct platform_data_s compass_pdata = {
 //#define COMPASS_ENABLED 1
 //#endif
 
+//*********************************
+// Flash block
+
+#define FLASH_KEY1 ((uint32_t)0x45670123)
+#define FLASH_KEY2 ((uint32_t)0xCDEF89AB)
+void flash_unlock(void) {
+    FLASH->KEYR = FLASH_KEY1;
+    FLASH->KEYR = FLASH_KEY2;
+}
+
+void flash_lock() {
+  FLASH->CR |= FLASH_CR_LOCK;
+}
+
+// returns 1 when erase and write enabled
+uint8_t flash_ready(void) {
+  return !(FLASH->SR & FLASH_SR_BSY);
+}
+ 
+// erases the sector address belongs to
+int flash_erase_sector(uint32_t address) {
+    uint8_t sector;
+    if ((address < 0x08000000) || (address > 0x080fffff)) {
+        return -1;
+    }
+    if (address < 0x08010000) {
+        sector = (uint8_t)((address & 0xffff) / 0x4000);
+    } else if (address < 0x08020000){
+        sector = 4;
+    } else {
+        sector = (uint8_t)((address & 0xfffff) / 0x20000) + 4;
+    }
+    while(!flash_ready()); 
+    
+    FLASH->CR |= FLASH_CR_SER | (sector << 3);
+    FLASH->CR |= FLASH_CR_STRT; 
+   
+    while(!flash_ready()); 
+    FLASH->CR &= ~FLASH_CR_SER;
+}
+
+// erases ALL pages
+void flash_erase_all_pages(void) {
+    while(!flash_ready());
+    FLASH->CR |= FLASH_CR_MER;  
+    FLASH->CR |= FLASH_CR_STRT; 
+    while(!flash_ready());
+    FLASH->CR &= ~FLASH_CR_MER;
+}
+
+void flash_write(uint32_t address, uint32_t data) {
+    while(!flash_ready());
+    FLASH->CR |= FLASH_CR_PSIZE_1;
+    FLASH->CR |= FLASH_CR_PG;
+    
+    *(__IO uint32_t*)address = data;
+    while(!flash_ready());
+    FLASH->CR &= ~FLASH_CR_PG;
+}
+
+uint32_t flash_read(uint32_t address) {
+  return (*(__IO uint32_t*) address);
+}
+
+//*********************************
+
 int8_t accuracy;
 inv_time_t read_timestamp;
 uint8_t j = 0;
@@ -192,11 +529,20 @@ uint16_t    gyro_fsr;
 uint8_t     accel_fsr;
 uint16_t    compass_fsr;
 uint8_t     self_test_res = 0;
+uint32_t flash_test;
 
 int main() {
     QUEST_Init();
     RCC_Init();
     SysTick_Init();
+    Button_Init();
+    
+    mag_calibr_restore_from_flash();
+//    flash_unlock();
+//    flash_erase_sector(0x080e0000);
+//    flash_write(0x080e0000, 0x2101ff83);
+//    flash_test = flash_read(0x080e0000);
+//    flash_lock();
     
     GPIOA->MODER &= ~(3 << 15*2);
     GPIOA->MODER |= 1 << 15*2;
@@ -373,7 +719,7 @@ int main() {
                 radians_to_degrees(mine_euler);
                 radians_to_degrees(eulerRate);
                 
-                memcpy(dmp_euler, mine_quest_euler, VECT_SIZE*sizeof(float));
+                memcpy(mpl_euler, mine_compass, VECT_SIZE*sizeof(float));
 //                F = mine_orient.w;
 //                
 //                memcpy(dmp_euler, mine_gyro, VECT_SIZE*sizeof(float));
