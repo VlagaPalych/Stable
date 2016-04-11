@@ -322,6 +322,7 @@ void Telemetry_DMA_Init() {
     DMA2_Stream7->PAR = (uint32_t)&(USART1->DR);
     DMA2_Stream7->CR = DMA_SxCR_CHSEL_2 | DMA_SxCR_DIR_0 | DMA_SxCR_MINC | DMA_SxCR_PL | DMA_SxCR_TCIE;
 }
+
 uint8_t completed = 1;
 void Telemetry_DMA_Run(uint8_t *data, uint8_t size) {
     DMA2_Stream7->M0AR = (uint32_t)(data);
@@ -329,7 +330,6 @@ void Telemetry_DMA_Run(uint8_t *data, uint8_t size) {
     DMA2_Stream7->CR |= DMA_SxCR_EN;
     completed = 0;
 }
-
 
 void DMA2_Stream7_IRQHandler() {
     if (DMA2->HISR & DMA_HISR_TCIF7) {
@@ -339,10 +339,10 @@ void DMA2_Stream7_IRQHandler() {
     }
 }
 
-#define MAX_PACKET_SIZE 56 // 54 + header + crc
-extern short raw_accel[3];
-extern short raw_gyro[3];
-extern short raw_compass[3];
+#define MAX_PACKET_SIZE 86 // 84 + header + crc
+extern float mine_accel[3];
+extern float mine_gyro[3];
+extern float mine_compass[3];
 extern float mpl_euler[3];
 extern float dmp_euler[3];
 extern float mine_euler[3];
@@ -357,117 +357,88 @@ static uint8_t tele_len;
 static uint8_t crc;
 static uint8_t crc_i;
 
+void float_to_bytes(float *pFloat, uint8_t *fourBytes) {
+    uint8_t i;
+    for (i = 0; i < 4; i++) {
+        fourBytes[i] = (((uint8_t *)pFloat)[i]);
+    }
+}
+
 void Telemetry_Send() {
     if (telemetry_on && completed) {
         tele[0] = MESSAGE_HEADER;
         crc = tele[0];
         tele_len = 1;
         if (paramsBitMask & BIT_ACCEL_X) {
-            tele[tele_len]      = (uint8_t)((raw_accel[0] >> 8) & 0xff);
-            tele[tele_len+1]    = (uint8_t)(raw_accel[0] & 0xff);
-            tele_len += sizeof(raw_accel[0]);
+            float_to_bytes(&mine_accel[0], &tele[tele_len]);
+            tele_len += sizeof(mine_accel[0]);
         }
         if (paramsBitMask & BIT_ACCEL_Y) {
-            tele[tele_len]      = (uint8_t)((raw_accel[1] >> 8) & 0xff);
-            tele[tele_len+1]    = (uint8_t)(raw_accel[1] & 0xff);
-            tele_len += sizeof(raw_accel[1]);
+            float_to_bytes(&mine_accel[1], &tele[tele_len]);
+            tele_len += sizeof(mine_accel[1]);
         }
         if (paramsBitMask & BIT_ACCEL_Z) {
-            tele[tele_len]      = (uint8_t)((raw_accel[2] >> 8) & 0xff);
-            tele[tele_len+1]    = (uint8_t)(raw_accel[2] & 0xff);
-            tele_len += sizeof(raw_accel[2]);
+            float_to_bytes(&mine_accel[2], &tele[tele_len]);
+            tele_len += sizeof(mine_accel[2]);
         }
         if (paramsBitMask & BIT_GYRO_X) {
-            tele[tele_len]      = (uint8_t)((raw_gyro[0] >> 8) & 0xff);
-            tele[tele_len+1]    = (uint8_t)(raw_gyro[0] & 0xff);
-            tele_len += sizeof(raw_gyro[0]);
+            float_to_bytes(&mine_gyro[0], &tele[tele_len]);
+            tele_len += sizeof(mine_gyro[0]);
         }
         if (paramsBitMask & BIT_GYRO_Y) {
-            tele[tele_len]      = (uint8_t)((raw_gyro[1] >> 8) & 0xff);
-            tele[tele_len+1]    = (uint8_t)(raw_gyro[1] & 0xff);
-            tele_len += sizeof(raw_gyro[1]);
+            float_to_bytes(&mine_gyro[1], &tele[tele_len]);
+            tele_len += sizeof(mine_gyro[1]);
         }
         if (paramsBitMask & BIT_GYRO_Z) {
-            tele[tele_len]      = (uint8_t)((raw_gyro[2] >> 8) & 0xff);
-            tele[tele_len+1]    = (uint8_t)(raw_gyro[2] & 0xff);
-            tele_len += sizeof(raw_gyro[2]);
+            float_to_bytes(&mine_gyro[2], &tele[tele_len]);
+            tele_len += sizeof(mine_gyro[2]);
         }
         if (paramsBitMask & BIT_COMPASS_X) {
-            tele[tele_len]      = (uint8_t)((raw_compass[0] >> 8) & 0xff);
-            tele[tele_len+1]    = (uint8_t)(raw_compass[0] & 0xff);
-            tele_len += sizeof(raw_compass[0]);
+            float_to_bytes(&mine_compass[0], &tele[tele_len]);
+            tele_len += sizeof(mine_compass[0]);
         }
         if (paramsBitMask & BIT_COMPASS_Y) {
-            tele[tele_len]      = (uint8_t)((raw_compass[1] >> 8) & 0xff);
-            tele[tele_len+1]    = (uint8_t)(raw_compass[1] & 0xff);
-            tele_len += sizeof(raw_compass[1]);
+            float_to_bytes(&mine_compass[1], &tele[tele_len]);
+            tele_len += sizeof(mine_compass[1]);
         }
         if (paramsBitMask & BIT_COMPASS_Z) {
-            tele[tele_len]      = (uint8_t)((raw_compass[2] >> 8) & 0xff);
-            tele[tele_len+1]    = (uint8_t)(raw_compass[2] & 0xff);
-            tele_len += sizeof(raw_compass[2]);
+            float_to_bytes(&mine_compass[2], &tele[tele_len]);
+            tele_len += sizeof(mine_compass[2]);
         }
         if (paramsBitMask & BIT_MPL_EULER_X) {
-            tele[tele_len]      = (uint8_t)(((uint8_t *)&mpl_euler[0])[0]);
-            tele[tele_len+1]    = (uint8_t)(((uint8_t *)&mpl_euler[0])[1]);
-            tele[tele_len+2]    = (uint8_t)(((uint8_t *)&mpl_euler[0])[2]);
-            tele[tele_len+3]    = (uint8_t)(((uint8_t *)&mpl_euler[0])[3]);
+            float_to_bytes(&mpl_euler[0], &tele[tele_len]);
             tele_len += sizeof(mpl_euler[0]);
         }
         if (paramsBitMask & BIT_MPL_EULER_Y) {
-            tele[tele_len]      = (uint8_t)(((uint8_t *)&mpl_euler[1])[0]);
-            tele[tele_len+1]    = (uint8_t)(((uint8_t *)&mpl_euler[1])[1]);
-            tele[tele_len+2]    = (uint8_t)(((uint8_t *)&mpl_euler[1])[2]);
-            tele[tele_len+3]    = (uint8_t)(((uint8_t *)&mpl_euler[1])[3]);
+            float_to_bytes(&mpl_euler[1], &tele[tele_len]);
             tele_len += sizeof(mpl_euler[1]);
         }
         if (paramsBitMask & BIT_MPL_EULER_Z) {
-            tele[tele_len]      = (uint8_t)(((uint8_t *)&mpl_euler[2])[0]);
-            tele[tele_len+1]    = (uint8_t)(((uint8_t *)&mpl_euler[2])[1]);
-            tele[tele_len+2]    = (uint8_t)(((uint8_t *)&mpl_euler[2])[2]);
-            tele[tele_len+3]    = (uint8_t)(((uint8_t *)&mpl_euler[2])[3]);
+            float_to_bytes(&mpl_euler[2], &tele[tele_len]);
             tele_len += sizeof(mpl_euler[2]);
         }
         if (paramsBitMask & BIT_DMP_EULER_X) {
-            tele[tele_len]      = (uint8_t)(((uint8_t *)&dmp_euler[0])[0]);
-            tele[tele_len+1]    = (uint8_t)(((uint8_t *)&dmp_euler[0])[1]);
-            tele[tele_len+2]    = (uint8_t)(((uint8_t *)&dmp_euler[0])[2]);
-            tele[tele_len+3]    = (uint8_t)(((uint8_t *)&dmp_euler[0])[3]);
+            float_to_bytes(&dmp_euler[0], &tele[tele_len]);
             tele_len += sizeof(dmp_euler[0]);
         }
         if (paramsBitMask & BIT_DMP_EULER_Y) {
-            tele[tele_len]      = (uint8_t)(((uint8_t *)&dmp_euler[1])[0]);
-            tele[tele_len+1]    = (uint8_t)(((uint8_t *)&dmp_euler[1])[1]);
-            tele[tele_len+2]    = (uint8_t)(((uint8_t *)&dmp_euler[1])[2]);
-            tele[tele_len+3]    = (uint8_t)(((uint8_t *)&dmp_euler[1])[3]);
+            float_to_bytes(&dmp_euler[1], &tele[tele_len]);
             tele_len += sizeof(dmp_euler[1]);
         }
         if (paramsBitMask & BIT_DMP_EULER_Z) {
-            tele[tele_len]      = (uint8_t)(((uint8_t *)&dmp_euler[2])[0]);
-            tele[tele_len+1]    = (uint8_t)(((uint8_t *)&dmp_euler[2])[1]);
-            tele[tele_len+2]    = (uint8_t)(((uint8_t *)&dmp_euler[2])[2]);
-            tele[tele_len+3]    = (uint8_t)(((uint8_t *)&dmp_euler[2])[3]);
+            float_to_bytes(&dmp_euler[2], &tele[tele_len]);
             tele_len += sizeof(dmp_euler[2]);
         }
         if (paramsBitMask & BIT_MINE_EULER_X) {
-            tele[tele_len]      = (uint8_t)(((uint8_t *)&mine_euler[0])[0]);
-            tele[tele_len+1]    = (uint8_t)(((uint8_t *)&mine_euler[0])[1]);
-            tele[tele_len+2]    = (uint8_t)(((uint8_t *)&mine_euler[0])[2]);
-            tele[tele_len+3]    = (uint8_t)(((uint8_t *)&mine_euler[0])[3]);
+            float_to_bytes(&mine_euler[0], &tele[tele_len]);
             tele_len += sizeof(mine_euler[0]);
         }
         if (paramsBitMask & BIT_MINE_EULER_Y) {
-            tele[tele_len]      = (uint8_t)(((uint8_t *)&mine_euler[1])[0]);
-            tele[tele_len+1]    = (uint8_t)(((uint8_t *)&mine_euler[1])[1]);
-            tele[tele_len+2]    = (uint8_t)(((uint8_t *)&mine_euler[1])[2]);
-            tele[tele_len+3]    = (uint8_t)(((uint8_t *)&mine_euler[1])[3]);
+            float_to_bytes(&mine_euler[1], &tele[tele_len]);
             tele_len += sizeof(mine_euler[1]);
         }
         if (paramsBitMask & BIT_MINE_EULER_Z) {
-            tele[tele_len]      = (uint8_t)(((uint8_t *)&mine_euler[2])[0]);
-            tele[tele_len+1]    = (uint8_t)(((uint8_t *)&mine_euler[2])[1]);
-            tele[tele_len+2]    = (uint8_t)(((uint8_t *)&mine_euler[2])[2]);
-            tele[tele_len+3]    = (uint8_t)(((uint8_t *)&mine_euler[2])[3]);
+            float_to_bytes(&mine_euler[2], &tele[tele_len]);
             tele_len += sizeof(mine_euler[2]);
         }
         if (paramsBitMask & BIT_PWM1) {

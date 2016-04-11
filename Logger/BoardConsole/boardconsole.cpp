@@ -370,6 +370,12 @@ void BoardConsole::handleTelemetryToggleButton() {
 //	a[Message_Size + 1] = crc;
 //}
 
+void fillFloat(float *pFloat, uint8_t *fourBytes) {
+	for (int i = 0; i < 4; i++) {
+		((uint8_t *)pFloat)[i] = fourBytes[i];
+	}
+}
+
 uint8_t Message_FromByteArray(const QByteArray &bytes, quint32 paramsBitMask, Message *message) {
 	uint8_t i = 0, crc = 0;
 	uint8_t *data = (uint8_t *)bytes.data();
@@ -381,102 +387,76 @@ uint8_t Message_FromByteArray(const QByteArray &bytes, quint32 paramsBitMask, Me
 	if ((data[0] == MESSAGE_HEADER) && (data[bytes.size()-1] == crc)) {
 		int ind = 1;
 		if (paramsBitMask & BIT_ACCEL_X) {
-			message->accel[0] = (data[ind] << 8) | data[ind + 1];
+			fillFloat(&message->accel[0], &data[ind]);
 			ind += sizeof(message->accel[0]);
 		}
 		if (paramsBitMask & BIT_ACCEL_Y) {
-			message->accel[1] = (data[ind] << 8) | data[ind + 1];
+			fillFloat(&message->accel[1], &data[ind]);
 			ind += sizeof(message->accel[1]);
 		}
 		if (paramsBitMask & BIT_ACCEL_Z) {
-			message->accel[2] = (data[ind] << 8) | data[ind + 1];
+			fillFloat(&message->accel[2], &data[ind]);
 			ind += sizeof(message->accel[2]);
 		}
 		if (paramsBitMask & BIT_GYRO_X) {
-			message->gyro[0] = (data[ind] << 8) | data[ind + 1];
+			fillFloat(&message->gyro[0], &data[ind]);
 			ind += sizeof(message->gyro[0]);
 		}
 		if (paramsBitMask & BIT_GYRO_Y) {
-			message->gyro[1] = (data[ind] << 8) | data[ind + 1];
+			fillFloat(&message->gyro[1], &data[ind]);
 			ind += sizeof(message->gyro[1]);
 		}
 		if (paramsBitMask & BIT_GYRO_Z) {
-			message->gyro[2] = (data[ind] << 8) | data[ind + 1];
+			fillFloat(&message->gyro[2], &data[ind]);
 			ind += sizeof(message->gyro[2]);
 		}
 		if (paramsBitMask & BIT_COMPASS_X) {
-			message->compass[0] = (data[ind] << 8) | data[ind + 1];
+			fillFloat(&message->compass[0], &data[ind]);
 			ind += sizeof(message->compass[0]);
 		}
 		if (paramsBitMask & BIT_COMPASS_Y) {
-			message->compass[1] = (data[ind] << 8) | data[ind + 1];
+			fillFloat(&message->compass[1], &data[ind]);
 			ind += sizeof(message->compass[1]);
 		}
 		if (paramsBitMask & BIT_COMPASS_Z) {
-			message->compass[2] = (data[ind] << 8) | data[ind + 1];
+			fillFloat(&message->compass[2], &data[ind]);
 			ind += sizeof(message->compass[2]);
 		}
 		if (paramsBitMask & BIT_MPL_EULER_X) {
-			((uint8_t *)(&(message->mpl_euler[0])))[0] = data[ind];
-			((uint8_t *)(&(message->mpl_euler[0])))[1] = data[ind + 1];
-			((uint8_t *)(&(message->mpl_euler[0])))[2] = data[ind + 2];
-			((uint8_t *)(&(message->mpl_euler[0])))[3] = data[ind + 3];
+			fillFloat(&message->mpl_euler[0], &data[ind]);
 			ind += sizeof(message->mpl_euler[0]);
 		}
 		if (paramsBitMask & BIT_MPL_EULER_Y) {
-			((uint8_t *)(&(message->mpl_euler[1])))[0] = data[ind];
-			((uint8_t *)(&(message->mpl_euler[1])))[1] = data[ind + 1];
-			((uint8_t *)(&(message->mpl_euler[1])))[2] = data[ind + 2];
-			((uint8_t *)(&(message->mpl_euler[1])))[3] = data[ind + 3];
+			fillFloat(&message->mpl_euler[1], &data[ind]);
 			ind += sizeof(message->mpl_euler[1]);
 		}
 		if (paramsBitMask & BIT_MPL_EULER_Z) {
-			((uint8_t *)(&(message->mpl_euler[2])))[0] = data[ind];
-			((uint8_t *)(&(message->mpl_euler[2])))[1] = data[ind + 1];
-			((uint8_t *)(&(message->mpl_euler[2])))[2] = data[ind + 2];
-			((uint8_t *)(&(message->mpl_euler[2])))[3] = data[ind + 3];
+			fillFloat(&message->mpl_euler[2], &data[ind]);
 			ind += sizeof(message->mpl_euler[2]);
 		}
 		if (paramsBitMask & BIT_DMP_EULER_X) {
-			((uint8_t *)(&(message->dmp_euler[0])))[0] = data[ind];
-			((uint8_t *)(&(message->dmp_euler[0])))[1] = data[ind + 1];
-			((uint8_t *)(&(message->dmp_euler[0])))[2] = data[ind + 2];
-			((uint8_t *)(&(message->dmp_euler[0])))[3] = data[ind + 3];
+			fillFloat(&message->dmp_euler[0], &data[ind]);
 			ind += sizeof(message->dmp_euler[0]);
 		}
 		if (paramsBitMask & BIT_DMP_EULER_Y) {
-			((uint8_t *)(&(message->dmp_euler[1])))[0] = data[ind];
-			((uint8_t *)(&(message->dmp_euler[1])))[1] = data[ind + 1];
-			((uint8_t *)(&(message->dmp_euler[1])))[2] = data[ind + 2];
-			((uint8_t *)(&(message->dmp_euler[1])))[3] = data[ind + 3];
+			fillFloat(&message->dmp_euler[1], &data[ind]);
 			ind += sizeof(message->dmp_euler[1]);
 		}
 		if (paramsBitMask & BIT_DMP_EULER_Z) {
-			((uint8_t *)(&(message->dmp_euler[2])))[0] = data[ind];
-			((uint8_t *)(&(message->dmp_euler[2])))[1] = data[ind + 1];
-			((uint8_t *)(&(message->dmp_euler[2])))[2] = data[ind + 2];
-			((uint8_t *)(&(message->dmp_euler[2])))[3] = data[ind + 3];
+			fillFloat(&message->dmp_euler[1], &data[ind]);
 			ind += sizeof(message->dmp_euler[2]);
 		}
 		if (paramsBitMask & BIT_MINE_EULER_X) {
-			((uint8_t *)(&(message->mine_euler[0])))[0] = data[ind];
-			((uint8_t *)(&(message->mine_euler[0])))[1] = data[ind + 1];
-			((uint8_t *)(&(message->mine_euler[0])))[2] = data[ind + 2];
-			((uint8_t *)(&(message->mine_euler[0])))[3] = data[ind + 3];
+			fillFloat(&message->mine_euler[0], &data[ind]);
 			ind += sizeof(message->mine_euler[0]);
 		}
 		if (paramsBitMask & BIT_MINE_EULER_Y) {
-			((uint8_t *)(&(message->mine_euler[1])))[0] = data[ind];
-			((uint8_t *)(&(message->mine_euler[1])))[1] = data[ind + 1];
-			((uint8_t *)(&(message->mine_euler[1])))[2] = data[ind + 2];
-			((uint8_t *)(&(message->mine_euler[1])))[3] = data[ind + 3];
+			fillFloat(&message->mine_euler[1], &data[ind]);
 			ind += sizeof(message->mine_euler[1]);
 		}
 		if (paramsBitMask & BIT_MINE_EULER_Z) {
-			((uint8_t *)(&(message->mine_euler[2])))[0] = data[ind];
-			((uint8_t *)(&(message->mine_euler[2])))[1] = data[ind + 1];
-			((uint8_t *)(&(message->mine_euler[2])))[2] = data[ind + 2];
-			((uint8_t *)(&(message->mine_euler[2])))[3] = data[ind + 3];
+
+			fillFloat(&message->mine_euler[2], &data[ind]);
 			ind += sizeof(message->mine_euler[2]);
 		}
 		if (paramsBitMask & BIT_PWM1) {
@@ -496,10 +476,7 @@ uint8_t Message_FromByteArray(const QByteArray &bytes, quint32 paramsBitMask, Me
 			ind += sizeof(message->freq2);
 		}
 		if (paramsBitMask & BIT_F) {
-			((uint8_t *)(&(message->f)))[0] = data[ind];
-			((uint8_t *)(&(message->f)))[1] = data[ind + 1];
-			((uint8_t *)(&(message->f)))[2] = data[ind + 2];
-			((uint8_t *)(&(message->f)))[3] = data[ind + 3];
+			fillFloat(&message->f, &data[ind]);
 			ind += sizeof(message->f);
 		}
 

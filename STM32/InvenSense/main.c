@@ -151,6 +151,7 @@ void mag_process_fresh_calibr_data() {
     float dist_prev;
     MPU_Read(EXT_SENS_DATA_00, mag_calibr_raw_data, 7);
     compass_float_data(mag_calibr_raw_data, mag_calibr_tmp);
+
     if (mag_calibr_row == 0) {
         memcpy(&mag_calibr_data[mag_calibr_row*3], mag_calibr_tmp, VECT_SIZE*sizeof(float));
         mag_calibr_row = 1;
@@ -272,6 +273,7 @@ int mag_calibrate() {
     memcpy(mine_euler, &pSol[6], 3*sizeof(float));
     Telemetry_Send();
     telemetry_on = 0;
+    meas1 |= BIT_MINE;
     return 0;
 }
 
@@ -559,6 +561,7 @@ uint8_t     accel_fsr;
 uint16_t    compass_fsr;
 uint8_t     self_test_res = 0;
 uint32_t flash_test;
+float roll, pitch;
 
 int main() {
     QUEST_Init();
@@ -587,16 +590,16 @@ int main() {
     res = inv_init_mpl();
     self_test_res = MPU_RunSelfTest(gyro_st_bias, accel_st_bias);
     
-//    if (self_test_res & 0x03) {
-//        for (j = 0; j < 3; j++) {
-//            accel_st_bias[j] = accel_st_bias[j] * (0xffff / 2 / 16) / 65536L;
-//            gyro_st_bias[j] = gyro_st_bias[j] * (0xffff / 2 / 1000) / 65536L;
-//        }
-//        res = MPU_SetAccelBias(accel_st_bias);
-//        MPU_SetGyroBias(gyro_st_bias);
-//        res = MPU_SetAccelBias(accel_st_bias);
-//        MPU_SetGyroBias(gyro_st_bias);
-//    } 
+    if (self_test_res & 0x03) {
+        for (j = 0; j < 3; j++) {
+            accel_st_bias[j] = accel_st_bias[j] * (0xffff / 2 / 16) / 65536L;
+            gyro_st_bias[j] = gyro_st_bias[j] * (0xffff / 2 / 1000) / 65536L;
+        }
+        res = MPU_SetAccelBias(accel_st_bias);
+        MPU_SetGyroBias(gyro_st_bias);
+        res = MPU_SetAccelBias(accel_st_bias);
+        MPU_SetGyroBias(gyro_st_bias);
+    } 
     // TODO: handle error 
     
     MPU_SetAccelFsr(2);
@@ -723,6 +726,12 @@ int main() {
                     meas1_count--;
                 }
             } else {
+                roll = atan(mine_accel[1] / mine_accel[2]);
+                roll *= 180.0 / 3.14159;
+                
+                pitch = atan(-mine_accel[0] / sqrtf(mine_accel[1]*mine_accel[1] + mine_accel[2]*mine_accel[2]));
+                pitch *= 180.0 / 3.14159;
+                
                 memcpy(v1, mine_accel, VECT_SIZE*sizeof(float));
                 memcpy(v2, mine_compass, VECT_SIZE*sizeof(float));
                 

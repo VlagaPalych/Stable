@@ -70,9 +70,9 @@ typedef quint16 uint16_t;
 
 
 typedef struct {
-	int16_t accel[3];
-	int16_t gyro[3];
-	int16_t compass[3];
+	float accel[3];
+	float gyro[3];
+	float compass[3];
 	float mpl_euler[3];
 	float dmp_euler[3];
 	float mine_euler[3];
