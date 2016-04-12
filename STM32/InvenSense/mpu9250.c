@@ -38,15 +38,30 @@ float mag_calibr_mat_data[VECT_SIZE*VECT_SIZE] = {
 arm_matrix_instance_f32 mag_calibr_mat = {VECT_SIZE, VECT_SIZE, mag_calibr_mat_data};
 
 float mag_bias[VECT_SIZE] = {
-   0,
-   0,
-   0
+    0,
+    0,
+    0
 };
 
 float mag_tmp[VECT_SIZE];
 arm_matrix_instance_f32 mag_tmp_mat = {VECT_SIZE, 1, mag_tmp};
 
+arm_matrix_instance_f32 mine_accel_mat = {VECT_SIZE, 1, mine_accel};
 arm_matrix_instance_f32 mine_compass_mat = {VECT_SIZE, 1, mine_compass};
+
+
+float acc_calibr_mat_data[VECT_SIZE*VECT_SIZE] = {
+    0.9973,    -0.0154,    0.0349,
+    0.0132,    0.9993,    -0.0090,
+    -0.0278,    0.0029,    0.9950
+};
+arm_matrix_instance_f32 acc_calibr_mat = {VECT_SIZE, VECT_SIZE, acc_calibr_mat_data};
+
+float acc_bias[VECT_SIZE] = {
+    0.0687,
+   -0.0010,
+   -0.0658
+};
 
 extern float w1[3];
 extern float w2[3];
@@ -1282,6 +1297,10 @@ void DMA1_Stream3_IRQHandler() {
                 raw_compass_long[i] = (long)(mine_compass[i] * (1 << 16));
             }
             inv_build_compass(raw_compass_long, INV_CALIBRATED, timestamp);
+            
+            arm_sub_f32(mine_accel, acc_bias, mag_tmp, VECT_SIZE);
+            arm_mat_mult_f32(&acc_calibr_mat, &mag_tmp_mat, &mine_accel_mat);
+            
             arm_sub_f32(mine_compass, mag_bias, mag_tmp, VECT_SIZE);
             arm_mat_mult_f32(&mag_calibr_mat, &mag_tmp_mat, &mine_compass_mat);
             

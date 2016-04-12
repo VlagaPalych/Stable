@@ -48,8 +48,8 @@ Quat dmp_orient;
 float mine_accel[3];
 float mine_gyro[3];
 float mine_compass[3];
-float compass_bias[3] = {4.6125, 4.3375, 6.4125};
-float compass_scale[3] = {0.9814, 1.0393, 0.9814};
+
+
 Quat mine_orient;
 float mine_quest_euler[3];
 extern float w1[3];
@@ -561,7 +561,16 @@ uint8_t     accel_fsr;
 uint16_t    compass_fsr;
 uint8_t     self_test_res = 0;
 uint32_t flash_test;
+
+#define ACCEL_DATASHEET_ERROR 0.00424f
 float roll, pitch;
+float roll_error, pitch_error;
+float roll_atan_arg, pitch_atan_arg;
+float accel_norm, gravity_norm;
+
+float sqrf(float x) {
+    return x*x;
+}
 
 int main() {
     QUEST_Init();
@@ -707,64 +716,90 @@ int main() {
         if (new_data & BIT_MINE) {
             new_data &= ~BIT_MINE;
             
-            if (meas1 & BIT_MINE) {
-                if (meas1_count == 0) {
-                    meas1 &= ~BIT_MINE;
-                    
-                    for (j = 0; j < VECT_SIZE; j++) {
-                        w1[j] = mine_accel_sum[j] / CALIBR_COUNT;
-                        w2[j] = mine_compass_sum[j] / CALIBR_COUNT;
-                    }
+//            if (meas1 & BIT_MINE) {
+//                if (meas1_count == 0) {
+//                    meas1 &= ~BIT_MINE;
+//                    
+//                    for (j = 0; j < VECT_SIZE; j++) {
+//                        w1[j] = mine_accel_sum[j] / CALIBR_COUNT;
+//                        w2[j] = mine_compass_sum[j] / CALIBR_COUNT;
+//                    }
 
-                    Vect_Norm(w1);
-                    Vect_Norm(w2);
+//                    Vect_Norm(w1);
+//                    Vect_Norm(w2);
+//                } else {
+//                    for (j = 0; j < VECT_SIZE; j++) {
+//                        mine_accel_sum[j] += mine_accel[j];
+//                        mine_compass_sum[j] += mine_compass[j];
+//                    }
+//                    meas1_count--;
+//                }
+//            } else {
+
+                accel_norm = Vect_Mod(mine_accel);
+
+                roll_atan_arg = mine_accel[1] / mine_accel[2];
+                pitch_atan_arg = -mine_accel[0] / sqrtf(sqrf(mine_accel[1]) + sqrf(mine_accel[2]));
+                
+                roll = atan(roll_atan_arg);
+                pitch = atan(pitch_atan_arg);
+                
+                if (accel_norm > 1.05) {
+                
+                roll_error = acosf(sqrtf( (1 - sqrf(mine_accel[0])) /
+                            (sqrf(mine_accel[1]) + sqrf(mine_accel[2]))));
+                             
+                pitch_error = acosf(1 / accel_norm);
                 } else {
-                    for (j = 0; j < VECT_SIZE; j++) {
-                        mine_accel_sum[j] += mine_accel[j];
-                        mine_compass_sum[j] += mine_compass[j];
-                    }
-                    meas1_count--;
+                
+                // static case errors
+                roll_error = (1.0 / (1.0 + roll_atan_arg*roll_atan_arg)) *
+                            (fabsf(1.0/mine_accel[2]) + fabsf(-mine_accel[1]*mine_accel[2]/mine_accel[1]))*ACCEL_DATASHEET_ERROR;
+                            
+                pitch_error = (1.0 / (1.0 + pitch_atan_arg*pitch_atan_arg)) * 
+                              (fabsf(-1.0 / sqrtf(mine_accel[1]*mine_accel[1] + mine_accel[2]*mine_accel[2])) +
+                               fabsf(pitch_atan_arg * 2 * mine_accel[1] * -0.5 / (mine_accel[1]*mine_accel[1] + mine_accel[2]*mine_accel[2])) + 
+                               fabsf(pitch_atan_arg * 2 * mine_accel[2] * -0.5 / (mine_accel[1]*mine_accel[1] + mine_accel[2]*mine_accel[2]))) * ACCEL_DATASHEET_ERROR;
                 }
-            } else {
-                roll = atan(mine_accel[1] / mine_accel[2]);
-                roll *= 180.0 / 3.14159;
+                mine_euler[0] = roll;
+                mine_euler[1] = pitch;
                 
-                pitch = atan(-mine_accel[0] / sqrtf(mine_accel[1]*mine_accel[1] + mine_accel[2]*mine_accel[2]));
-                pitch *= 180.0 / 3.14159;
+                mpl_euler[0] = roll_error;
+                mpl_euler[1] = pitch_error;
                 
-                memcpy(v1, mine_accel, VECT_SIZE*sizeof(float));
-                memcpy(v2, mine_compass, VECT_SIZE*sizeof(float));
+//                memcpy(v1, mine_accel, VECT_SIZE*sizeof(float));
+//                memcpy(v2, mine_compass, VECT_SIZE*sizeof(float));
+//                
+//                Vect_Norm(v1);
+//                Vect_Norm(v2);
+//                
+//                QUEST();
+//                Quat_ToEuler(mine_orient, mine_quest_euler);
+//                radians_to_degrees(mine_quest_euler);
+//                memcpy(mine_euler, mine_quest_euler, VECT_SIZE*sizeof(float));
+//                
+//                degrees_to_radians(mine_gyro);
+//                memcpy(zk_data, mine_gyro, VECT_SIZE*sizeof(float));
+//                zk_data[3] = mine_orient.w;
+//                memcpy(zk_data+VECT_SIZE+1, mine_orient.v, VECT_SIZE*sizeof(float));
+//                
+//                Kalman();
+//                mine_orient.w = x_aposteriori_data[3];
+//                memcpy(mine_orient.v, x_aposteriori_data+VECT_SIZE+1, VECT_SIZE*sizeof(float));
+//                Quat_ToEuler(mine_orient, mine_euler);
+//                
+//                memcpy(mine_gyro, x_aposteriori_data, VECT_SIZE*sizeof(float));
+//                angleRate_to_eulerRate(mine_gyro, mine_euler, eulerRate);
                 
-                Vect_Norm(v1);
-                Vect_Norm(v2);
+//                radians_to_degrees(mine_euler);
+//                radians_to_degrees(eulerRate);
                 
-                QUEST();
-                Quat_ToEuler(mine_orient, mine_quest_euler);
-                radians_to_degrees(mine_quest_euler);
-                memcpy(mine_euler, mine_quest_euler, VECT_SIZE*sizeof(float));
-                
-                degrees_to_radians(mine_gyro);
-                memcpy(zk_data, mine_gyro, VECT_SIZE*sizeof(float));
-                zk_data[3] = mine_orient.w;
-                memcpy(zk_data+VECT_SIZE+1, mine_orient.v, VECT_SIZE*sizeof(float));
-                
-                Kalman();
-                mine_orient.w = x_aposteriori_data[3];
-                memcpy(mine_orient.v, x_aposteriori_data+VECT_SIZE+1, VECT_SIZE*sizeof(float));
-                Quat_ToEuler(mine_orient, mine_euler);
-                
-                memcpy(mine_gyro, x_aposteriori_data, VECT_SIZE*sizeof(float));
-                angleRate_to_eulerRate(mine_gyro, mine_euler, eulerRate);
-                
-                radians_to_degrees(mine_euler);
-                radians_to_degrees(eulerRate);
-                
-                memcpy(mpl_euler, mine_compass, VECT_SIZE*sizeof(float));
+//                memcpy(mpl_euler, mine_compass, VECT_SIZE*sizeof(float));
 //                F = mine_orient.w;
 //                
 //                memcpy(dmp_euler, mine_gyro, VECT_SIZE*sizeof(float));
                 Telemetry_Send();
-            }
+           // }
         }
     }
 }
