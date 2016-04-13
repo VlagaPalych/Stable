@@ -13,6 +13,9 @@ Logger/Logs/Ordinary/*.txt
 *.map
 *.sct
 *.dep
+*.dbgdt
+*.dni
+*.wsdt
 
 /**/Listings/*
 /**/*.uvguix.*
