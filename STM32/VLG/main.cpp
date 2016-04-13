@@ -1,5 +1,6 @@
 #include "stm32f4xx.h"
 #include "main.h"
+#include "leds.h"
 
 VLG_InertialSensor inertial_sensor;
 VLG_Compass compass;
@@ -12,8 +13,7 @@ void RCC_Init() {
 
 int main() {
     RCC_Init();
-    GPIOD->MODER &= ~(3 << 12*2);
-    GPIOD->MODER |= (1 << 12*2);
+    leds_init();
     
     if (inertial_sensor.init()) {
         // @TODO: error message
