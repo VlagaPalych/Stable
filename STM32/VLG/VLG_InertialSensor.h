@@ -19,6 +19,8 @@ public:
     int get_sample_rate(uint16_t *rate);
     int set_sample_rate(uint16_t rate);
 
+    void parse_raw_data(uint8_t *raw_data);
+
 private:
     void config_exti();
     void config_hardware_exti();
@@ -31,6 +33,9 @@ private:
 
     uint8_t lpf;
     uint16_t sample_rate;
+
+    int16_t accel[3];
+    int16_t gyro[3];
 };
 
 #endif // VLG_INERTIAL_SENSOR

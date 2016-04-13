@@ -1,6 +1,8 @@
 #include "spi.h"
 #include "stm32f4xx.h"
 
+spi2_status spi2_busy;
+
 extern "C" void mpu_nss_init() {
     GPIOB->MODER    |= 1 << MPU_NSS*2;
     GPIOB->OSPEEDR 	|= 3 << MPU_NSS*2;

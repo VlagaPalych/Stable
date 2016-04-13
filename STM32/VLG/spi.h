@@ -23,4 +23,12 @@ extern "C" void mpu_read(uint8_t address, uint8_t *data, uint16_t size);
 
 extern "C" void spi2_init(void);
 
+enum spi2_status {
+    SPI2_FREE = 0,
+    SPI2_IMU,
+    SPI2_MAG
+};
+
+extern spi2_status spi2_busy;
+
 #endif // SPI_H

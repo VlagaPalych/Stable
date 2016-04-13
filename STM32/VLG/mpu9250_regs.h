@@ -178,4 +178,6 @@ enum accel_fsr_e {
     NUM_ACCEL_FSR
 };
 
+#define AK8963_I2C_ADDR 0x0c
+
 #endif // MPU9250_REGS_H

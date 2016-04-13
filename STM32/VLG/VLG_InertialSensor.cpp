@@ -4,6 +4,7 @@
 #include "time.h"
 #include "stm32f4xx.h"
 #include "dma.h"
+#include "main.h"
 
 int VLG_InertialSensor::init() {
     spi2_init();
@@ -265,68 +266,21 @@ void VLG_InertialSensor::config_hardware_exti() {
     NVIC_EnableIRQ(EXTI1_IRQn);
 }
 
+void VLG_InertialSensor::parse_raw_data(uint8_t *raw_data) {
+    for (uint8_t i = 0; i < 3; i++) {
+        accel[i] = (int16_t)(((int16_t)raw_data[2*i] << 8) | raw_data[2*i+1]);
+        gyro[i] = (int16_t)(((int16_t)raw_data[8+2*i] << 8) | raw_data[8+2*i]);
+    }
+}
+
 extern "C" void EXTI1_IRQHandler() {
     if (EXTI->PR & EXTI_PR_PR1) {
         EXTI->PR = EXTI_PR_PR1; 
         
-        dma_buf_tx[0] = READ_COMMAND | ACCEL_XOUT_H;
-        mpu_dma_run(dma_buf_tx, dma_buf_rx, 13);
-    }
-}
-
-extern "C" void DMA1_Stream3_IRQHandler() {
-    if (DMA1->LISR & DMA_LISR_TCIF3) {
-        DMA1->LIFCR = DMA_LIFCR_CTCIF3 | DMA_LIFCR_CHTIF3;
-        DMA1_Stream3->CR &= ~DMA_SxCR_EN;
-        mpu_nss_high();
-
-        GPIOD->ODR ^= (1 << 12);
-        
-//        if (DMA1_Stream3->M0AR == (uint32_t)MPU_DMA_rx) {
-//            parse_quat_accel_gyro(MPU_DMA_rx + 1, dmp_quat_data, raw_accel, raw_gyro);
-//            
-//            inv_build_quat(dmp_quat_data, 1, timestamp);
-//            short2long(raw_accel, raw_accel_long, 3);
-//            for (i = 0; i < 3; i++) {
-//                raw_accel_long[i] = (long)((float)(raw_accel_long[i] << 16) / st->chip_cfg.accel_sens);
-//            }
-//            inv_build_accel(raw_accel_long, INV_CALIBRATED, timestamp);
-//            inv_build_gyro(raw_gyro, timestamp);
-//            
-//            new_data = BIT_MPL | BIT_DMP;
-//            
-//            if (st->chip_cfg.sensors & INV_XYZ_COMPASS) {
-//                MPU_DMA_tx[0] = READ_COMMAND | EXT_SENS_DATA_00;
-//                MPU_DMA_Run(MPU_DMA_tx, compass_data, 8);
-//            }
-//        } else if (DMA1_Stream3->M0AR == (uint32_t)compass_data) {
-//            parse_compass(compass_data + 1, raw_compass);
-//            short2long(raw_compass, raw_compass_long, 3);
-//            
-//            
-//            for (i = 0; i < 3; i++) {
-//                mine_accel[i]   = raw_accel[i]      / st->chip_cfg.accel_sens;
-//                mine_gyro[i]    = raw_gyro[i]       / st->chip_cfg.gyro_sens;
-//                mine_compass[i] = raw_compass[i]    * MAG_SENS * st->chip_cfg.mag_sens_adj[i];
-//                raw_compass_long[i] = (long)(mine_compass[i] * (1 << 16));
-//            }
-//            inv_build_compass(raw_compass_long, INV_CALIBRATED, timestamp);
-//            
-//            arm_sub_f32(mine_accel, acc_bias, mag_tmp, VECT_SIZE);
-//            arm_mat_mult_f32(&acc_calibr_mat, &mag_tmp_mat, &mine_accel_mat);
-//            
-//            arm_sub_f32(mine_compass, mag_bias, mag_tmp, VECT_SIZE);
-//            arm_mat_mult_f32(&mag_calibr_mat, &mag_tmp_mat, &mine_compass_mat);
-//            
-//            mine_compass[2] = -mine_compass[2];
-//            swap(&mine_compass[0], &mine_compass[1]);
-//            
-//            
-//            mine_gyro[0] = -mine_gyro[0];
-//            mine_gyro[1] = -mine_gyro[1];
-//            mine_gyro[2] = -mine_gyro[2];
-//            
-//            new_data = BIT_MPL | BIT_MINE;
-//        }
+        if (spi2_busy == SPI2_FREE) {
+            spi2_busy = SPI2_IMU;
+            dma_buf_tx[0] = READ_COMMAND | ACCEL_XOUT_H;
+            mpu_dma_run(dma_buf_tx, dma_buf_rx, 15);
+        }
     }
 }
