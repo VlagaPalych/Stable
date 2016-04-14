@@ -2,6 +2,7 @@
 #include "spi.h"
 #include "stm32f4xx.h"
 #include "main.h"
+#include "leds.h"
 
 uint8_t dma_buf_tx[100];
 uint8_t dma_buf_rx[100];
@@ -46,7 +47,7 @@ extern "C" void DMA1_Stream3_IRQHandler() {
         DMA1_Stream3->CR &= ~DMA_SxCR_EN;
         mpu_nss_high();
 
-        GPIOD->ODR ^= (1 << 12);
+        led_toggle(0);
         switch (spi2_busy) {
             case SPI2_IMU:
                 spi2_busy = SPI2_FREE;
