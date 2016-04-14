@@ -1,6 +1,9 @@
+#pragma import(__use_realtime_heap)
+
 #include "stm32f4xx.h"
 #include "main.h"
 #include "leds.h"
+#include "time.h"
 
 VLG_InertialSensor inertial_sensor;
 VLG_Compass compass;
@@ -13,6 +16,7 @@ void RCC_Init() {
 
 int main() {
     RCC_Init();
+    SysTick_Init();
     leds_init();
     
     if (inertial_sensor.init()) {
@@ -22,5 +26,9 @@ int main() {
         // @TODO: error message
     }
     
-    while (1) {}
+    while (1) {
+        if (compass.fresh_data()) {
+            compass.update_calibr();
+        }
+    }
 }

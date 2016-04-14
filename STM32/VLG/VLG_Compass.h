@@ -2,6 +2,8 @@
 #define VLG_COMPASS_H
 
 #include "stdint.h"
+#include "AP_Math.h"
+#include "CompassCalibrator.h"
 
 class VLG_Compass {
 public:
@@ -14,10 +16,16 @@ public:
     void timer_enable(uint8_t enable);
     void parse_raw_data(uint8_t *raw_data);
 
+    bool fresh_data();
+    void update_calibr();
+
 private:
-    uint8_t sample_rate;
-    float mag_sens_adj[3];
-    int16_t compass[3];
+    uint8_t _sample_rate;
+    float _mag_sens_adj[3];
+    Vector3f _raw_field;
+
+    bool _fresh_data;
+    CompassCalibrator _calibrator;
 };
 
 #endif // VLG_COMPASS_H
