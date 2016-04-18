@@ -20,6 +20,7 @@
 
 #include "main.h"
 #include "arm_math.h"
+#include "motors.h"
 
 //****************************************
 uint8_t algorithm = BIT_MPL | BIT_DMP | BIT_MINE;
@@ -90,8 +91,6 @@ void turn_red_led(uint8_t on) {
 
 void compass_calibr_timer_init(uint8_t enable) {
     if (enable) {
-        GPIOD->MODER &= ~(3 << 12*2);
-        GPIOD->MODER |= 1 << 12*2;
         TIM2->PSC = 15999;
         TIM2->ARR = 10;
         TIM2->DIER |= TIM_DIER_UIE;
@@ -102,7 +101,6 @@ void compass_calibr_timer_init(uint8_t enable) {
         TIM2->CR1 &= ~TIM_CR1_CEN;
         TIM2->DIER &= ~TIM_DIER_UIE;
         NVIC_DisableIRQ(TIM2_IRQn);
-        GPIOD->BSRRH |= 1 << 12;
     }
 }
 
@@ -330,8 +328,6 @@ void TIM2_IRQHandler() {
                 turn_red_led(1);
             };
         }
-        
-        GPIOD->ODR ^= 1 << 12;
     }
 }
 
@@ -421,7 +417,7 @@ void SysTick_Handler(void)
 }
 
 void RCC_Init() {
-    RCC->APB1ENR |= RCC_APB1ENR_SPI2EN | RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM6EN;
+    RCC->APB1ENR |= RCC_APB1ENR_SPI2EN | RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM4EN | RCC_APB1ENR_TIM6EN;
     RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN | RCC_APB2ENR_USART1EN;
     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN | RCC_AHB1ENR_GPIOBEN | RCC_AHB1ENR_GPIODEN | RCC_AHB1ENR_DMA1EN | RCC_AHB1ENR_DMA2EN;    
 }
@@ -578,8 +574,8 @@ int main() {
     SysTick_Init();
     Button_Init();
     
-    GPIOD->MODER &= ~(3 << RED_LED*2);
-    GPIOD->MODER |= (1 << RED_LED*2);
+//    GPIOD->MODER &= ~(3 << RED_LED*2);
+//    GPIOD->MODER |= (1 << RED_LED*2);
     mag_calibr_restore_from_flash();
 //    flash_unlock();
 //    flash_erase_sector(0x080e0000);
@@ -662,10 +658,17 @@ int main() {
     res = MPU_SetDMPState(1);
     res = DMP_EnableFeature(DMP_FEATURE_6X_LP_QUAT | DMP_FEATURE_SEND_CAL_GYRO | DMP_FEATURE_SEND_RAW_ACCEL);
      
+     
+    Motors_Init();
     USART1_Init();
     Telemetry_DMA_Init();
     
-
+    while(motors.ENGRDY != 1) {};  
+        
+    motors.pwm1 = 1300;
+    motors.pwm2 = 1300;
+    Motors_Run();
+        
     while (1) {
         if (new_data & BIT_MPL) {
             new_data &= ~BIT_MPL;

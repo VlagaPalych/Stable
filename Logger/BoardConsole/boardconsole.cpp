@@ -308,8 +308,8 @@ void BoardConsole::enableUI(bool enable) {
 	ui.stopMotorsButton->setEnabled(enable);
 	ui.calibrButton->setEnabled(enable);
 	ui.pwm1SpinBox->setEnabled(enable);
-	ui.pwm1SpinBox->setEnabled(enable);
-	ui.pwm2Slider->setEnabled(enable);
+	ui.pwm2SpinBox->setEnabled(enable);
+	ui.pwm1Slider->setEnabled(enable);
 	ui.pwm2Slider->setEnabled(enable);
 	ui.noResearchRadioButton->setEnabled(enable);
 	ui.operatorRadioButton->setEnabled(enable);
