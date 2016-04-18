@@ -34,7 +34,9 @@ int VLG_Compass::init() {
     mpu_write_byte(I2C_SLV0_CTRL, ~(int8_t)BIT_SLAVE_EN);
     
     set_sample_rate(100);
+    
     _calibrator = CompassCalibrator();
+    _calibrator.set_tolerance(8.0f);
     _calibrator.start();
     
     // I2C address for reading
@@ -133,8 +135,8 @@ void VLG_Compass::parse_raw_data(uint8_t *raw_data) {
     lsb_val = (int16_t)(raw_data[4] | ((int16_t)raw_data[5] << 8));
     _raw_field.z = lsb_val * _mag_sens_adj[2] * MAG_SENS * AK8963_MILLIGAUSS_SCALE;
     
-    _fresh_data = true;
-    _calibrator.new_sample(_raw_field);
+//    _fresh_data = true;
+//    _calibrator.new_sample(_raw_field);
 }
 
 extern "C" void TIM2_IRQHandler() {

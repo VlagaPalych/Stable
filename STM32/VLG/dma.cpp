@@ -47,11 +47,11 @@ extern "C" void DMA1_Stream3_IRQHandler() {
         DMA1_Stream3->CR &= ~DMA_SxCR_EN;
         mpu_nss_high();
 
-        led_toggle(0);
+        led_toggle(BLUE);
         switch (spi2_busy) {
             case SPI2_IMU:
                 spi2_busy = SPI2_FREE;
-                inertial_sensor.parse_raw_data(dma_buf_rx + 1);
+                inertial_sensor.parse_quat_accel_gyro(dma_buf_rx + 1);
                 break;
             case SPI2_MAG:
                 spi2_busy = SPI2_FREE;

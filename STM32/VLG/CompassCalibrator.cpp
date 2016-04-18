@@ -2,7 +2,6 @@
 #include "time.h"
 #include "stdlib.h"
 
-#pragma import(__use_realtime_heap)
 
 ////////////////////////////////////////////////////////////
 ///////////////////// PUBLIC INTERFACE /////////////////////
@@ -28,6 +27,9 @@ void CompassCalibrator::start(bool retry, bool autosave, float delay) {
     _retry = retry;
     _delay_start_sec = delay;
     _start_time_ms = millis();
+    _params.offset.zero();
+    _params.diag = Vector3f(1, 1, 1);
+    _params.offdiag.zero();
     set_status(COMPASS_CAL_WAITING_TO_START);
 }
 
@@ -392,7 +394,8 @@ void CompassCalibrator::run_sphere_fit()
     float fitness = _fitness;
     float fit1, fit2;
     param_t fit1_params, fit2_params;
-    fit1_params = fit2_params = _params;
+    fit1_params = _params;
+    fit2_params = _params;
 
     float JTJ[COMPASS_CAL_NUM_SPHERE_PARAMS*COMPASS_CAL_NUM_SPHERE_PARAMS];
     float JTJ2[COMPASS_CAL_NUM_SPHERE_PARAMS*COMPASS_CAL_NUM_SPHERE_PARAMS];
@@ -457,6 +460,7 @@ void CompassCalibrator::run_sphere_fit()
     }
     //--------------------Levenberg-Marquardt-part-ends-here--------------------------------//
 
+
     if(!isnan(fitness) && fitness < _fitness) {
         _fitness = fitness;
         _params = fit1_params;
@@ -504,7 +508,8 @@ void CompassCalibrator::run_ellipsoid_fit()
     float fitness = _fitness;
     float fit1, fit2;
     param_t fit1_params, fit2_params;
-    fit1_params = fit2_params = _params;
+    fit1_params = _params;
+    fit2_params = _params;
 
 
     float JTJ[COMPASS_CAL_NUM_ELLIPSOID_PARAMS*COMPASS_CAL_NUM_ELLIPSOID_PARAMS];

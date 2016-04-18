@@ -362,10 +362,10 @@
             <uC99>0</uC99>
             <useXO>0</useXO>
             <VariousControls>
-              <MiscControls></MiscControls>
+              <MiscControls>--cpp11</MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath></IncludePath>
+              <IncludePath>.\AP_Math</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -433,6 +433,11 @@
               <FileType>5</FileType>
               <FilePath>.\mpu9250_regs.h</FilePath>
             </File>
+            <File>
+              <FileName>dmp.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\dmp.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -473,6 +478,11 @@
               <FileType>8</FileType>
               <FilePath>.\leds.cpp</FilePath>
             </File>
+            <File>
+              <FileName>leds.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\leds.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -492,6 +502,101 @@
               <FileName>ak8963_regs.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\ak8963_regs.h</FilePath>
+            </File>
+            <File>
+              <FileName>CompassCalibrator.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\CompassCalibrator.cpp</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>AP_Math</GroupName>
+          <Files>
+            <File>
+              <FileName>AP_Math.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\AP_Math\AP_Math.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>AP_Math.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\AP_Math\AP_Math.h</FilePath>
+            </File>
+            <File>
+              <FileName>definitions.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\AP_Math\definitions.h</FilePath>
+            </File>
+            <File>
+              <FileName>keywords.txt</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\AP_Math\keywords.txt</FilePath>
+            </File>
+            <File>
+              <FileName>matrix_alg.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\AP_Math\matrix_alg.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>matrix3.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\AP_Math\matrix3.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>matrix3.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\AP_Math\matrix3.h</FilePath>
+            </File>
+            <File>
+              <FileName>polygon.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\AP_Math\polygon.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>polygon.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\AP_Math\polygon.h</FilePath>
+            </File>
+            <File>
+              <FileName>quaternion.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\AP_Math\quaternion.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>quaternion.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\AP_Math\quaternion.h</FilePath>
+            </File>
+            <File>
+              <FileName>rotations.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\AP_Math\rotations.h</FilePath>
+            </File>
+            <File>
+              <FileName>vector2.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\AP_Math\vector2.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>vector2.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\AP_Math\vector2.h</FilePath>
+            </File>
+            <File>
+              <FileName>vector3.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\AP_Math\vector3.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>vector3.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\AP_Math\vector3.h</FilePath>
+            </File>
+            <File>
+              <FileName>vectorN.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\AP_Math\vectorN.h</FilePath>
             </File>
           </Files>
         </Group>

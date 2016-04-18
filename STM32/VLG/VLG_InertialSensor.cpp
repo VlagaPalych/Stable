@@ -5,8 +5,11 @@
 #include "stm32f4xx.h"
 #include "dma.h"
 #include "main.h"
+#include "dmp.h"
 
 int VLG_InertialSensor::init() {
+    _sensors = INV_XYZ_ACCEL | INV_XYZ_GYRO | INV_XYZ_COMPASS;
+    
     spi2_init();
     
     /* Reset device. */
@@ -23,8 +26,11 @@ int VLG_InertialSensor::init() {
     if (set_lpf(42))
         return -3;
     if (set_sample_rate(50))
-        return -4;    
+        return -4; 
+    if (configure_fifo(_sensors))
+        return -5;    
     
+    //set_sensors(0);
     mpu_dma_init();
     config_exti();
     
@@ -251,7 +257,6 @@ int VLG_InertialSensor::set_sample_rate(uint16_t rate) {
 
 void VLG_InertialSensor::config_exti() {
     mpu_write_byte(INT_PIN_CFG, 0x30);
-    mpu_write_byte(INT_ENABLE, 0x01);
     config_hardware_exti();
 }
 
@@ -266,21 +271,224 @@ void VLG_InertialSensor::config_hardware_exti() {
     NVIC_EnableIRQ(EXTI1_IRQn);
 }
 
-void VLG_InertialSensor::parse_raw_data(uint8_t *raw_data) {
-    for (uint8_t i = 0; i < 3; i++) {
-        accel[i] = (int16_t)(((int16_t)raw_data[2*i] << 8) | raw_data[2*i+1]);
-        gyro[i] = (int16_t)(((int16_t)raw_data[8+2*i] << 8) | raw_data[8+2*i]);
+/**
+ *  @brief      Enable/disable data ready interrupt.
+ *  If the DMP is on, the DMP interrupt is enabled. Otherwise, the data ready
+ *  interrupt is used.
+ *  @param[in]  enable      1 to enable interrupt.
+ *  @return     0 if successful.
+ */
+int VLG_InertialSensor::set_int_enable(bool enable) {
+    uint8_t tmp;
+
+    if (_dmp_on) {
+        if (enable)
+            tmp = BIT_DMP_INT_EN;
+        else
+            tmp = 0x00;
+        mpu_write_byte(INT_ENABLE, tmp);
+        _int_enable = tmp;
+    } else {
+        if (enable && _int_enable)
+            return 0;
+        if (enable)
+            tmp = BIT_DATA_RDY_EN;
+        else
+            tmp = 0x00;
+        mpu_write_byte(INT_ENABLE, tmp);
+        _int_enable = tmp;
+    }
+    return 0;
+}
+
+void VLG_InertialSensor::parse_quat_accel_gyro(uint8_t *raw_data) {
+    int32_t index = 0;
+    if (_dmp_state.feature_mask & (DMP_FEATURE_LP_QUAT | DMP_FEATURE_6X_LP_QUAT)) {
+        for (uint8_t i = 0; i < 4; i++) {
+            raw_quat[i] = (long)(((long)raw_data[4*i] << 24) | ((long)raw_data[4*i+1] << 16) |
+                    ((long)raw_data[4*i+2] << 8) | raw_data[4*i+3]);
+        }
+        index += 16;
+    }
+    if (_dmp_state.feature_mask & DMP_FEATURE_SEND_RAW_ACCEL) {
+        for (uint8_t i = 0; i < 3; i++) {
+            raw_accel[i] = (int16_t)(((int16_t)raw_data[index+2*i] << 8) | raw_data[index+2*i+1]);
+        }
+        index += 6;
+    }
+    if (_dmp_state.feature_mask & DMP_FEATURE_SEND_ANY_GYRO) {
+        for (uint8_t i = 0; i < 3; i++) {
+            raw_gyro[i] = (int16_t)(((int16_t)raw_data[index+2*i] << 8) | raw_data[index+2*i]);
+        }
     }
 }
 
 extern "C" void EXTI1_IRQHandler() {
+//    uint16_t fifo_count = 0;
+//    uint8_t tmp[2];
     if (EXTI->PR & EXTI_PR_PR1) {
         EXTI->PR = EXTI_PR_PR1; 
         
         if (spi2_busy == SPI2_FREE) {
             spi2_busy = SPI2_IMU;
-            dma_buf_tx[0] = READ_COMMAND | ACCEL_XOUT_H;
-            mpu_dma_run(dma_buf_tx, dma_buf_rx, 15);
+            
+//            mpu_read(FIFO_COUNTH, tmp, 2);
+//            fifo_count = (tmp[0] << 8) | tmp[1];
+//            
+//            if (fifo_count) {
+                dma_buf_tx[0] = READ_COMMAND | FIFO_R_W;
+                mpu_dma_run(dma_buf_tx, dma_buf_rx, inertial_sensor._dmp_state.packet_length + 1);
+            //}
         }
     }
+}
+
+/**
+ *  @brief  Reset FIFO read/write pointers.
+ *  @return 0 if successful.
+ */
+int VLG_InertialSensor::reset_fifo(void) {
+    uint8_t data;
+
+    data = 0;
+    mpu_write_byte(INT_ENABLE, 0x00);
+    mpu_write_byte(FIFO_EN, 0x00);
+    mpu_write_byte(USER_CTRL, 0x00);
+
+    if (_dmp_on) {
+        mpu_write_byte(USER_CTRL, BIT_FIFO_RST | BIT_DMP_RST);
+        delay_ms(50);
+        data = BIT_DMP_EN | BIT_FIFO_EN;
+        if (_sensors & INV_XYZ_COMPASS)
+            data |= BIT_AUX_IF_EN;
+        mpu_write_byte(USER_CTRL, data);
+        if (_int_enable)
+            data = BIT_DMP_INT_EN;
+        else
+            data = 0;
+        mpu_write_byte(INT_ENABLE, data);
+        mpu_write_byte(FIFO_EN, 0x00);
+    } else {
+        mpu_write_byte(USER_CTRL, BIT_FIFO_RST);
+        if (!(_sensors & INV_XYZ_COMPASS))
+            data = BIT_FIFO_EN;
+        else
+            data = BIT_FIFO_EN | BIT_AUX_IF_EN;
+        mpu_write_byte(USER_CTRL, data);
+        delay_ms(50);
+        if (_int_enable)
+            data = BIT_DATA_RDY_EN;
+        else
+            data = 0;
+        mpu_write_byte(INT_ENABLE,data);
+        mpu_write_byte(FIFO_EN, _fifo_enable);
+    }
+    return 0;
+}
+
+/**
+ *  @brief      Get current FIFO configuration.
+ *  @e sensors can contain a combination of the following flags:
+ *  \n INV_X_GYRO, INV_Y_GYRO, INV_Z_GYRO
+ *  \n INV_XYZ_GYRO
+ *  \n INV_XYZ_ACCEL
+ *  @param[out] sensors Mask of sensors in FIFO.
+ *  @return     0 if successful.
+ */
+int VLG_InertialSensor::get_fifo_config(uint8_t *sensors) {
+    sensors[0] = _fifo_enable;
+    return 0;
+}
+
+/**
+ *  @brief      Select which sensors are pushed to FIFO.
+ *  @e sensors can contain a combination of the following flags:
+ *  \n INV_X_GYRO, INV_Y_GYRO, INV_Z_GYRO
+ *  \n INV_XYZ_GYRO
+ *  \n INV_XYZ_ACCEL
+ *  @param[in]  sensors Mask of sensors to push to FIFO.
+ *  @return     0 if successful.
+ */
+int VLG_InertialSensor::configure_fifo(uint8_t sensors) {
+    uint8_t prev;
+    int result = 0;
+
+    if (_dmp_on)
+        return 0;
+    else {
+        prev = _fifo_enable;
+        _fifo_enable = sensors & _sensors;
+        if (_fifo_enable != sensors)
+            /* You're not getting what you asked for. Some sensors are
+             * asleep.
+             */
+            result = -1;
+        else
+            result = 0;
+        if (sensors)
+            set_int_enable(1);
+        else
+            set_int_enable(0);
+        if (sensors) {
+            if (reset_fifo()) {
+                _fifo_enable = prev;
+                return -1;
+            }
+        }
+    }
+    return result;
+}
+
+/**
+ *  @brief      Turn specific sensors on/off.
+ *  @e sensors can contain a combination of the following flags:
+ *  \n INV_X_GYRO, INV_Y_GYRO, INV_Z_GYRO
+ *  \n INV_XYZ_GYRO
+ *  \n INV_XYZ_ACCEL
+ *  \n INV_XYZ_COMPASS
+ *  @param[in]  sensors    Mask of sensors to wake.
+ *  @return     0 if successful.
+ */
+int VLG_InertialSensor::set_sensors(uint8_t sensors)  {
+    uint8_t data;
+    uint8_t user_ctrl;
+
+    if (sensors & INV_XYZ_GYRO)
+        data = INV_CLK_PLL;
+    else if (sensors)
+        data = 0;
+    else
+        data = BIT_SLEEP;
+    mpu_write_byte(PWR_MGMT_1, data);
+    
+    _clk_src = data & ~BIT_SLEEP;
+
+    data = 0;
+    if (!(sensors & INV_X_GYRO))
+        data |= BIT_STBY_XG;
+    if (!(sensors & INV_Y_GYRO))
+        data |= BIT_STBY_YG;
+    if (!(sensors & INV_Z_GYRO))
+        data |= BIT_STBY_ZG;
+    if (!(sensors & INV_XYZ_ACCEL))
+        data |= BIT_STBY_XYZA;
+    mpu_write_byte(PWR_MGMT_2, data);
+
+    user_ctrl = mpu_read_byte(USER_CTRL);
+    /* Handle AKM power management. */
+    if (sensors & INV_XYZ_COMPASS) {
+        user_ctrl |= BIT_AUX_IF_EN;
+    } else {
+        user_ctrl &= ~BIT_AUX_IF_EN;
+    }
+    if (_dmp_on)
+        user_ctrl |= BIT_DMP_EN;
+    else
+        user_ctrl &= ~BIT_DMP_EN;
+
+    /* Enable/disable I2C master mode. */
+    mpu_write_byte(USER_CTRL, user_ctrl);
+    _sensors = sensors;
+    delay_ms(50);
+    return 0;
 }

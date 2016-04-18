@@ -178,6 +178,21 @@ enum accel_fsr_e {
     NUM_ACCEL_FSR
 };
 
+/* Clock sources. */
+enum clock_sel_e {
+    INV_CLK_INTERNAL = 0,
+    INV_CLK_PLL,
+    NUM_CLK
+};
+
 #define AK8963_I2C_ADDR 0x0c
+
+//  IMU hardware device defines
+#define INV_X_GYRO      (0x40)
+#define INV_Y_GYRO      (0x20)
+#define INV_Z_GYRO      (0x10)
+#define INV_XYZ_GYRO    (INV_X_GYRO | INV_Y_GYRO | INV_Z_GYRO)
+#define INV_XYZ_ACCEL   (0x08)
+#define INV_XYZ_COMPASS (0x01)
 
 #endif // MPU9250_REGS_H
