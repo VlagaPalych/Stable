@@ -308,8 +308,8 @@ void BoardConsole::enableUI(bool enable) {
 	ui.stopMotorsButton->setEnabled(enable);
 	ui.calibrButton->setEnabled(enable);
 	ui.pwm1SpinBox->setEnabled(enable);
-	ui.pwm1SpinBox->setEnabled(enable);
-	ui.pwm2Slider->setEnabled(enable);
+	ui.pwm2SpinBox->setEnabled(enable);
+	ui.pwm1Slider->setEnabled(enable);
 	ui.pwm2Slider->setEnabled(enable);
 	ui.noResearchRadioButton->setEnabled(enable);
 	ui.operatorRadioButton->setEnabled(enable);
@@ -443,7 +443,7 @@ uint8_t Message_FromByteArray(const QByteArray &bytes, quint32 paramsBitMask, Me
 			ind += sizeof(message->dmp_euler[1]);
 		}
 		if (paramsBitMask & BIT_DMP_EULER_Z) {
-			fillFloat(&message->dmp_euler[1], &data[ind]);
+			fillFloat(&message->dmp_euler[2], &data[ind]);
 			ind += sizeof(message->dmp_euler[2]);
 		}
 		if (paramsBitMask & BIT_MINE_EULER_X) {

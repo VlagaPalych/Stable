@@ -6,6 +6,9 @@
 #include "stm32f4xx.h"
 #include "dma.h"
 
+#define MAG_SENS                0.15f           // uT/LSB
+#define AK8963_MILLIGAUSS_SCALE 10.0f 
+
 int VLG_Compass::init() {
     uint8_t data[3];
 
@@ -23,7 +26,7 @@ int VLG_Compass::init() {
     /* Get sensitivity adjustment data from fuse ROM. */
     reg_read(AKM_REG_ASAX, data, 3);
     for (uint8_t i = 0; i < 3; i++) {
-        mag_sens_adj[i] = (data[i] - 128)*0.5f / 128.0f + 1.0f;
+        _mag_sens_adj[i] = (data[i] - 128)*0.5f / 128.0f + 1.0f;
     }
 
     reg_write(AKM_REG_CNTL, AKM_POWER_DOWN);
@@ -31,6 +34,10 @@ int VLG_Compass::init() {
     mpu_write_byte(I2C_SLV0_CTRL, ~(int8_t)BIT_SLAVE_EN);
     
     set_sample_rate(100);
+    
+    _calibrator = CompassCalibrator();
+    _calibrator.set_tolerance(8.0f);
+    _calibrator.start();
     
     // I2C address for reading
     mpu_write_byte(I2C_SLV1_ADDR, READ_COMMAND | AK8963_I2C_ADDR);
@@ -40,6 +47,8 @@ int VLG_Compass::init() {
     mpu_write_byte(I2C_SLV1_CTRL, BIT_SLAVE_EN | 7);
     
     timer_enable(true);
+    
+    
     
     return 0;
 }
@@ -94,7 +103,7 @@ int VLG_Compass::set_sample_rate(uint8_t rate) {
         default:
             return -1;
     }
-    sample_rate = rate;
+    _sample_rate = rate;
     delay_ms(10);
     mpu_write_byte(I2C_SLV0_CTRL, ~(int8_t)BIT_SLAVE_EN);
     return 0;
@@ -116,9 +125,18 @@ void VLG_Compass::timer_enable(uint8_t enable) {
 }
 
 void VLG_Compass::parse_raw_data(uint8_t *raw_data) {
-    for (uint8_t i = 0; i < 3; i++) {
-        this->compass[i] = (int16_t)(raw_data[2*i] | ((int16_t)raw_data[2*i+1] << 8));
-    }
+    int16_t lsb_val  = 0;
+    lsb_val = (int16_t)(raw_data[0] | ((int16_t)raw_data[1] << 8));
+    _raw_field.x = lsb_val * _mag_sens_adj[0] * MAG_SENS * AK8963_MILLIGAUSS_SCALE;
+    
+    lsb_val = (int16_t)(raw_data[2] | ((int16_t)raw_data[3] << 8));
+    _raw_field.y = lsb_val * _mag_sens_adj[1] * MAG_SENS * AK8963_MILLIGAUSS_SCALE;
+    
+    lsb_val = (int16_t)(raw_data[4] | ((int16_t)raw_data[5] << 8));
+    _raw_field.z = lsb_val * _mag_sens_adj[2] * MAG_SENS * AK8963_MILLIGAUSS_SCALE;
+    
+//    _fresh_data = true;
+//    _calibrator.new_sample(_raw_field);
 }
 
 extern "C" void TIM2_IRQHandler() {
@@ -131,4 +149,14 @@ extern "C" void TIM2_IRQHandler() {
             mpu_dma_run(dma_buf_tx, dma_buf_rx, 8);
         }
     }
+}
+
+bool VLG_Compass::fresh_data() {
+    return _fresh_data;
+}
+
+void VLG_Compass::update_calibr() {
+    bool failure;
+    _calibrator.update(failure);
+    _fresh_data = false;
 }

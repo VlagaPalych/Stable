@@ -468,6 +468,16 @@
               <FileType>5</FileType>
               <FilePath>.\commands.h</FilePath>
             </File>
+            <File>
+              <FileName>motors.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\motors.c</FilePath>
+            </File>
+            <File>
+              <FileName>motors.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\motors.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

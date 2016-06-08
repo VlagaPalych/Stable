@@ -1,6 +1,7 @@
 #include "telemetry.h"
 #include "string.h"
 #include "stm32f4xx.h" 
+#include "motors.h"
 
 uint8_t USART1_TX = 9;  // PA
 uint8_t USART1_RX = 10; // PA
@@ -116,9 +117,9 @@ void USART1_IRQHandler() {
                         telemetry_on = 0;
                         //research = NO_RESEARCH;
                         break;
-//                    case STOP_MOTORS:   
-//                        Motors_Stop();
-//                        break;
+                    case STOP_MOTORS:   
+                        Motors_Stop();
+                        break;
 //                    case CALIBRATION:
 //                        //research = NO_RESEARCH;
 //                        Motors_Stop();
@@ -127,7 +128,7 @@ void USART1_IRQHandler() {
 //                        ADXRS290_Calibr();
 //                        //Gyro_Calibr();
                         
-                        break;
+//                        break;
                     case TELEMETRY:
                         telemetry_on ^= 1;
                         break;
@@ -231,18 +232,18 @@ void USART1_IRQHandler() {
                             case WAITING_FOR_PARAMS_BITMASK:
                                 paramsBitMask = intValue;
                                 break;
-//                            case WAITING_FOR_PWM1:
-//                                if (research == OPERATOR_CONTROL) {
-//                                    pwm1 = intValue;
-//                                    TIM4->CCR1 = pwm1;
-//                                }
-//                                break;
-//                            case WAITING_FOR_PWM2:
-//                                if (research == OPERATOR_CONTROL) {
-//                                    pwm2 = intValue;
-//                                    TIM4->CCR3 	= pwm2;
-//                                }
-//                                break;
+                            case WAITING_FOR_PWM1:
+                                //if (research == OPERATOR_CONTROL) {
+                                    motors.pwm1 = intValue;
+                                    Motors_Run();
+                                //}
+                                break;
+                            case WAITING_FOR_PWM2:
+                                //if (research == OPERATOR_CONTROL) {
+                                    motors.pwm2 = intValue;
+                                    Motors_Run();
+                                //}
+                                break;
 //                            case WAITING_FOR_MIN_PWM:
 //                                minPwm = intValue;
 //                                break;
@@ -352,8 +353,8 @@ extern uint16_t freq1;
 extern uint16_t freq2;
 extern float F;
 
-static uint8_t tele[MAX_PACKET_SIZE];
-static uint8_t tele_len;
+uint8_t tele[MAX_PACKET_SIZE];
+uint8_t tele_len;
 static uint8_t crc;
 static uint8_t crc_i;
 
