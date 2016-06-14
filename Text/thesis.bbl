@@ -1,10 +1,19 @@
 \begin{thebibliography}{1}
 
-\bibitem{polyak_scherbakov_robust}
-П.С.Щербаков Б.Т.Поляк.
-\newblock {\em Робастная устойчивость и
-  управление}.
-\newblock Наука, 2002.
+\bibitem{maybeck79}
+Peter~S. Maybeck.
+\newblock {\em Stochastic Models, Estimation, and Control}.
+\newblock Academic Press, Inc, 1979.
+
+\bibitem{brown92}
+R.G.Brown{,} P.Y.C.Hwang.
+\newblock {\em Introduction to Random Signals and Applied Kalman Filtering}.
+\newblock John Wiley and Sons, Inc, second edition edition, 1992.
+
+\bibitem{ljung_identification}
+Lennart Ljung.
+\newblock {\em System Identification: Theory for the User}.
+\newblock Prentice Hall, 1987.
 
 \bibitem{fossen_marine_control}
 Thor~I. Fossen.
@@ -12,9 +21,21 @@ Thor~I. Fossen.
   Ships, Rigs and Underwater Vehicles}.
 \newblock Marine Cybernetics, 2002.
 
-\bibitem{ljung_identification}
-Lennart Ljung.
-\newblock {\em System Identification: Theory for the User}.
-\newblock Prentice Hall, 1987.
+\bibitem{voitkunski_teoria_korabl}
+Я.И.Войткунский{,}~Р.Я.Першиц{,} И.А.Титов.
+\newblock {\em Справочник по теории корабля.
+  Судовые движители и управляемость}.
+\newblock Судостроение, 1973.
+
+\bibitem{vaganov_tyaga_sudov}
+Г.И.Ваганов{,}~В.Ф.Воронин{,} В.К.Шанчурова.
+\newblock {\em Тяга судов}.
+\newblock Транспорт, 1986.
+
+\bibitem{polyak_scherbakov_robust}
+Б.Т.Поляк{,} П.С.Щербаков.
+\newblock {\em Робастная устойчивость и
+  управление}.
+\newblock Наука, 2002.
 
 \end{thebibliography}
